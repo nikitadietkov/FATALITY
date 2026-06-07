@@ -1,0 +1,136 @@
+@font-face {
+  font-family: 'Russo One'; /* Запомни это имя */
+  src: url('./assets/fonts/RussoOne.ttf') format('truetype');
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: #F9FAFB;
+  color: #0A0A0A;
+  min-height: 100vh;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20%; 
+  background-color: #000000;
+}
+
+.logo-group {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  text-decoration: none;
+}
+.gamepad-icon {
+  color: #ff0000;
+  font-size: 45px;
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.logo-title {
+  color: #ff0000;
+  font-family: "Arial Black", "Helvetica Black", sans-serif;
+  font-weight: 900;
+  font-size: 28px;
+  margin: 0;
+  line-height: 1;
+  letter-spacing: 1px;
+}
+
+.logo-subtitle {
+  color: #888888;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.cart-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #ff0000;
+  color: #ffffff;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 16px;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.cart-button:hover {
+  background-color: #cc0000;
+}
+
+.cart-icon {
+  font-size: 20px;
+}
+.flying-item {
+  position: fixed;
+  z-index: 9999;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 5px 15px rgba(255, 0, 0, 0.4);
+  border: 2px solid #ff0000;
+  pointer-events: none;
+  transition: all .8s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@keyframes cartBounce {
+  0%, 100% { transform: scale(1); }
+  30% { transform: scale(1.06) translateY(-8px); }
+  50% { transform: scale(0.9) translateY(2px); }
+  75% { transform: scale(1.01) translateY(-2px); }
+}
+
+.cart-bounce {
+  animation: cartBounce 0.4s ease-in-out;
+}
+
+.cart-icon-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -8px;
+  right: -12px;
+  background-color: #ffffff;
+  color: #ff0000;
+  font-size: 12px;
+  font-weight: 900;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}

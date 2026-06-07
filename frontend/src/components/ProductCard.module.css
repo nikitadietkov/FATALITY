@@ -1,0 +1,163 @@
+.card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid #eeeeee;
+    color: #121212;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.12);
+    border-color: #e2e2e2;
+}
+
+.conditionBadge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: 0.65em;
+    font-weight: bold;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-family: 'Russo One', sans-serif;
+    z-index: 2;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.excellent { background-color: #e6f4ea; color: #137333; }
+.good { background-color: #fef7e0; color: #b06000; }
+.fair { background-color: #fce8e6; color: #c5221f; }
+
+.imageWrapper {
+    width: 100%;
+    height: 180px;
+    background-color: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.imageWrapper img {
+    height: 100%;
+    object-fit: contain;
+    padding: 10px;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 5px 5px 0 0;
+}
+
+.info {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    box-shadow: inset 0 0 15px #12121212;
+}
+
+.title {
+    font-size: 1.05em;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+    font-family: 'Russo One', sans-serif;
+    line-height: 1.3;
+}
+
+.modelName {
+    font-size: 0.85em;
+    color: #888888;
+    font-family: 'Russo One', sans-serif;
+    margin-bottom: 12px;
+}
+
+.ratingContainer {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.starsWrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.starsOuter {
+    display: flex;
+    color: #e4e5e9;
+}
+
+.starsInner {
+    display: flex;
+    position: absolute;
+    top: 0;
+    left: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    color: #ffc107;
+}
+
+.starsOuter svg, .starsInner svg {
+    font-size: 16px;
+    flex-shrink: 0;
+    margin-right: 2px;
+}
+
+.ratingText {
+    margin-left: 8px;
+    font-size: 0.9em;
+    font-weight: bold;
+    color: #555555;
+    font-family: 'Russo One', sans-serif;
+}
+
+.noRatingText {
+    font-size: 0.85em;
+    color: #888888;
+    font-style: italic;
+    font-family: 'Russo One', sans-serif;
+    line-height: 16px;
+}
+
+.footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+}
+
+.price {
+    font-size: 1.3em;
+    font-weight: 700;
+    color: #E7000B;
+    font-family: 'Russo One', sans-serif;
+}
+
+.addToCartBtn {
+    background-color: #121212;
+    color: #ffffff;
+    border: none;
+    min-width: min-content;
+    padding: 10px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.addToCartBtn:hover {
+    background-color: #E7000B;
+}
+
+.addToCartBtn:active {
+    transform: scale(0.95);
+}
