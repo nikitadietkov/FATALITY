@@ -1,0 +1,215 @@
+/* =========================================
+   КЛЮЧОВІ АНІМАЦІЇ
+   ========================================= */
+@keyframes fadeInBg {
+  from { background-color: rgba(10, 10, 10, 0); }
+  to { background-color: rgba(10, 10, 10, 1); }
+}
+
+@keyframes slideUpCard {
+  from { opacity: 0; transform: translateY(40px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes pulseGlow {
+  0% { text-shadow: 0 0 5px rgba(231, 0, 11, 0.1); }
+  50% { text-shadow: 0 0 20px rgba(231, 0, 11, 0.6); }
+  100% { text-shadow: 0 0 5px rgba(231, 0, 11, 0.1); }
+}
+
+@keyframes shakeError {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+@keyframes accessGranted {
+  0% { 
+    transform: scale(1); 
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8); 
+    border-color: #222222; 
+  }
+  30% { 
+    transform: scale(1.02); 
+    box-shadow: 0 0 50px rgba(0, 168, 89, 0.3); 
+    border-color: #00a859; 
+  }
+  100% { 
+    transform: scale(1.15); 
+    opacity: 0; 
+    filter: blur(8px); 
+  }
+}
+
+/* =========================================
+   ОСНОВНІ СТИЛІ
+   ========================================= */
+.loginWrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100dvh; /* 100dvh вирішує проблему обрізки екранів на мобільному Safari/Chrome */
+  background-color: #0A0A0A;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  animation: fadeInBg 0.4s ease-out forwards;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.loginCard {
+  background-color: #121212;
+  border: 1px solid #222222;
+  border-radius: 16px;
+  padding: 45px 35px;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+  animation: slideUpCard 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  box-sizing: border-box;
+}
+
+.logo {
+  color: #ff0000;
+  font-size: 38px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  margin: 0 0 5px 0;
+  font-family: 'Montserrat', 'Russo One', sans-serif;
+  animation: pulseGlow 2.5s infinite;
+}
+
+.subtitle {
+  color: #888888;
+  font-size: 13px;
+  margin: 0 0 35px 0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 600;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+}
+
+.inputGroup {
+  position: relative;
+  width: 100%;
+}
+
+.inputField {
+  width: 100%;
+  padding: 16px;
+  background-color: #1a1a1a;
+  border: 1px solid #333333;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 15px;
+  font-family: inherit;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  letter-spacing: 2px; /* Кращий вигляд для паролю */
+}
+
+.inputField:focus {
+  outline: none;
+  border-color: #ff0000;
+  background-color: #222222;
+  box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.15);
+}
+
+.inputField::placeholder {
+  color: #666666;
+  letter-spacing: normal;
+}
+
+.inputField:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.errorMsg {
+  color: #ff4444;
+  font-size: 13px;
+  margin-top: 12px;
+  text-align: left;
+  padding-left: 5px;
+  font-weight: 600;
+  animation: shakeError 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 16px;
+  margin-top: 25px;
+  background-color: #ff0000;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+.submitBtn:hover:not(:disabled) {
+  background-color: #cc0000;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(255, 0, 0, 0.2);
+}
+
+.submitBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #990000;
+}
+
+/* =========================================
+   СТАНИ УСПІХУ (ДОСТУП ДОЗВОЛЕНО)
+   ========================================= */
+.successCard {
+  animation: accessGranted 1s cubic-bezier(0.8, 0, 0.2, 1) forwards;
+  pointer-events: none;
+}
+
+.submitBtnSuccess {
+  background-color: #00a859 !important;
+  color: #ffffff;
+  box-shadow: 0 0 20px rgba(0, 168, 89, 0.5) !important;
+  transform: translateY(0) !important;
+  letter-spacing: 2px;
+  opacity: 1 !important;
+}
+
+.logoSuccess {
+  color: #00a859 !important;
+  animation: none !important;
+  text-shadow: 0 0 15px rgba(0, 168, 89, 0.6) !important;
+}
+
+/* =========================================
+   АДАПТИВ (ДЛЯ МАЛЕНЬКИХ ЕКРАНІВ)
+   ========================================= */
+@media (max-width: 480px) {
+  .loginCard {
+    padding: 35px 25px;
+  }
+  
+  .logo {
+    font-size: 32px;
+  }
+}

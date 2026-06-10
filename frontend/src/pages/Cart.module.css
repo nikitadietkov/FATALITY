@@ -1,21 +1,26 @@
+/* =========================================
+   CART PAGE (DARK THEME)
+   ========================================= */
+
 .cartPage {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 0 15px;
+  color: #ffffff;
 }
 
 .pageTitle {
   font-family: 'Russo One', sans-serif;
   font-size: 32px;
-  color: #0A0A0A;
+  color: #ffffff;
   margin-bottom: 30px;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
-
 .cartContent {
   display: grid;
-  grid-template-columns: 1fr 350px;
+  grid-template-columns: 1fr 380px;
   gap: 30px;
   align-items: flex-start;
 }
@@ -26,6 +31,7 @@
   }
 }
 
+/* --- Списки товарів --- */
 .itemsList {
   display: flex;
   flex-direction: column;
@@ -35,80 +41,113 @@
 .cartItem {
   display: flex;
   align-items: center;
-  background-color: #ffffff;
+  background-color: #111111;
   padding: 20px;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e5e7eb;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  border: 1px solid #222222;
+  transition: border-color 0.3s ease;
+}
+
+.cartItem:hover {
+  border-color: #333333;
 }
 
 .imageWrapper {
-  width: 100px;
-  height: 80px;
+  width: 110px;
+  height: 90px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: #0a0a0a;
+  border-radius: 8px;
+  padding: 5px;
+  box-sizing: border-box;
 }
 
 .imageWrapper img {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.imageWrapper:hover img {
+  transform: scale(1.05);
 }
 
 .itemInfo {
   flex-grow: 1;
   padding: 0 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.itemTitleLink {
+  text-decoration: none;
+  color: #ffffff;
 }
 
 .itemTitle {
   font-size: 18px;
   font-weight: 700;
-  color: #0A0A0A;
-  margin-bottom: 5px;
+  margin: 0;
+  transition: color 0.2s;
 }
 
-.itemModel {
-  display: block;
-  font-size: 13px;
-  color: #888888;
-  margin-bottom: 5px;
-}
-
-.itemPrice {
-  font-weight: 600;
+.itemTitleLink:hover .itemTitle {
   color: #ff0000;
 }
 
+.itemModel {
+  font-size: 13px;
+  color: #888888;
+}
+
+.itemCondition {
+  font-size: 12px;
+  color: #ff0000;
+  background: rgba(255, 0, 0, 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+/* --- Кнопки кількості --- */
 .quantityControls {
   display: flex;
   align-items: center;
   gap: 12px;
-  background-color: #f3f4f6;
+  background-color: #1a1a1a;
   padding: 6px 12px;
   border-radius: 8px;
   margin-right: 30px;
+  border: 1px solid #333333;
 }
 
 .quantityBtn {
   background: none;
   border: none;
-  color: #0A0A0A;
+  color: #cccccc;
   font-size: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: color 0.2s;
+  transition: color 0.2s, transform 0.1s;
+  padding: 4px;
 }
 
 .quantityBtn:hover:not(:disabled) {
   color: #ff0000;
+  transform: scale(1.1);
 }
 
 .quantityBtn:disabled {
-  color: #ccc;
+  color: #444444;
   cursor: not-allowed;
 }
 
@@ -117,13 +156,15 @@
   font-size: 16px;
   min-width: 20px;
   text-align: center;
+  color: #ffffff;
 }
 
+/* --- Ціна і видалення --- */
 .itemSubtotal {
   font-size: 20px;
   font-weight: 700;
-  color: #0A0A0A;
-  min-width: 90px;
+  color: #ffffff;
+  min-width: 100px;
   text-align: right;
   margin-right: 25px;
 }
@@ -131,15 +172,16 @@
 .deleteBtn {
   background: none;
   border: none;
-  color: #9ca3af;
+  color: #666666;
   font-size: 18px;
   cursor: pointer;
-  transition: color 0.2s;
-  padding: 5px;
+  transition: color 0.2s, transform 0.2s;
+  padding: 8px;
 }
 
 .deleteBtn:hover {
   color: #ff0000;
+  transform: scale(1.1);
 }
 
 .clearCartBtn {
@@ -152,18 +194,23 @@
   cursor: pointer;
   margin-top: 10px;
   transition: color 0.2s;
+  padding: 5px 0;
 }
 
 .clearCartBtn:hover {
-  color: #0A0A0A;
+  color: #ff0000;
 }
 
+/* --- ПІДСУМОК (SUMMARY CARD) --- */
 .summaryCard {
-  background-color: #000000;
+  background-color: #111111;
   color: #ffffff;
   padding: 30px;
   border-radius: 12px;
-  box-shadow: 0 10px 20px rgba(255, 0, 0, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border: 1px solid #222222;
+  position: sticky;
+  top: 20px;
 }
 
 .summaryTitle {
@@ -172,19 +219,24 @@
   text-transform: uppercase;
   margin-bottom: 25px;
   letter-spacing: 0.5px;
-  color: #ff0000;
+  color: #ffffff;
+}
+
+.summaryDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .summaryRow {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 15px;
   font-size: 15px;
-  color: #cccccc;
+  color: #aaaaaa;
 }
 
 .freeShipping {
-  color: #00ff00;
+  color: #00a859;
   font-weight: 600;
 }
 
@@ -209,76 +261,39 @@
 .totalPrice {
   font-size: 28px;
   font-weight: 900;
-  color: #ffffff;
+  color: #ff0000;
 }
 
+/* --- Кнопки та Форма Checkout --- */
 .checkoutBtn {
   width: 100%;
   background-color: #ff0000;
   color: #ffffff;
-  padding: 15px;
+  padding: 16px;
+  border: none;
   border-radius: 8px;
   font-size: 16px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
+  cursor: pointer;
   transition: background-color 0.2s, transform 0.1s;
 }
 
 .checkoutBtn:hover {
   background-color: #cc0000;
+  box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
 }
 
 .checkoutBtn:active {
   transform: scale(0.98);
 }
 
-.emptyContainer {
-  text-align: center;
-  padding: 80px 20px;
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e5e7eb;
-}
-
-.emptyIcon {
-  font-size: 60px;
-  color: #dc2626;
-  margin-bottom: 20px;
-}
-
-.emptyContainer h2 {
-  font-family: 'Russo One', sans-serif;
-  font-size: 24px;
-  margin-bottom: 10px;
-}
-
-.emptyContainer p {
-  color: #6b7280;
-  margin-bottom: 30px;
-}
-
-.backBtn {
-  display: inline-block;
-  background-color: #000000;
-  color: #ffffff;
-  padding: 12px 30px;
-  border-radius: 8px;
-  font-weight: 700;
-  transition: background-color 0.2s;
-}
-
-.backBtn:hover {
-  background-color: #ff0000;
-}
-
 .checkoutForm {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 15px;
-  animation: fadeIn 0.3s ease-in-out;
+  gap: 15px;
+  animation: fadeIn 0.3s ease-out;
 }
 
 @keyframes fadeIn {
@@ -286,61 +301,232 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .inputField {
   width: 100%;
   padding: 12px 15px;
   border-radius: 8px;
   border: 1px solid #333333;
-  background-color: #1a1a1a;
+  background-color: #0a0a0a;
   color: #ffffff;
   font-family: inherit;
   font-size: 14px;
-  transition: border-color 0.2s;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .inputField::placeholder {
-  color: #888888;
+  color: #666666;
 }
 
 .inputField:focus {
   outline: none;
   border-color: #ff0000;
+  box-shadow: 0 0 8px rgba(255, 0, 0, 0.3);
+}
+
+.formActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 5px;
 }
 
 .submitBtn {
   flex: 1;
   background-color: #00a859;
   color: #ffffff;
-  padding: 12px;
+  border: none;
+  padding: 14px;
   border-radius: 8px;
   font-weight: 700;
   text-transform: uppercase;
   font-size: 14px;
+  cursor: pointer;
   transition: background-color 0.2s;
 }
 
-.submitBtn:hover {
+.submitBtn:hover:not(:disabled) {
   background-color: #008a49;
+  box-shadow: 0 5px 15px rgba(0, 168, 89, 0.3);
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .cancelBtn {
   flex: 1;
   background-color: transparent;
-  color: #cccccc;
-  padding: 12px;
+  color: #aaaaaa;
+  padding: 14px;
   border-radius: 8px;
   font-weight: 600;
   border: 1px solid #333333;
+  cursor: pointer;
   transition: all 0.2s;
 }
 
-.cancelBtn:hover {
-  background-color: #333333;
+.cancelBtn:hover:not(:disabled) {
+  background-color: #1a1a1a;
   color: #ffffff;
+  border-color: #666666;
+}
+
+/* --- EMPTY / SUCCESS STATES --- */
+.emptyContainer {
+  text-align: center;
+  padding: 100px 20px;
+  background-color: #0a0a0a;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border: 1px solid #222222;
+  max-width: 600px;
+  margin: 50px auto;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.emptyIcon {
+  font-size: 70px;
+  color: #333333;
+  margin-bottom: 25px;
+}
+
+.successIconWrapper {
+  display: inline-flex;
+  border-radius: 50%;
+  box-shadow: 0 0 30px rgba(0, 168, 89, 0.2);
+  margin-bottom: 25px;
 }
 
 .successIcon {
-  font-size: 70px;
+  font-size: 80px;
   color: #00a859;
-  margin-bottom: 20px;
+}
+
+.emptyTitle {
+  font-family: 'Russo One', sans-serif;
+  font-size: 28px;
+  margin: 0 0 15px 0;
+  color: #ffffff;
+}
+
+.emptyText {
+  color: #aaaaaa;
+  margin-bottom: 40px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.backBtn {
+  display: inline-block;
+  background-color: #ff0000;
+  color: #ffffff;
+  padding: 15px 35px;
+  border-radius: 8px;
+  font-weight: 700;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.backBtn:hover {
+  background-color: #cc0000;
+  box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+}
+
+.backBtn:active {
+  transform: scale(0.98);
+}
+
+/* =========================================
+   АДАПТИВ (MOBILE GRID)
+   ========================================= */
+@media (max-width: 768px) {
+  .pageTitle {
+    font-size: 26px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .cartContent {
+    gap: 20px;
+  }
+
+  .cartItem {
+    display: grid;
+    grid-template-columns: 90px 1fr auto;
+    grid-template-areas: 
+      "img info delete"
+      "img controls subtotal";
+    gap: 15px 10px;
+    padding: 15px;
+  }
+
+  .imageWrapper {
+    grid-area: img;
+    width: 100%;
+    height: 80px;
+  }
+
+  .itemInfo {
+    grid-area: info;
+    padding: 0;
+  }
+
+  .itemTitle {
+    font-size: 16px;
+  }
+
+  .quantityControls {
+    grid-area: controls;
+    margin: 0;
+    padding: 6px 10px;
+    max-width: 110px;
+    justify-content: space-between;
+  }
+
+  .itemSubtotal {
+    grid-area: subtotal;
+    margin: 0;
+    min-width: unset;
+    text-align: right;
+    font-size: 18px;
+    align-self: center;
+  }
+
+  .deleteBtn {
+    grid-area: delete;
+    align-self: flex-start;
+    padding: 0;
+  }
+
+  .summaryCard {
+    padding: 20px;
+    position: static;
+  }
+
+  .summaryTitle {
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
+
+  .totalPrice {
+    font-size: 24px;
+  }
+
+  .emptyContainer {
+    padding: 60px 15px;
+    margin: 20px;
+  }
+  
+  .emptyTitle {
+    font-size: 24px;
+  }
 }

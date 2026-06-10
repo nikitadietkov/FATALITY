@@ -1,0 +1,470 @@
+/* =========================================
+   ГЛОБАЛЬНІ СТИЛІ ТА ФОН
+   ========================================= */
+.aboutPageWrapper {
+  position: relative;
+  background-color: #050505;
+  color: #ffffff;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+}
+
+/* ІНТЕРАКТИВНИЙ АНІМОВАНИЙ ФОН (КІБЕР-СІТКА) */
+.animatedBackground {
+  position: fixed;
+  top: 0; left: 0; 
+  width: 100%; /* ФІКС ГОРИЗОНТАЛЬНОГО СКРОЛУ (було 100vw) */
+  height: 100vh;
+  background-image: 
+    linear-gradient(rgba(255, 0, 0, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 0, 0, 0.04) 1px, transparent 1px);
+  background-size: 50px 50px;
+  z-index: 0;
+  pointer-events: none;
+  animation: gridMove 20s linear infinite;
+  mask-image: radial-gradient(circle at center, black 30%, transparent 80%);
+  -webkit-mask-image: radial-gradient(circle at center, black 30%, transparent 80%);
+}
+
+@keyframes gridMove {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(50px); }
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  position: relative;
+  z-index: 2;
+}
+
+/* =========================================
+   1. HERO СЕКЦІЯ
+   ========================================= */
+.heroSection {
+  padding: 100px 0;
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+}
+
+.hero3DContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 50px;
+  background: radial-gradient(circle at 70% 50%, rgba(255, 0, 0, 0.1) 0%, transparent 60%);
+  border-radius: 24px;
+  padding: 40px;
+  border: 1px solid rgba(255,0,0,0.1);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.heroContent {
+  flex: 1;
+  max-width: 600px;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  background: rgba(255, 0, 0, 0.1);
+  border: 1px solid #ff0000;
+  color: #ff0000;
+  border-radius: 6px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  margin-bottom: 25px;
+}
+
+.pulseDot {
+  width: 10px; height: 10px;
+  background: #ff0000;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+.glitchTitle {
+  font-size: 5rem;
+  font-weight: 900;
+  margin: 0;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: -2px;
+  text-shadow: 4px 4px 0px rgba(255, 0, 0, 0.3);
+}
+
+.subTitle {
+  font-size: 1.8rem;
+  margin: 15px 0 25px 0;
+}
+
+.redText { color: #ff0000; }
+
+.heroDescription {
+  color: #aaaaaa;
+  font-size: 1.15rem;
+  line-height: 1.6;
+}
+
+.heroImageSide {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.skullBgIcon {
+  font-size: 250px;
+  color: #111111;
+  filter: drop-shadow(0 0 30px rgba(255, 0, 0, 0.3));
+  transition: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.hero3DContainer:hover .skullBgIcon {
+  color: #ff0000;
+  transform: scale(1.05) translateZ(30px);
+}
+
+/* =========================================
+   2. ТЕРМІНАЛ
+   ========================================= */
+.terminalSection {
+  padding: 40px 0;
+}
+
+.terminalWindow {
+  background: #0a0a0a;
+  border: 1px solid #333333;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.terminalHeader {
+  background: #1a1a1a;
+  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid #333;
+}
+
+.macBtn { width: 12px; height: 12px; border-radius: 50%; }
+.redBtn { background: #ff5f56; }
+.yellowBtn { background: #ffbd2e; }
+.greenBtn { background: #27c93f; }
+
+.terminalTitle {
+  color: #888;
+  font-family: monospace;
+  font-size: 14px;
+  margin-left: 15px;
+}
+
+.terminalBody {
+  padding: 25px;
+  font-family: 'Courier New', Courier, monospace;
+  color: #00ff00;
+  font-size: 16px;
+  line-height: 1.5;
+  min-height: 120px;
+  overflow-x: auto;
+}
+
+.cursor { animation: blink 1s step-end infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* =========================================
+   3. СТАТИСТИКА
+   ========================================= */
+.statsSection {
+  padding: 60px 0;
+  background: rgba(10, 10, 10, 0.8);
+  border-top: 1px solid #222;
+  border-bottom: 1px solid #222;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 30px;
+  text-align: center;
+}
+
+.statBox {
+  padding: 20px;
+  border-radius: 16px;
+  background: #111;
+  border: 1px solid #222;
+  transition: 0.3s ease;
+}
+
+.statBox:hover {
+  border-color: #ff0000;
+  transform: translateY(-5px);
+}
+
+.statIconWrapper {
+  font-size: 35px;
+  color: #ff0000;
+  margin-bottom: 15px;
+}
+
+.counterNumber { font-size: 3rem; font-weight: 900; color: #fff; }
+.counterSuffix { font-size: 1.5rem; color: #ff0000; font-weight: bold; }
+.statLabelText { color: #888; text-transform: uppercase; letter-spacing: 1px; font-size: 14px; margin-top: 10px; }
+
+/* =========================================
+   4. ІНТЕРАКТИВНИЙ ПРОЦЕС (ТАБИ)
+   ========================================= */
+.processSection { padding: 100px 0; }
+
+.sectionHeader { text-align: center; margin-bottom: 60px; }
+.glitchHeading { font-size: 3rem; font-weight: 900; margin: 0 0 10px 0; text-transform: uppercase; }
+.sectionSubtext { color: #aaa; font-size: 1.2rem; }
+
+.processInteractive {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 40px;
+  background: #111;
+  border-radius: 20px;
+  border: 1px solid #333;
+  padding: 30px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+}
+
+.processTabs { display: flex; flex-direction: column; gap: 15px; }
+
+.stepTab {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 12px;
+  color: #888;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  text-align: left;
+}
+
+.stepTab:hover { background: #222; color: #fff; }
+
+.activeStepTab {
+  background: #ff0000;
+  border-color: #ff0000;
+  color: #fff;
+  transform: translateX(10px);
+  box-shadow: 0 10px 20px rgba(255,0,0,0.3);
+}
+
+.stepTabIcon { font-size: 24px; }
+
+.activeStepDisplay {
+  background: #0a0a0a;
+  border-radius: 16px;
+  padding: 40px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #222;
+}
+
+.stepWatermark {
+  position: absolute;
+  top: -20px; right: 20px;
+  font-size: 150px;
+  font-weight: 900;
+  color: rgba(255,255,255,0.03);
+  z-index: 0;
+}
+
+.stepContentBox { position: relative; z-index: 1; animation: fadeSlideUp 0.4s ease forwards; }
+
+.stepTitle { font-size: 2rem; color: #fff; margin: 0 0 20px 0; }
+.stepDescription { color: #ccc; font-size: 1.1rem; line-height: 1.6; margin-bottom: 30px; }
+
+.techDetailsBlock {
+  background: rgba(255,0,0,0.05);
+  border-left: 4px solid #ff0000;
+  padding: 20px;
+  border-radius: 0 8px 8px 0;
+}
+
+.techDetailsTitle { margin: 0 0 15px 0; color: #ff0000; display: flex; align-items: center; gap: 10px; }
+.techDetailsList { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.techDetailsList li { display: flex; align-items: center; gap: 10px; color: #aaa; }
+.checkIconMin { color: #ff0000; }
+
+/* =========================================
+   5. ЦІННОСТІ (КАРТКИ)
+   ========================================= */
+.valuesSection { padding: 80px 0; }
+
+.valuesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+}
+
+.valueCard {
+  background: #111;
+  padding: 40px 30px;
+  border-radius: 16px;
+  border: 1px solid #333;
+  text-align: center;
+  transition: 0.3s ease;
+}
+
+.valueCard:hover {
+  transform: translateY(-10px);
+  border-color: #ff0000;
+  box-shadow: 0 15px 30px rgba(255,0,0,0.15);
+}
+
+.valueIconHuge { font-size: 60px; color: #ff0000; margin-bottom: 20px; }
+.valueCard h3 { font-size: 1.5rem; margin-bottom: 15px; }
+.valueCard p { color: #888; line-height: 1.6; }
+
+/* =========================================
+   6. FAQ
+   ========================================= */
+.faqSection { padding: 80px 0; }
+
+.faqContainer { max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px; }
+
+.faqItem {
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: 0.3s ease;
+}
+
+.faqItem:hover { border-color: #555; }
+.faqOpen { border-color: #ff0000; box-shadow: 0 5px 20px rgba(255,0,0,0.1); }
+
+.faqQuestion {
+  width: 100%;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+
+.faqQIcon { color: #ff0000; font-size: 20px; flex-shrink: 0; }
+.faqQuestion h4 { margin: 0; flex: 1; font-size: 1.1rem; color: #fff; }
+.faqArrow { color: #888; transition: transform 0.3s ease; flex-shrink: 0; }
+.faqOpen .faqArrow { transform: rotate(180deg); color: #ff0000; }
+
+.faqAnswer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease-in-out;
+}
+
+.faqOpen .faqAnswer { max-height: 500px; }
+
+.faqAnswerInner {
+  padding: 0 20px 20px 50px;
+  color: #aaa;
+  line-height: 1.6;
+}
+
+/* =========================================
+   7. ФІНАЛЬНИЙ CTA
+   ========================================= */
+.ctaFinalSection { padding: 100px 0; text-align: center; }
+
+.ctaContent {
+  background: radial-gradient(circle at center, #1a1a1a 0%, #0a0a0a 100%);
+  padding: 80px 20px;
+  border-radius: 24px;
+  border: 1px solid #333;
+}
+
+.ctaBigIcon { font-size: 80px; color: #ff0000; margin-bottom: 20px; }
+.ctaContent h2 { font-size: 3rem; font-weight: 900; margin-bottom: 15px; }
+.ctaContent p { color: #888; font-size: 1.2rem; margin-bottom: 40px; }
+
+.ctaGlitchBtn {
+  display: inline-block;
+  background: #ff0000;
+  color: #fff;
+  padding: 20px 50px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: 0.3s;
+}
+
+.ctaGlitchBtn:hover {
+  background: #cc0000;
+  transform: scale(1.05);
+  box-shadow: 0 10px 30px rgba(255,0,0,0.4);
+}
+
+/* =========================================
+   АНІМАЦІЇ ТА АДАПТИВ
+   ========================================= */
+@keyframes pulse { 
+  0% { transform: scale(1); opacity: 1; } 
+  100% { transform: scale(2); opacity: 0; } 
+}
+
+@keyframes fadeSlideUp { 
+  0% { opacity: 0; transform: translateY(20px); } 
+  100% { opacity: 1; transform: translateY(0); } 
+}
+
+@media (max-width: 1024px) {
+  .hero3DContainer { flex-direction: column; text-align: center; }
+  .hero3DContainer { transform: none !important; } /* Вимикаємо 3D на планшетах */
+  .glitchTitle { font-size: 4rem; }
+  .processInteractive { grid-template-columns: 1fr; }
+  .activeStepTab { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(255,0,0,0.3); }
+}
+
+@media (max-width: 768px) {
+  .heroSection { padding: 60px 0; }
+  .glitchTitle { font-size: 2.5rem; }
+  .subTitle { font-size: 1.3rem; }
+  .skullBgIcon { display: none; }
+  
+  .statsGrid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+  .statNumber { font-size: 2rem; }
+  
+  .glitchHeading { font-size: 2rem; }
+  
+  .ctaContent h2 { font-size: 2rem; }
+  .ctaContent { padding: 40px 15px; }
+  
+  .faqAnswerInner { padding: 0 15px 20px 15px; }
+  .faqQuestion h4 { font-size: 1rem; }
+}
+
+@media (max-width: 480px) {
+  .statsGrid { grid-template-columns: 1fr; }
+  .processInteractive { padding: 15px; }
+  .stepTab { padding: 15px; font-size: 14px; }
+  .activeStepDisplay { padding: 20px; }
+  .stepTitle { font-size: 1.5rem; }
+}

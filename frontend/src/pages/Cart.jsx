@@ -1,31 +1,39 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { FaMinus, FaPlus, FaTrash, FaShoppingBag, FaCheckCircle } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { FaMinus, FaPlus, FaTrash, FaShoppingBag, FaCheckCircle } from 'react-icons/fa';
 import styles from './Cart.module.css';
+import toast from 'react-hot-toast';
 
 export default function Cart() {
   const { cartItems, updateQuantity, removeFromCart, cartTotal, clearCart } = useCart();
   
-  // Стейт для форми оформлення
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
-  const [formData, setFormData] = useState({ name: '', phone: '', address: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({ name: '', phone: '', email: '', address: '' });
+
+  // Прокрутка вгору при відкритті кошика або зміні стану
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [isCheckingOut, orderSuccess]);
 
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const submitOrder = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    const toastId = toast.loading('Створення замовлення...');
     
-    // Формуємо об'єкт замовлення
     const orderData = {
       customerName: formData.name,
+      email: formData.email,
       phone: formData.phone,
       address: formData.address,
       items: cartItems.map(item => ({
-        productId: item.id,
+        productId: item._id || item.id,
         title: item.title,
         price: item.price,
         quantity: item.quantity
@@ -34,30 +42,79 @@ export default function Cart() {
     };
 
     try {
-      const response = await fetch('http://localhost:5000/api/orders', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderData)
       });
 
-      if (response.ok) {
-        setOrderSuccess(true);
-        clearCart(); 
-      } else {
-        alert('Помилка при оформленні замовлення. Спробуйте ще раз.');
+      if (!response.ok) throw new Error('Помилка при створенні замовлення.');
+
+      const data = await response.json();
+      const pd = data.paymentData;
+      
+      toast.dismiss(toastId);
+
+      if (typeof window.Wayforpay === 'undefined') {
+        toast.error('Модуль оплати недоступний. Перевірте підключення до інтернету.');
+        setIsSubmitting(false);
+        return;
       }
+
+      const wayforpay = new window.Wayforpay();
+
+      wayforpay.run({
+          merchantAccount: pd.merchantAccount,
+          merchantDomainName: pd.merchantDomainName,
+          authorizationType: "SimpleSignature",
+          merchantSignature: pd.merchantSignature,
+          orderReference: pd.orderReference,
+          orderDate: pd.orderDate,
+          amount: pd.amount,
+          currency: pd.currency,
+          productName: pd.productName,
+          productPrice: pd.productPrice,
+          productCount: pd.productCount,
+          clientFirstName: formData.name.split(' ')[0] || "Клієнт",
+          clientLastName: formData.name.split(' ').slice(1).join(' ') || "",
+          clientPhone: formData.phone,
+          language: "UA",
+          serviceUrl: pd.serviceUrl
+      },
+      function (response) {
+          // Успішна оплата
+          setOrderSuccess(true);
+          clearCart();
+          setIsSubmitting(false);
+      },
+      function (response) {
+          // Відхилено
+          toast.error('Оплата була відхилена банком або скасована.');
+          setIsSubmitting(false);
+      },
+      function (response) {
+          // Закрито віджет
+          toast('Оплату перервано', { icon: 'ℹ️' });
+          setIsSubmitting(false);
+      });
+
     } catch (error) {
       console.error(error);
-      alert('Помилка з\'єднання з сервером.');
+      toast.error(error.message || 'Помилка з\'єднання з сервером.', { id: toastId });
+      setIsSubmitting(false);
     }
   };
 
   if (orderSuccess) {
     return (
       <div className={styles.emptyContainer}>
-        <FaCheckCircle className={styles.successIcon} />
-        <h2>Замовлення прийнято!</h2>
-        <p>Дякуємо за покупку у FATALITY. Наш менеджер скоро зв'яжеться з вами.</p>
+        <div className={styles.successIconWrapper}>
+          <FaCheckCircle className={styles.successIcon} />
+        </div>
+        <h2 className={styles.emptyTitle}>Замовлення прийнято!</h2>
+        <p className={styles.emptyText}>
+          Дякуємо за покупку у FATALITY. Наш кібер-менеджер скоро зв'яжеться з вами.
+        </p>
         <Link to="/" className={styles.backBtn}>
           Повернутися до каталогу
         </Link>
@@ -69,8 +126,8 @@ export default function Cart() {
     return (
       <div className={styles.emptyContainer}>
         <FaShoppingBag className={styles.emptyIcon} />
-        <h2>Ваш кошик порожній</h2>
-        <p>Ви поки не додали жодної консолі до списку покупок.</p>
+        <h2 className={styles.emptyTitle}>Ваш кошик порожній</h2>
+        <p className={styles.emptyText}>Ви поки не додали жодної консолі до списку покупок.</p>
         <Link to="/" className={styles.backBtn}>
           Повернутися до каталогу
         </Link>
@@ -85,43 +142,53 @@ export default function Cart() {
       <div className={styles.cartContent}>
         <div className={styles.itemsList}>
           {cartItems.map((item) => (
-            <div key={item.id} className={styles.cartItem}>
-              <div className={styles.imageWrapper}>
-                <img src={item.imageUrl || 'https://via.placeholder.com/150'} alt={item.title} />
-              </div>
+            <article key={item.id || item._id} className={styles.cartItem}>
               
+              <Link to={`/product/${item.id || item._id}`} className={styles.imageWrapper}>
+                <img src={item.imageUrl} alt={item.title} />
+              </Link>
+
               <div className={styles.itemInfo}>
-                <h4 className={styles.itemTitle}>{item.title}</h4>
+                <Link to={`/product/${item.id || item._id}`} className={styles.itemTitleLink}>
+                  <h3 className={styles.itemTitle}>{item.title}</h3>
+                </Link>
                 <span className={styles.itemModel}>{item.model} Console</span>
-                <span className={styles.itemPrice}>${item.price}</span>
+                <span className={styles.itemCondition}>{item.condition}</span>
               </div>
 
               <div className={styles.quantityControls}>
                 <button 
                   className={styles.quantityBtn} 
-                  onClick={() => updateQuantity(item.id, -1)}
+                  onClick={() => updateQuantity(item.id || item._id, -1)}
                   disabled={item.quantity <= 1}
+                  aria-label="Зменшити кількість"
                 >
                   <FaMinus />
                 </button>
                 <span className={styles.quantityValue}>{item.quantity}</span>
                 <button 
                   className={styles.quantityBtn} 
-                  onClick={() => updateQuantity(item.id, 1)}
+                  onClick={() => updateQuantity(item.id || item._id, 1)}
+                  aria-label="Збільшити кількість"
                 >
                   <FaPlus />
                 </button>
               </div>
 
               <div className={styles.itemSubtotal}>
-                ${item.price * item.quantity}
+                {item.price * item.quantity} грн
               </div>
 
-              <button className={styles.deleteBtn} onClick={() => removeFromCart(item.id)}>
+              <button 
+                className={styles.deleteBtn} 
+                onClick={() => removeFromCart(item.id || item._id)}
+                aria-label="Видалити товар"
+              >
                 <FaTrash />
               </button>
-            </div>
+            </article>
           ))}
+          
           <button className={styles.clearCartBtn} onClick={clearCart}>
             Очистити кошик
           </button>
@@ -129,18 +196,23 @@ export default function Cart() {
 
         <aside className={styles.summaryCard}>
           <h3 className={styles.summaryTitle}>Підсумок</h3>
-          <div className={styles.summaryRow}>
-            <span>Товари ({cartItems.reduce((acc, item) => acc + item.quantity, 0)} шт.)</span>
-            <span>${cartTotal}</span>
+          
+          <div className={styles.summaryDetails}>
+            <div className={styles.summaryRow}>
+              <span>Товари ({cartItems.reduce((acc, item) => acc + item.quantity, 0)} шт.)</span>
+              <span>{cartTotal} грн</span>
+            </div>
+            <div className={styles.summaryRow}>
+              <span>Доставка</span>
+              <span className={styles.freeShipping}>Безкоштовно</span>
+            </div>
           </div>
-          <div className={styles.summaryRow}>
-            <span>Доставка</span>
-            <span className={styles.freeShipping}>Безкоштовно</span>
-          </div>
+          
           <hr className={styles.divider} />
+          
           <div className={styles.totalRow}>
             <span>До сплати:</span>
-            <span className={styles.totalPrice}>${cartTotal}</span>
+            <span className={styles.totalPrice}>{cartTotal} грн</span>
           </div>
 
           {!isCheckingOut ? (
@@ -149,39 +221,19 @@ export default function Cart() {
             </button>
           ) : (
             <form className={styles.checkoutForm} onSubmit={submitOrder}>
-              <input 
-                type="text" 
-                name="name"
-                placeholder="Ваше ім'я" 
-                required 
-                className={styles.inputField}
-                value={formData.name}
-                onChange={handleInputChange}
-              />
-              <input 
-                type="tel" 
-                name="phone"
-                placeholder="Номер телефону" 
-                required 
-                className={styles.inputField}
-                value={formData.phone}
-                onChange={handleInputChange}
-              />
-              <input 
-                type="text" 
-                name="address"
-                placeholder="Адреса доставки (Місто, Відділення НП)" 
-                required 
-                className={styles.inputField}
-                value={formData.address}
-                onChange={handleInputChange}
-              />
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button type="button" className={styles.cancelBtn} onClick={() => setIsCheckingOut(false)}>
+              <div className={styles.formGroup}>
+                <input type="text" name="name" placeholder="Ваше ім'я" required className={styles.inputField} value={formData.name} onChange={handleInputChange} />
+                <input type="email" name="email" placeholder="Ваш Email (для чеку)" required className={styles.inputField} value={formData.email} onChange={handleInputChange} />
+                <input type="tel" name="phone" placeholder="Номер телефону" required className={styles.inputField} value={formData.phone} onChange={handleInputChange} />
+                <input type="text" name="address" placeholder="Місто, Відділення НП" required className={styles.inputField} value={formData.address} onChange={handleInputChange} />
+              </div>
+              
+              <div className={styles.formActions}>
+                <button type="button" className={styles.cancelBtn} onClick={() => setIsCheckingOut(false)} disabled={isSubmitting}>
                   Скасувати
                 </button>
-                <button type="submit" className={styles.submitBtn}>
-                  Підтвердити
+                <button type="submit" className={styles.submitBtn} disabled={isSubmitting}>
+                  {isSubmitting ? 'Обробка...' : 'Оплатити'}
                 </button>
               </div>
             </form>

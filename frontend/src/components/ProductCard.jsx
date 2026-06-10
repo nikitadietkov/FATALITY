@@ -1,22 +1,28 @@
+import { useMemo, useCallback } from 'react';
 import { FaShoppingCart, FaStar } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import styles from './ProductCard.module.css';
 
-export default function ProductCard({ id, title, model, condition, price, imageUrl, rating }) {
+export default function ProductCard({ id, title, model, condition, price, imageUrl, imageUrls, rating }) {
   const { addToCart } = useCart();
 
-  const getConditionClass = (cond) => {
-    switch (cond.toLowerCase()) {
-      case 'excellent': return styles.excellent;
-      case 'good': return styles.good;
-      case 'fair': return styles.fair;
-      default: return '';
-    }
-  };
+  // Оптимізація: обчислюємо URL картинки лише при зміні пропсів
+  const validImageUrl = useMemo(() => {
+    const arrayImages = imageUrls && imageUrls.length > 0 ? imageUrls : [imageUrl].filter(Boolean);
+    const firstImg = arrayImages[0];
+    if (!firstImg) return 'https://via.placeholder.com/300x200?text=No+Image';
+    
+    const cleanPath = firstImg.replace(/\\/g, '/');
+    return cleanPath.startsWith('/uploads') 
+      ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${cleanPath}` 
+      : cleanPath;
+  }, [imageUrl, imageUrls]);
 
-  const handleAddToCart = (e) => {
-    addToCart({ id, title, model, price, imageUrl });
+  const handleAddToCart = useCallback((e) => {
+    e.preventDefault(); // Запобігаємо переходу за посиланням при кліку на кошик
+    addToCart({ id, title, model, price, imageUrl: validImageUrl });
+    
     const button = e.currentTarget;
     const card = button.closest('.' + styles.card);
     const img = card.querySelector('img');
@@ -29,29 +35,42 @@ export default function ProductCard({ id, title, model, condition, price, imageU
     const flyer = document.createElement('div');
     flyer.className = 'flying-item';
     
-    flyer.style.left = `${imgRect.left}px`;
-    flyer.style.top = `${imgRect.top}px`;
-    flyer.style.width = `${imgRect.width}px`;
-    flyer.style.height = `${imgRect.height}px`;
-    flyer.style.borderRadius = '12px';
-    flyer.style.backgroundImage = `url(${imageUrl || 'https://via.placeholder.com/300x200?text=No+Image'})`;
+    // Стилізація елементу, що летить
+    Object.assign(flyer.style, {
+      left: `${imgRect.left}px`,
+      top: `${imgRect.top}px`,
+      width: `${imgRect.width}px`,
+      height: `${imgRect.height}px`,
+      borderRadius: '12px',
+      backgroundImage: `url(${validImageUrl})`,
+      backgroundSize: 'contain',
+      backgroundRepeat: 'no-repeat',
+      backgroundPosition: 'center',
+      position: 'fixed',
+      zIndex: 9999,
+      transition: 'all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)'
+    });
 
     document.body.appendChild(flyer);
 
+    // Анімація польоту
     requestAnimationFrame(() => {
-      flyer.style.left = `${cartRect.left + cartRect.width / 2 - 20}px`;
-      flyer.style.top = `${cartRect.top + cartRect.height / 2 - 20}px`;
-      flyer.style.width = '40px';
-      flyer.style.height = '40px';
-      flyer.style.borderRadius = '50%';
-      flyer.style.opacity = '0';
+      Object.assign(flyer.style, {
+        left: `${cartRect.left + cartRect.width / 2 - 20}px`,
+        top: `${cartRect.top + cartRect.height / 2 - 20}px`,
+        width: '40px',
+        height: '40px',
+        borderRadius: '50%',
+        opacity: '0'
+      });
     });
     
+    // Видалення після завершення
     setTimeout(() => {
       flyer.remove();
       window.dispatchEvent(new CustomEvent('animate-cart'));
     }, 400);
-  };
+  }, [addToCart, id, title, model, price, validImageUrl]);
 
   const renderStars = () => {
     if (!rating || rating === 0) {
@@ -65,7 +84,7 @@ export default function ProductCard({ id, title, model, condition, price, imageU
     const fillPercentage = (rating / 5) * 100;
 
     return (
-      <div className={styles.ratingContainer}>
+      <div className={styles.ratingContainer} title={`Рейтинг: ${rating} з 5`}>
         <div className={styles.starsWrapper}>
           <div className={styles.starsOuter}>
             <FaStar /><FaStar /><FaStar /><FaStar /><FaStar />
@@ -81,25 +100,30 @@ export default function ProductCard({ id, title, model, condition, price, imageU
 
   return (
     <article className={styles.card}>
-      <span className={`${styles.conditionBadge} ${getConditionClass(condition)}`}>
+      <span className={styles.conditionBadge}>
         {condition}
       </span>
       
       <Link to={`/product/${id}`} className={styles.imageWrapper}>
-        <img src={imageUrl || 'https://via.placeholder.com/300x200?text=No+Image'} alt={title} />
+        <img src={validImageUrl} alt={title} loading="lazy" />
       </Link>
 
       <div className={styles.info}>
-        <Link to={`/product/${id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-          <h4 className={styles.title}>{title}</h4>
+        <Link to={`/product/${id}`} className={styles.titleLink}>
+          <h4 className={styles.title} title={title}>{title}</h4>
         </Link>
         <span className={styles.modelName}>{model} Консоль</span>
         
         {renderStars()}
         
         <div className={styles.footer}>
-          <span className={styles.price}>${price}</span>
-          <button className={styles.addToCartBtn} title="Add to Cart" onClick={handleAddToCart}>
+          <span className={styles.price}>{price} грн</span>
+          <button 
+            className={styles.addToCartBtn} 
+            title="Додати в кошик" 
+            aria-label="Додати в кошик"
+            onClick={handleAddToCart}
+          >
             <FaShoppingCart />
           </button>
         </div>

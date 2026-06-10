@@ -1,20 +1,25 @@
 .card {
-    background-color: #ffffff;
+    background-color: #111111; /* Темний фон */
     border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
     overflow: hidden;
     position: relative;
     display: flex;
     flex-direction: column;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border: 1px solid #eeeeee;
-    color: #121212;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    border: 1px solid #222222; /* Темна рамка */
+    color: #ffffff; /* Білий текст */
+    
+    /* КРИТИЧНІ ФІКСИ ДЛЯ МОБІЛЬНИХ */
+    width: 100%;
+    min-width: 0; 
+    box-sizing: border-box;
+    height: 100%;
 }
 
 .card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.12);
-    border-color: #e2e2e2;
+    box-shadow: 0 10px 25px rgba(255, 0, 0, 0.15); /* Червона тінь */
+    border-color: #ff0000; /* Червона рамка при наведенні */
 }
 
 .conditionBadge {
@@ -22,35 +27,39 @@
     top: 12px;
     right: 12px;
     font-size: 0.65em;
-    font-weight: bold;
+    font-weight: 800;
     text-transform: uppercase;
-    padding: 4px 8px;
+    padding: 4px 10px;
     border-radius: 6px;
     font-family: 'Russo One', sans-serif;
     z-index: 2;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background-color: rgba(255, 0, 0, 0.15); /* Напівпрозорий червоний */
+    color: #ff0000;
+    border: 1px solid rgba(255, 0, 0, 0.3);
+    backdrop-filter: blur(4px);
 }
-
-.excellent { background-color: #e6f4ea; color: #137333; }
-.good { background-color: #fef7e0; color: #b06000; }
-.fair { background-color: #fce8e6; color: #c5221f; }
 
 .imageWrapper {
     width: 100%;
     height: 180px;
-    background-color: #f5f5f5;
+    background-color: #050505; /* Ще темніший фон для фото */
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
+    border-bottom: 1px solid #222222;
 }
 
 .imageWrapper img {
     height: 100%;
-    object-fit: contain;
-    padding: 10px;
-    object-fit: cover;
-    object-position: center;
-    border-radius: 5px 5px 0 0;
+    width: 100%;
+    padding: 15px;
+    object-fit: contain; /* Contain гарантує, що консоль влізе повністю */
+    transition: transform 0.4s ease;
+}
+
+.card:hover .imageWrapper img {
+    transform: scale(1.05);
 }
 
 .info {
@@ -58,7 +67,16 @@
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-    box-shadow: inset 0 0 15px #12121212;
+    overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #111111;
+}
+
+.titleLink {
+    text-decoration: none;
+    color: #ffffff;
+    outline: none;
 }
 
 .title {
@@ -67,19 +85,30 @@
     margin: 0 0 4px 0;
     font-family: 'Russo One', sans-serif;
     line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.2s;
+}
+
+.titleLink:hover .title {
+    color: #ff0000;
 }
 
 .modelName {
     font-size: 0.85em;
     color: #888888;
-    font-family: 'Russo One', sans-serif;
+    font-family: 'Inter', sans-serif;
     margin-bottom: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .ratingContainer {
     display: flex;
     align-items: center;
-    margin-bottom: 12px;
+    margin-bottom: 15px;
 }
 
 .starsWrapper {
@@ -89,7 +118,7 @@
 
 .starsOuter {
     display: flex;
-    color: #e4e5e9;
+    color: #333333;
 }
 
 .starsInner {
@@ -99,11 +128,11 @@
     left: 0;
     white-space: nowrap;
     overflow: hidden;
-    color: #ffc107;
+    color: #ff0000;
 }
 
 .starsOuter svg, .starsInner svg {
-    font-size: 16px;
+    font-size: 14px;
     flex-shrink: 0;
     margin-right: 2px;
 }
@@ -112,16 +141,15 @@
     margin-left: 8px;
     font-size: 0.9em;
     font-weight: bold;
-    color: #555555;
-    font-family: 'Russo One', sans-serif;
+    color: #cccccc;
+    font-family: 'Inter', sans-serif;
 }
 
 .noRatingText {
     font-size: 0.85em;
-    color: #888888;
+    color: #666666;
     font-style: italic;
-    font-family: 'Russo One', sans-serif;
-    line-height: 16px;
+    font-family: 'Inter', sans-serif;
 }
 
 .footer {
@@ -132,18 +160,17 @@
 }
 
 .price {
-    font-size: 1.3em;
-    font-weight: 700;
-    color: #E7000B;
+    font-size: 1.4em;
+    font-weight: 800;
+    color: #ff0000;
     font-family: 'Russo One', sans-serif;
 }
 
 .addToCartBtn {
-    background-color: #121212;
+    background-color: #ff0000;
     color: #ffffff;
     border: none;
-    min-width: min-content;
-    padding: 10px;
+    width: 40px;
     height: 40px;
     border-radius: 8px;
     display: flex;
@@ -151,13 +178,52 @@
     justify-content: center;
     font-size: 1.1em;
     cursor: pointer;
-    transition: background-color 0.2s, transform 0.1s;
+    transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    flex-shrink: 0;
 }
 
 .addToCartBtn:hover {
-    background-color: #E7000B;
+    background-color: #cc0000;
+    transform: scale(1.05);
+    box-shadow: 0 4px 10px rgba(255, 0, 0, 0.3);
 }
 
 .addToCartBtn:active {
     transform: scale(0.95);
+}
+
+/* =========================================
+   АДАПТИВ ДЛЯ 2-Х КАРТОК НА ТЕЛЕФОНІ
+   ========================================= */
+@media (max-width: 500px) {
+    .imageWrapper {
+        height: 140px;
+    }
+    .info {
+        padding: 12px;
+    }
+    .title {
+        font-size: 0.95em;
+    }
+    .modelName {
+        font-size: 0.75em;
+        margin-bottom: 8px;
+    }
+    .price {
+        font-size: 1.2em;
+    }
+    .addToCartBtn {
+        width: 36px;
+        height: 36px;
+        font-size: 1em;
+    }
+    .conditionBadge {
+        font-size: 0.55em;
+        padding: 3px 8px;
+        top: 8px;
+        right: 8px;
+    }
+    .starsOuter svg, .starsInner svg {
+        font-size: 12px;
+    }
 }
