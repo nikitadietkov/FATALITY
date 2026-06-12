@@ -446,6 +446,153 @@
 }
 
 /* =========================================
+   ЕКРАН УСПІШНОГО ЗАМОВЛЕННЯ
+   ========================================= */
+.successContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 60vh;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  animation: zoomIn 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes zoomIn {
+  0% { opacity: 0; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.successIconWrapper {
+  width: 100px;
+  height: 100px;
+  background-color: rgba(0, 168, 89, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 25px;
+  box-shadow: 0 0 30px rgba(0, 168, 89, 0.3);
+  animation: pulseGreen 2s infinite;
+}
+
+@keyframes pulseGreen {
+  0% { box-shadow: 0 0 0 0 rgba(0, 168, 89, 0.4); }
+  70% { box-shadow: 0 0 0 20px rgba(0, 168, 89, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 168, 89, 0); }
+}
+
+.successIcon {
+  font-size: 50px;
+  color: #00a859;
+}
+
+.successTitle {
+  font-size: 32px;
+  font-weight: 900;
+  color: #ffffff;
+  margin-top: 0;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.successText {
+  color: #aaaaaa;
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: 30px;
+}
+
+.orderIdBox {
+  background-color: #111111;
+  border: 1px solid #333333;
+  border-radius: 12px;
+  padding: 20px 30px;
+  margin-bottom: 40px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.orderIdBox::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background-color: #ff0000;
+}
+
+.orderIdLabel {
+  color: #888888;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.orderIdValue {
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 900;
+  font-family: monospace;
+  letter-spacing: 1px;
+  word-break: break-all;
+}
+
+.successActions {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+}
+
+.trackBtn, .homeBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 24px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 15px;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.trackBtn {
+  background-color: #ff0000;
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);
+}
+
+.trackBtn:hover {
+  background-color: #cc0000;
+  transform: translateY(-2px);
+}
+
+.homeBtn {
+  background-color: #1a1a1a;
+  color: #ffffff;
+  border: 1px solid #333333;
+}
+
+.homeBtn:hover {
+  background-color: #333333;
+  border-color: #555555;
+  transform: translateY(-2px);
+}
+
+/* =========================================
    АДАПТИВ (MOBILE GRID)
    ========================================= */
 @media (max-width: 768px) {
@@ -528,5 +675,10 @@
   
   .emptyTitle {
     font-size: 24px;
+  }
+
+  .successActions {
+    flex-direction: column;
+    gap: 15px;
   }
 }

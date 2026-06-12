@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { 
   FaPlaystation, FaSkull, FaWrench, FaMicrochip, 
   FaTemperatureLow, FaShieldAlt, FaGamepad, FaGhost, 
@@ -108,6 +109,10 @@ export default function About() {
 
   return (
     <div className={styles.aboutPageWrapper}>
+      <Helmet>
+          <title>Про магазин | FATALITY</title>
+          <meta name="description" content="Дізнайтеся більше про FATALITY. Професійне відновлення та тестування вживаних консолей." />
+        </Helmet>
       <div className={styles.animatedBackground} aria-hidden="true"></div>
 
       {/* 1. HERO СЕКЦІЯ */}

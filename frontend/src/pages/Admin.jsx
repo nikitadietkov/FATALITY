@@ -1,10 +1,24 @@
-import { FaBoxes, FaDollarSign, FaUser, FaClock, FaShoppingBag, FaPlusCircle, FaCloudUploadAlt, FaEdit, FaTrash } from 'react-icons/fa';
-import { useState, useEffect, useRef } from 'react';
+import { 
+  FaBoxes, FaDollarSign, FaUser, FaClock, FaShoppingBag, 
+  FaPlusCircle, FaCloudUploadAlt, FaEdit, FaTrash, 
+  FaSearch, FaTimes 
+} from 'react-icons/fa';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css'; 
 import styles from './Admin.module.css';
 import toast from 'react-hot-toast';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+const quillModules = {
+  toolbar: [
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    ['clean'] 
+  ],
+};
 
 export default function Admin() {
   const [orders, setOrders] = useState([]);
@@ -21,7 +35,10 @@ export default function Admin() {
   const [imageFiles, setImageFiles] = useState([]);
   const [productMsg, setProductMsg] = useState('');
   const [isDragging, setIsDragging] = useState(false);
+  
   const [filterStatus, setFilterStatus] = useState('All');
+  const [orderSearchQuery, setOrderSearchQuery] = useState('');
+  
   const [replyingToReviewId, setReplyingToReviewId] = useState(null);
   const [selectedProductReviews, setSelectedProductReviews] = useState(null);
   const [editProductId, setEditProductId] = useState(null);
@@ -50,19 +67,35 @@ export default function Admin() {
         fetch(`${API_BASE}/api/products`)
       ]);
 
-      if (ordersRes.status === 401 || ordersRes.status === 403) throw new Error('Доступ заборонено.');
+      if (!ordersRes.ok) throw new Error(`Доступ до замовлень заборонено (${ordersRes.status})`);
+      if (!productsRes.ok) throw new Error(`Помилка завантаження товарів (${productsRes.status})`);
       
       const ordersData = await ordersRes.json();
       const productsData = await productsRes.json();
       
-      setOrders(ordersData);
-      setProductsList(productsData);
+      setOrders(Array.isArray(ordersData) ? ordersData : []);
+      setProductsList(Array.isArray(productsData) ? productsData : []);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
+
+  const filteredOrders = useMemo(() => {
+    if (!Array.isArray(orders)) return [];
+    
+    return orders.filter(order => {
+      const matchesStatus = filterStatus === 'All' ? true : order.status === filterStatus;
+      const query = orderSearchQuery.toLowerCase().trim();
+      const matchesSearch = query === '' ? true : (
+        order.customerName?.toLowerCase().includes(query) ||
+        order.phone?.toLowerCase().includes(query) ||
+        order._id?.toLowerCase().includes(query)
+      );
+      return matchesStatus && matchesSearch;
+    });
+  }, [orders, filterStatus, orderSearchQuery]);
 
   const handleDragOver = (e) => { e.preventDefault(); setIsDragging(true); };
   const handleDragLeave = (e) => { e.preventDefault(); setIsDragging(false); };
@@ -84,7 +117,10 @@ export default function Admin() {
   const handleAddOrEditProduct = async (e) => {
     e.preventDefault();
     setProductMsg('');
-    if (!editProductId && imageFiles.length === 0) return setProductMsg('❌ Завантажте хоча б 1 фото.');
+    
+    const isDescEmpty = !newProduct.description || newProduct.description === '<p><br></p>';
+    if (isDescEmpty) return toast.error('Додайте опис товару!');
+    if (!editProductId && imageFiles.length === 0) return toast.error('Завантажте хоча б 1 фото!');
 
     const loadingToast = toast.loading(editProductId ? 'Оновлення товару...' : 'Додавання товару...');
 
@@ -115,7 +151,7 @@ export default function Admin() {
         if (fileInputRef.current) fileInputRef.current.value = '';
         
         const updatedProducts = await fetch(`${API_BASE}/api/products`).then(res => res.json());
-        setProductsList(updatedProducts);
+        setProductsList(Array.isArray(updatedProducts) ? updatedProducts : []);
       } else {
         toast.error('❌ Помилка при збереженні.', { id: loadingToast });
       }
@@ -140,7 +176,13 @@ export default function Admin() {
 
   const handleEditClick = (product) => {
     setEditProductId(product._id);
-    setNewProduct({ title: product.title, model: product.model, price: product.price, condition: product.condition, description: product.description });
+    setNewProduct({ 
+      title: product.title || '', 
+      model: product.model || '', 
+      price: product.price || '', 
+      condition: product.condition || 'Вживана - Ідеальний стан', 
+      description: product.description || '' 
+    });
     setImageFiles([]); 
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -202,6 +244,7 @@ export default function Admin() {
   const renderStatusBadge = (status) => {
     switch(status) {
       case 'Paid': return <span className={`${styles.statusBadge} ${styles.paid}`}>ОПЛАЧЕНО</span>;
+      case 'Processing': return <span className={`${styles.statusBadge} ${styles.processing}`}>В ОБРОБЦІ</span>; // 🔥 ДОДАНО СЮДИ
       case 'Shipped': return <span className={`${styles.statusBadge} ${styles.shipped}`}>ВІДПРАВЛЕНО</span>;
       case 'Cancelled': return <span className={`${styles.statusBadge} ${styles.cancelled}`}>СКАСОВАНО</span>;
       default: return <span className={`${styles.statusBadge} ${styles.pending}`}>ОЧІКУЄ ОПЛАТИ</span>;
@@ -245,8 +288,9 @@ export default function Admin() {
     } catch (err) { toast.error("Помилка відправки відповіді"); }
   };
 
-  const totalSales = orders.filter(o => o.status === 'Paid' || o.status === 'Shipped').reduce((sum, o) => sum + o.totalAmount, 0);
-  const pendingOrdersCount = orders.filter(o => o.status === 'Pending').length;
+  const safeOrders = Array.isArray(orders) ? orders : [];
+  const totalSales = safeOrders.filter(o => o.status === 'Paid' || o.status === 'Shipped').reduce((sum, o) => sum + o.totalAmount, 0);
+  const pendingOrdersCount = safeOrders.filter(o => o.status === 'Pending').length;
 
   if (loading) return <div className={styles.centerMsg}>Ініціалізація терміналу FATALITY...</div>;
   if (error) return <div className={styles.centerMsg}>Критична помилка: {error}</div>;
@@ -257,8 +301,8 @@ export default function Admin() {
         <h2 className={styles.pageTitle}>Система керування</h2>
 
         <div className={styles.tabsWrapper}>
-          <button className={`${styles.tabBtn} ${activeTab === 'orders' ? styles.activeTab : ''}`} onClick={() => setActiveTab('orders')}>Замовлення</button>
-          <button className={`${styles.tabBtn} ${activeTab === 'products' ? styles.activeTab : ''}`} onClick={() => setActiveTab('products')}>Управління товарами</button>
+          <button type="button" className={`${styles.tabBtn} ${activeTab === 'orders' ? styles.activeTab : ''}`} onClick={() => setActiveTab('orders')}>Замовлення</button>
+          <button type="button" className={`${styles.tabBtn} ${activeTab === 'products' ? styles.activeTab : ''}`} onClick={() => setActiveTab('products')}>Управління товарами</button>
         </div>
 
         {activeTab === 'orders' && (
@@ -268,7 +312,7 @@ export default function Admin() {
                 <div className={`${styles.iconWrapper} ${styles.blue}`}><FaBoxes /></div>
                 <div className={styles.statInfo}>
                   <span className={styles.statLabel}>Усього замовлень</span>
-                  <span className={styles.statValue}>{orders.length}</span>
+                  <span className={styles.statValue}>{safeOrders.length}</span>
                 </div>
               </div>
               <div className={styles.statCard} style={{ animationDelay: '0.2s' }}>
@@ -289,42 +333,60 @@ export default function Admin() {
 
             <div className={styles.ordersHeaderRow}>
               <h3 className={styles.sectionTitle}>Стрічка даних</h3>
-              <div className={styles.filterWrapper}>
-                <label htmlFor="statusFilter">Фільтр:</label>
-                <select 
-                  id="statusFilter"
-                  className={styles.filterSelect}
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                >
-                  <option value="All">Всі замовлення</option>
-                  <option value="Pending">Очікують оплати</option>
-                  <option value="Paid">Оплачені</option>
-                  <option value="Shipped">Відправлені</option>
-                  <option value="Cancelled">Скасовані</option>
-                </select>
+              
+              <div className={styles.filtersControls}>
+                <div className={styles.adminSearchWrapper}>
+                  <FaSearch className={styles.adminSearchIcon} />
+                  <input
+                    type="text"
+                    placeholder="Пошук (Ім'я, Телефон, ID)..."
+                    className={styles.adminSearchInput}
+                    value={orderSearchQuery}
+                    onChange={(e) => setOrderSearchQuery(e.target.value)}
+                  />
+                  {orderSearchQuery && (
+                    <button type="button" className={styles.adminSearchClear} onClick={() => setOrderSearchQuery('')}>
+                      <FaTimes />
+                    </button>
+                  )}
+                </div>
+
+                <div className={styles.filterWrapper}>
+                  <label htmlFor="statusFilter">Фільтр:</label>
+                  <select 
+                    id="statusFilter"
+                    className={styles.filterSelect}
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                  >
+                    <option value="All">Всі замовлення</option>
+                    <option value="Pending">Очікують оплати</option>
+                    <option value="Paid">Оплачені</option>
+                    <option value="Shipped">Відправлені</option>
+                    <option value="Cancelled">Скасовані</option>
+                  </select>
+                </div>
               </div>
             </div>
 
             <div className={styles.ordersList}>
-              {orders.length === 0 ? (
-                <p className={styles.noOrders}>База даних порожня.</p>
-              ) : orders.filter(order => filterStatus === 'All' ? true : order.status === filterStatus).length === 0 ? (
-                <p className={styles.noOrders}>Замовлень з таким статусом не знайдено.</p>
+              {filteredOrders.length === 0 ? (
+                <p className={styles.noOrders}>
+                  {safeOrders.length === 0 ? "База даних порожня." : "За вказаними критеріями замовлень не знайдено."}
+                </p>
               ) : (
-                orders
-                  .filter(order => filterStatus === 'All' ? true : order.status === filterStatus)
-                  .map((order, index) => (
-                    <div key={order._id} className={styles.orderCard} style={{ animationDelay: `${0.5 + (index * 0.08)}s` }}>
+                filteredOrders.map((order, index) => (
+                    <div key={order._id} className={styles.orderCard} style={{ animationDelay: `${Math.min(index * 0.05, 0.4)}s` }}>
                       
                       <div className={styles.orderHeader}>
                         <div className={styles.orderMeta}>
-                          <span className={styles.orderId}>ID: {order._id.substring(10)}...</span>
+                          <span className={styles.orderId}>ID: {order._id}</span>
                           <span className={styles.orderDate}>{new Date(order.createdAt).toLocaleDateString('uk-UA', { hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
                         <div className={styles.orderStatusActions}>
                           {renderStatusBadge(order.status)}
                           <button 
+                            type="button"
                             className={styles.deleteOrderBtn} 
                             onClick={() => setOrderToDelete(order._id)}
                             title="Видалити замовлення"
@@ -344,7 +406,7 @@ export default function Admin() {
                         <div className={styles.itemsBlock}>
                           <p className={styles.itemsTitle}><strong><FaShoppingBag /> Склад замовлення:</strong></p>
                           <div className={styles.itemsListWrapper}>
-                            {order.items.map((item, idx) => (
+                            {order.items?.map((item, idx) => (
                               <div key={idx} className={styles.itemRow}>
                                 <span>{item.title} x{item.quantity}</span>
                                 <span>{item.price * item.quantity} грн</span>
@@ -359,6 +421,7 @@ export default function Admin() {
                           <select id={`status-${order._id}`} defaultValue={order.status} className={styles.statusSelect}>
                             <option value="Pending">Очікує оплати</option>
                             <option value="Paid">Оплачено</option>
+                            <option value="Processing">Обробка замовлення</option>
                             <option value="Shipped">Відправлено</option>
                             <option value="Cancelled">Скасовано</option>
                           </select>
@@ -369,7 +432,7 @@ export default function Admin() {
                             defaultValue={order.trackingNumber || ''} 
                             className={styles.ttnInput} 
                           />
-                          <button className={styles.updateStatusBtn} onClick={() => handleUpdateOrderStatus(order._id)}>Зберегти</button>
+                          <button type="button" className={styles.updateStatusBtn} onClick={() => handleUpdateOrderStatus(order._id)}>Зберегти</button>
                         </div>
                         
                         <div className={styles.totalBlock}>
@@ -392,15 +455,40 @@ export default function Admin() {
                 {editProductId ? 'Редагування товару' : 'Додати нову консоль'}
               </h3>
               <form onSubmit={handleAddOrEditProduct} className={styles.productForm}>
-                
                 <div className={styles.formRow}>
-                  <input type="text" placeholder="Назва (напр. Sony PlayStation 5)" required className={styles.inputField} value={newProduct.title} onChange={e => setNewProduct({...newProduct, title: e.target.value})} />
-                  <input type="text" placeholder="Модель (напр. PS5)" required className={styles.inputField} value={newProduct.model} onChange={e => setNewProduct({...newProduct, model: e.target.value})} />
+                  <input 
+                    type="text" 
+                    placeholder="Назва (напр. Sony PlayStation 5)" 
+                    required 
+                    className={styles.inputField} 
+                    value={newProduct.title || ''} 
+                    onChange={e => setNewProduct(prev => ({...prev, title: e.target.value}))} 
+                  />
+                  <input 
+                    type="text" 
+                    placeholder="Модель (напр. PS5)" 
+                    required 
+                    className={styles.inputField} 
+                    value={newProduct.model || ''} 
+                    onChange={e => setNewProduct(prev => ({...prev, model: e.target.value}))} 
+                  />
                 </div>
 
                 <div className={styles.formRow}>
-                  <input type="number" placeholder="Ціна (грн)" required className={styles.inputField} value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} />
-                  <select className={styles.inputField} required value={newProduct.condition} onChange={e => setNewProduct({...newProduct, condition: e.target.value})}>
+                  <input 
+                    type="number" 
+                    placeholder="Ціна (грн)" 
+                    required 
+                    className={styles.inputField} 
+                    value={newProduct.price || ''} 
+                    onChange={e => setNewProduct(prev => ({...prev, price: e.target.value}))} 
+                  />
+                  <select 
+                    className={styles.inputField} 
+                    required 
+                    value={newProduct.condition || 'Вживана - Ідеальний стан'} 
+                    onChange={e => setNewProduct(prev => ({...prev, condition: e.target.value}))}
+                  >
                     <option value="Нова">Нова</option>
                     <option value="Вживана - Ідеальний стан">Вживана - Ідеальний стан</option>
                     <option value="Вживана - Хороший стан">Вживана - Хороший стан</option>
@@ -408,7 +496,15 @@ export default function Admin() {
                   </select>
                 </div>
 
-                <textarea placeholder="Опис товару (комплектація, гарантія, дефекти...)" required className={styles.inputField} value={newProduct.description} onChange={e => setNewProduct({...newProduct, description: e.target.value})} rows="4" />
+                <div className={styles.editorWrapper}>
+                  <ReactQuill 
+                    theme="snow"
+                    modules={quillModules}
+                    value={newProduct.description || ''}
+                    onChange={(content) => setNewProduct(prev => ({...prev, description: content}))}
+                    placeholder="Опис товару (комплектація, гарантія, дефекти... Можна використовувати списки!)"
+                  />
+                </div>
 
                 <div 
                   className={`${styles.dropZone} ${isDragging ? styles.dropZoneActive : ''}`}
@@ -473,13 +569,13 @@ export default function Admin() {
                         </Link>
 
                         <div className={styles.adminProductActions}>
-                          <button className={styles.editBtn} onClick={() => handleEditClick(product)} title="Редагувати">
+                          <button type="button" className={styles.editBtn} onClick={() => handleEditClick(product)} title="Редагувати">
                             <FaEdit />
                           </button>
-                          <button className={styles.deleteBtn} onClick={() => handleDeleteProduct(product._id)} title="Видалити">
+                          <button type="button" className={styles.deleteBtn} onClick={() => handleDeleteProduct(product._id)} title="Видалити">
                             <FaTrash />
                           </button>
-                          <button className={styles.actionBtn} onClick={() => setSelectedProductReviews(product)}>
+                          <button type="button" className={styles.actionBtn} onClick={() => setSelectedProductReviews(product)}>
                             💬 Відгуки ({product.reviews?.length || 0})
                           </button>
                         </div>
@@ -498,7 +594,7 @@ export default function Admin() {
           <div className={styles.reviewsModal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h3>Відгуки: {selectedProductReviews.title}</h3>
-              <button className={styles.closeModalBtn} onClick={() => setSelectedProductReviews(null)}>✖</button>
+              <button type="button" className={styles.closeModalBtn} onClick={() => setSelectedProductReviews(null)}>✖</button>
             </div>
             
             <div className={styles.modalBody}>
@@ -522,9 +618,9 @@ export default function Admin() {
 
                     <div className={styles.adminReviewActions}>
                       {!review.adminReply && replyingToReviewId !== review._id && (
-                        <button className={styles.replyBtn} onClick={() => setReplyingToReviewId(review._id)}>Відповісти</button>
+                        <button type="button" className={styles.replyBtn} onClick={() => setReplyingToReviewId(review._id)}>Відповісти</button>
                       )}
-                      <button className={styles.deleteReviewBtn} onClick={() => handleDeleteReview(selectedProductReviews._id, review._id)}>Видалити</button>
+                      <button type="button" className={styles.deleteReviewBtn} onClick={() => handleDeleteReview(selectedProductReviews._id, review._id)}>Видалити</button>
                     </div>
 
                     {replyingToReviewId === review._id && (
@@ -535,8 +631,8 @@ export default function Admin() {
                           onChange={(e) => setReplyText(e.target.value)}
                         />
                         <div className={styles.replyBoxActions}>
-                          <button onClick={() => handleReplyReview(selectedProductReviews._id, review._id)}>Зберегти відповідь</button>
-                          <button onClick={() => setReplyingToReviewId(null)} className={styles.cancelReplyBtn}>Скасувати</button>
+                          <button type="button" onClick={() => handleReplyReview(selectedProductReviews._id, review._id)}>Зберегти відповідь</button>
+                          <button type="button" onClick={() => setReplyingToReviewId(null)} className={styles.cancelReplyBtn}>Скасувати</button>
                         </div>
                       </div>
                     )}
@@ -553,7 +649,7 @@ export default function Admin() {
           <div className={styles.deleteConfirmModal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h3 className={styles.dangerTitle}><FaTrash /> Видалення замовлення</h3>
-              <button className={styles.closeModalBtn} onClick={() => setOrderToDelete(null)}>✖</button>
+              <button type="button" className={styles.closeModalBtn} onClick={() => setOrderToDelete(null)}>✖</button>
             </div>
             
             <div className={styles.modalBodyConfirm}>
@@ -563,8 +659,8 @@ export default function Admin() {
               </p>
               
               <div className={styles.confirmActions}>
-                <button className={styles.cancelConfirmBtn} onClick={() => setOrderToDelete(null)}>СКАСУВАТИ</button>
-                <button className={styles.deleteConfirmBtn} onClick={handleDeleteOrder}>ВИДАЛИТИ</button>
+                <button type="button" className={styles.cancelConfirmBtn} onClick={() => setOrderToDelete(null)}>СКАСУВАТИ</button>
+                <button type="button" className={styles.deleteConfirmBtn} onClick={handleDeleteOrder}>ВИДАЛИТИ</button>
               </div>
             </div>
           </div>

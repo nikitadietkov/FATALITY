@@ -11,8 +11,9 @@ import About from './pages/About';
 import Admin from './pages/Admin';
 import Home from './pages/Home';
 import Cart from './pages/Cart';
+import TrackOrder from './pages/TrackOrder';
+import NotFound from './pages/NotFound';
 
-// Захищений маршрут для адмінки
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('adminToken');
   return token ? children : <Navigate to="/admin/login" replace />;
@@ -26,7 +27,6 @@ function AppContent() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { itemsCount } = useCart();
 
-  // Оптимізована анімація кошика
   const handleBounce = useCallback(() => {
     setIsCartBouncing(true);
     setTimeout(() => setIsCartBouncing(false), 400);
@@ -37,15 +37,15 @@ function AppContent() {
     return () => window.removeEventListener('animate-cart', handleBounce);
   }, [handleBounce]);
 
-  // Блокування скролу при відкритому меню
   useEffect(() => {
     document.body.style.overflow = isMenuOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [isMenuOpen]);
 
-  // Закриваємо меню при переході на іншу сторінку
+  // Закриваємо меню і скролимо вгору при зміні маршруту
   useEffect(() => {
     setIsMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [location.pathname]);
 
   return (
@@ -57,7 +57,7 @@ function AppContent() {
           style: { 
             background: 'var(--bg-card)', 
             color: 'var(--text-main)', 
-            border: '1px solid var(--border-color)', 
+            border: '1px solid var(--border-light)', 
             boxShadow: '0 10px 30px rgba(0,0,0,0.5)', 
             borderRadius: '12px', 
             padding: '16px', 
@@ -68,7 +68,6 @@ function AppContent() {
         }}
       />
 
-      {/* Оверлей для мобільного меню */}
       <div 
         className={`mobile-overlay ${isMenuOpen ? 'visible' : ''}`} 
         onClick={() => setIsMenuOpen(false)}
@@ -91,6 +90,8 @@ function AppContent() {
             ) : (
               <Link to="/about" className="nav-link">Про нас</Link>
             )}
+            {/* 🔥 ДОДАНО ПОСИЛАННЯ В ШАПКУ */}
+            <Link to="/track-order" className="nav-link" style={{ color: 'var(--primary-color)' }}>Мої замовлення</Link>
           </nav>
 
           <Link to="/cart" className={`cart-button ${isCartBouncing ? 'cart-bounce' : ''}`}>
@@ -111,7 +112,7 @@ function AppContent() {
         </div>
       </header>
 
-      <main className={`main-content ${isAboutPage ? 'no-padding' : ''}`}>
+      <main className={`main-content ${location.pathname === '/about' ? 'no-padding' : ''}`}>
         <Routes>
           <Route path="/product/:id" element={<Product />} /> 
           <Route path="/about" element={<About />} />
@@ -119,6 +120,8 @@ function AppContent() {
           <Route path="/cart" element={<Cart />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/" element={<Home />} />
+          <Route path="/track-order" element={<TrackOrder />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
 
@@ -131,6 +134,8 @@ function AppContent() {
           <div className="footer-links">
             <Link to="/">Каталог</Link>
             <Link to="/about">Про нас</Link>
+            {/* 🔥 ДОДАНО ПОСИЛАННЯ В ПІДВАЛ */}
+            <Link to="/track-order">Мої замовлення</Link>
             <Link to="/cart">Кошик</Link>
           </div>
         </div>

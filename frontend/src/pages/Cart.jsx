@@ -3,6 +3,7 @@ import { FaMinus, FaPlus, FaTrash, FaShoppingBag, FaCheckCircle } from 'react-ic
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import styles from './Cart.module.css';
+import { Helmet } from 'react-helmet-async';
 import toast from 'react-hot-toast';
 
 export default function Cart() {
@@ -13,7 +14,6 @@ export default function Cart() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ name: '', phone: '', email: '', address: '' });
 
-  // Прокрутка вгору при відкритті кошика або зміні стану
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [isCheckingOut, orderSuccess]);
@@ -63,6 +63,16 @@ export default function Cart() {
 
       const wayforpay = new window.Wayforpay();
 
+      const handleWidgetClose = (event) => {
+        if (event.data === 'WfpWidgetEventClose') {
+          toast.error('Оплата скасована. Ви закрили вікно.', { icon: '✖️' });
+          setIsSubmitting(false); 
+          window.removeEventListener('message', handleWidgetClose);
+        }
+      };
+
+      window.addEventListener('message', handleWidgetClose);
+
       wayforpay.run({
           merchantAccount: pd.merchantAccount,
           merchantDomainName: pd.merchantDomainName,
@@ -82,19 +92,19 @@ export default function Cart() {
           serviceUrl: pd.serviceUrl
       },
       function (response) {
-          // Успішна оплата
-          setOrderSuccess(true);
+          window.removeEventListener('message', handleWidgetClose);
+          setOrderSuccess(pd.orderReference); 
           clearCart();
           setIsSubmitting(false);
       },
       function (response) {
-          // Відхилено
-          toast.error('Оплата була відхилена банком або скасована.');
+          window.removeEventListener('message', handleWidgetClose);
+          toast.error('Оплата була відхилена банком або забракло коштів.');
           setIsSubmitting(false);
       },
       function (response) {
-          // Закрито віджет
-          toast('Оплату перервано', { icon: 'ℹ️' });
+          window.removeEventListener('message', handleWidgetClose);
+          toast('Оплата в обробці', { icon: 'ℹ️' });
           setIsSubmitting(false);
       });
 
@@ -107,17 +117,35 @@ export default function Cart() {
 
   if (orderSuccess) {
     return (
-      <div className={styles.emptyContainer}>
+      <div className={styles.successContainer}>
+        <Helmet>
+          <title>Замовлення прийнято | FATALITY</title>
+        </Helmet>
+        
         <div className={styles.successIconWrapper}>
           <FaCheckCircle className={styles.successIcon} />
         </div>
-        <h2 className={styles.emptyTitle}>Замовлення прийнято!</h2>
-        <p className={styles.emptyText}>
-          Дякуємо за покупку у FATALITY. Наш кібер-менеджер скоро зв'яжеться з вами.
+        
+        <h2 className={styles.successTitle}>ЗАМОВЛЕННЯ ПРИЙНЯТО!</h2>
+        <p className={styles.successText}>
+          Дякуємо за покупку у FATALITY. Ваш платіж успішно оброблено. <br/>
+          Кібер-менеджер вже пакує вашу консоль. <br/>
+          <b>Не забудьте зберегти ID замовлення, щоб відстежити його статус.</b>
         </p>
-        <Link to="/" className={styles.backBtn}>
-          Повернутися до каталогу
-        </Link>
+        
+        <div className={styles.orderIdBox}>
+          <span className={styles.orderIdLabel}>ID вашого замовлення:</span>
+          <span className={styles.orderIdValue}>{orderSuccess}</span>
+        </div>
+        
+        <div className={styles.successActions}>
+          <Link to="/track-order" className={styles.trackBtn}>
+            Відстежити статус
+          </Link>
+          <Link to="/" className={styles.homeBtn}>
+            Повернутися до каталогу
+          </Link>
+        </div>
       </div>
     );
   }
@@ -137,13 +165,15 @@ export default function Cart() {
 
   return (
     <div className={styles.cartPage}>
+      <Helmet>
+        <title>Кошик | FATALITY</title>
+      </Helmet>
       <h2 className={styles.pageTitle}>Ваш кошик</h2>
       
       <div className={styles.cartContent}>
         <div className={styles.itemsList}>
           {cartItems.map((item) => (
             <article key={item.id || item._id} className={styles.cartItem}>
-              
               <Link to={`/product/${item.id || item._id}`} className={styles.imageWrapper}>
                 <img src={item.imageUrl} alt={item.title} />
               </Link>

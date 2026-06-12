@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { CiFilter } from "react-icons/ci";
-import { FaTimes, FaSearch } from "react-icons/fa";
+import { FaTimes, FaSearch, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import ReactSlider from 'react-slider';
 import ProductCard from '../components/ProductCard';
 import styles from './Home.module.css';
@@ -10,8 +10,9 @@ const MODELS = ['PS5', 'PS4 Pro', 'PS4', 'PS3'];
 const CONDITIONS = ['Нова', 'Вживана - Ідеальний стан', 'Вживана - Хороший стан', 'Відновлена (Refurbished)'];
 const PRICE_MIN_DEFAULT = 0;
 const PRICE_MAX_DEFAULT = 40000;
-const API_BASE = 'http://localhost:5000/api/products';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/products';
 const DEBOUNCE_DELAY = 400;
+const ITEMS_PER_PAGE = 12; 
 
 // ─── Hook: debounced value ─────────────────────────────────────────────────────
 function useDebounced(value, delay) {
@@ -31,8 +32,14 @@ export default function Home() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [animationKey, setAnimationKey] = useState(0);
+
+  const productsTopRef = useRef(null);
 
   const debouncedPriceRange = useDebounced(priceRange, DEBOUNCE_DELAY);
   const debouncedSearch = useDebounced(searchQuery, DEBOUNCE_DELAY);
@@ -72,14 +79,90 @@ export default function Home() {
     return () => controller.abort(); 
   }, [selectedModels, selectedConditions, debouncedPriceRange]);
 
-  // ── Client-side search filter ───────────────────────────────────────────────
+  // ── Client-side search & sorting filter ─────────────────────────────────────
   const visibleProducts = useMemo(() => {
-    if (!debouncedSearch.trim()) return products;
-    const q = debouncedSearch.toLowerCase();
-    return products.filter(
-      (p) => p.title.toLowerCase().includes(q) || p.model.toLowerCase().includes(q)
-    );
-  }, [products, debouncedSearch]);
+    let filtered = products;
+    if (debouncedSearch.trim()) {
+      const q = debouncedSearch.toLowerCase();
+      filtered = products.filter(
+        (p) => p.title.toLowerCase().includes(q) || p.model.toLowerCase().includes(q)
+      );
+    }
+
+    return [...filtered].sort((a, b) => {
+      if (sortBy === 'price-asc') return a.price - b.price; 
+      if (sortBy === 'price-desc') return b.price - a.price; 
+      if (sortBy === 'newest') {
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        if (timeA && timeB) return timeB - timeA;
+        return b._id.localeCompare(a._id);
+      }
+      return 0;
+    });
+  }, [products, debouncedSearch, sortBy]);
+
+  // ── Логіка Пагінації та Анімацій ────────────────────────────────────────────
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, sortBy, selectedModels, selectedConditions, debouncedPriceRange]);
+
+  useEffect(() => {
+    setAnimationKey(prev => prev + 1);
+  }, [debouncedSearch, sortBy, selectedModels, selectedConditions, debouncedPriceRange, currentPage]);
+
+  const totalPages = Math.ceil(visibleProducts.length / ITEMS_PER_PAGE);
+  const paginatedProducts = visibleProducts.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  // 🔥 СТАБІЛЬНИЙ СКРОЛ ЧЕРЕЗ setTimeout
+  const handlePageChange = (page) => {
+    if (page < 1 || page > totalPages || page === currentPage) return;
+    
+    setCurrentPage(page);
+    
+    // Даємо 50мс браузеру на відмальовку карток, щоб висота сторінки не стрибала
+    setTimeout(() => {
+      if (productsTopRef.current) {
+        const headerOffset = 100;
+        const elementPosition = productsTopRef.current.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.scrollY - headerOffset;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth"
+        });
+      }
+    }, 50);
+  };
+
+  const getPageElements = () => {
+    const pages = [];
+    let lastAdded = 0;
+    
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+        if (lastAdded + 1 !== i) {
+          pages.push(<span key={`dots-${i}`} className={styles.dots}>...</span>);
+        }
+        pages.push(
+          <button
+            key={i}
+            type="button"
+            className={`${styles.pageBtn} ${currentPage === i ? styles.activePage : ''}`}
+            onClick={() => handlePageChange(i)}
+            aria-current={currentPage === i ? "page" : undefined}
+          >
+            {i}
+          </button>
+        );
+        lastAdded = i;
+      }
+    }
+    return pages;
+  };
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
   const toggleItem = useCallback((setState) => (value) => {
@@ -125,6 +208,7 @@ export default function Home() {
             <p className={styles.filterName}>Фільтри</p>
           </section>
           <button
+            type="button"
             className={styles.closeFilterBtn}
             onClick={() => setIsMobileFilterOpen(false)}
             aria-label="Закрити фільтри"
@@ -133,13 +217,12 @@ export default function Home() {
           </button>
         </div>
 
-        {/* Active filter chips */}
         {hasActiveFilters && (
           <div className={styles.activeFilters}>
             {selectedModels.map((m) => (
               <span key={m} className={styles.chip}>
                 {m}
-                <button onClick={() => toggleItem(setSelectedModels)(m)} aria-label={`Видалити фільтр ${m}`}>
+                <button type="button" onClick={() => toggleItem(setSelectedModels)(m)} aria-label={`Видалити фільтр ${m}`}>
                   <FaTimes />
                 </button>
               </span>
@@ -147,7 +230,7 @@ export default function Home() {
             {selectedConditions.map((c) => (
               <span key={c} className={styles.chip}>
                 {c}
-                <button onClick={() => toggleItem(setSelectedConditions)(c)} aria-label={`Видалити фільтр ${c}`}>
+                <button type="button" onClick={() => toggleItem(setSelectedConditions)(c)} aria-label={`Видалити фільтр ${c}`}>
                   <FaTimes />
                 </button>
               </span>
@@ -155,12 +238,12 @@ export default function Home() {
             {(priceRange[0] !== PRICE_MIN_DEFAULT || priceRange[1] !== PRICE_MAX_DEFAULT) && (
               <span className={styles.chip}>
                 {priceRange[0]} – {priceRange[1]} грн
-                <button onClick={() => setPriceRange([PRICE_MIN_DEFAULT, PRICE_MAX_DEFAULT])} aria-label="Скинути ціну">
+                <button type="button" onClick={() => setPriceRange([PRICE_MIN_DEFAULT, PRICE_MAX_DEFAULT])} aria-label="Скинути ціну">
                   <FaTimes />
                 </button>
               </span>
             )}
-            <button className={styles.clearAll} onClick={clearAllFilters}>
+            <button type="button" className={styles.clearAll} onClick={clearAllFilters}>
               Скинути все
             </button>
           </div>
@@ -233,8 +316,7 @@ export default function Home() {
       </aside>
 
       {/* ── Products area ───────────────────────────────────────────────────── */}
-      <section className={styles.productsArea}>
-
+      <section className={styles.productsArea} ref={productsTopRef}>
         <div className={styles.productsAreaHeader}>
           <div className={styles.titleGroup}>
             <h2 className={styles.productsTitle}>Всі товари</h2>
@@ -246,6 +328,19 @@ export default function Home() {
           </div>
 
           <div className={styles.headerActions}>
+            <div className={styles.sortWrapper}>
+              <select 
+                className={styles.sortSelect} 
+                value={sortBy} 
+                onChange={(e) => setSortBy(e.target.value)}
+                aria-label="Сортування товарів"
+              >
+                <option value="newest">Спочатку нові</option>
+                <option value="price-asc">Від дешевих до дорогих</option>
+                <option value="price-desc">Від дорогих до дешевих</option>
+              </select>
+            </div>
+
             <div className={styles.searchWrapper}>
               <FaSearch className={styles.searchIcon} aria-hidden="true" />
               <input
@@ -258,6 +353,7 @@ export default function Home() {
               />
               {searchQuery && (
                 <button
+                  type="button"
                   className={styles.searchClear}
                   onClick={() => setSearchQuery('')}
                   aria-label="Очистити пошук"
@@ -268,6 +364,7 @@ export default function Home() {
             </div>
 
             <button
+              type="button"
               className={styles.mobileFilterToggle}
               onClick={() => setIsMobileFilterOpen(true)}
               aria-label={`Відкрити фільтри${activeFilterCount ? ` (${activeFilterCount} активних)` : ''}`}
@@ -281,7 +378,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* States */}
         {loading && products.length === 0 && (
           <div className={styles.statusMessage}>
             <span className={styles.spinner} aria-hidden="true" />
@@ -295,7 +391,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* Empty state */}
         {!loading && !error && visibleProducts.length === 0 && (
           <div className={styles.emptyState}>
             <p className={styles.emptyStateTitle}>Нічого не знайдено</p>
@@ -303,35 +398,62 @@ export default function Home() {
               Спробуйте змінити фільтри або пошуковий запит.
             </p>
             {hasActiveFilters && (
-              <button className={styles.emptyStateClear} onClick={clearAllFilters}>
+              <button type="button" className={styles.emptyStateClear} onClick={clearAllFilters}>
                 Скинути фільтри
               </button>
             )}
           </div>
         )}
 
-        {/* Grid */}
         {!error && visibleProducts.length > 0 && (
-          <div className={`${styles.productsGrid} ${loading ? styles.loadingGrid : ''}`}>
-            {visibleProducts.map((item, index) => (
-              <div
-                key={item._id}
-                className={styles.animatedCard}
-                style={{ animationDelay: `${Math.min(index * 0.06, 0.6)}s` }}
-              >
-                <ProductCard
-                  id={item._id}
-                  title={item.title}
-                  model={item.model}
-                  condition={item.condition}
-                  price={item.price}
-                  imageUrl={item.imageUrl}
-                  imageUrls={item.imageUrls}
-                  rating={item.rating}
-                />
+          <>
+            <div className={`${styles.productsGrid} ${loading ? styles.loadingGrid : ''}`}>
+              {paginatedProducts.map((item, index) => (
+                <div
+                  key={`${item._id}-${animationKey}`}
+                  className={styles.animatedCard}
+                  style={{ animationDelay: `${Math.min(index * 0.05, 0.5)}s` }}
+                >
+                  <ProductCard
+                    id={item._id}
+                    title={item.title}
+                    model={item.model}
+                    condition={item.condition}
+                    price={item.price}
+                    imageUrl={item.imageUrl}
+                    imageUrls={item.imageUrls}
+                    rating={item.rating}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {totalPages > 1 && (
+              <div className={styles.paginationContainer}>
+                <button
+                  type="button"
+                  className={styles.pageBtn}
+                  disabled={currentPage === 1}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  aria-label="Попередня сторінка"
+                >
+                  <FaChevronLeft />
+                </button>
+                
+                {getPageElements()}
+                
+                <button
+                  type="button"
+                  className={styles.pageBtn}
+                  disabled={currentPage === totalPages}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  aria-label="Наступна сторінка"
+                >
+                  <FaChevronRight />
+                </button>
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </section>
     </div>

@@ -197,8 +197,7 @@ app.post('/api/orders', async (req, res) => {
         const orderReference = newOrder._id.toString();
         const orderDate = Math.floor(Date.now() / 1000); 
         const amount = totalAmount; 
-        const currency = 'USD';
-
+        const currency = 'UAH'; 
         const productNames = items.map(item => item.title);
         const productCounts = items.map(item => item.quantity);
         const productPrices = items.map(item => item.price);
@@ -321,6 +320,30 @@ app.post('/api/payment/webhook', async (req, res) => {
     } catch (error) {
         console.error("❌ Помилка вебхука:", error);
         res.status(500).send("Internal Server Error");
+    }
+});
+
+app.post('/api/orders/track', async (req, res) => {
+    try {
+        const { orderId, phone } = req.body;
+        
+        if (!mongoose.Types.ObjectId.isValid(orderId)) {
+            return res.status(400).json({ message: "Невірний формат ID замовлення" });
+        }
+
+        const order = await Order.findById(orderId);
+        if (!order) {
+            return res.status(404).json({ message: "Замовлення не знайдено" });
+        }
+
+        if (order.phone !== phone) {
+            return res.status(403).json({ message: "Невірний номер телефону для цього замовлення" });
+        }
+
+        res.json(order);
+    } catch (error) {
+        console.error("Трекінг помилка:", error);
+        res.status(500).json({ message: "Помилка сервера" });
     }
 });
 

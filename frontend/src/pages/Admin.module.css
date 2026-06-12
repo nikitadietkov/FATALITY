@@ -188,7 +188,7 @@
 }
 
 /* =========================================
-   5. ЗАМОВЛЕННЯ (КАРТКИ)
+   5. ЗАМОВЛЕННЯ ТА ПОШУК
    ========================================= */
 .ordersList {
   display: flex;
@@ -247,7 +247,10 @@
 
 .orderId {
   font-weight: 800;
-  color: var(--text-main);
+  color: #ff0000;
+  font-family: monospace;
+  font-size: 15px;
+  word-break: break-all;
 }
 
 .orderDate {
@@ -255,9 +258,6 @@
   color: #777777;
 }
 
-/* =========================================
-   ФІЛЬТР ЗАМОВЛЕНЬ
-   ========================================= */
 .ordersHeaderRow {
   display: flex;
   justify-content: space-between;
@@ -269,6 +269,69 @@
 
 .ordersHeaderRow .sectionTitle {
   margin-bottom: 0; 
+}
+
+.filtersControls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.adminSearchWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 320px;
+}
+
+.adminSearchIcon {
+  position: absolute;
+  left: 14px;
+  color: var(--text-muted);
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.adminSearchInput {
+  width: 100%;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-light);
+  color: var(--text-main);
+  padding: 10px 35px 10px 40px;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  font-family: inherit;
+}
+
+.adminSearchInput::placeholder {
+  color: #666666;
+}
+
+.adminSearchInput:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 8px rgba(255, 0, 0, 0.2);
+}
+
+.adminSearchClear {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  transition: color 0.2s;
+  font-size: 14px;
+}
+
+.adminSearchClear:hover {
+  color: var(--primary-color);
 }
 
 .filterWrapper {
@@ -306,7 +369,6 @@
   box-shadow: 0 0 5px rgba(255, 0, 0, 0.2);
 }
 
-/* СТАТУСИ */
 .statusBadge {
   font-size: 12px;
   font-weight: 800;
@@ -433,7 +495,7 @@
 }
 
 /* =========================================
-   6. УПРАВЛІННЯ ТОВАРАМИ
+   6. УПРАВЛІННЯ ТОВАРАМИ ТА QUILL EDITOR
    ========================================= */
 .addProductCard {
   background-color: var(--bg-card);
@@ -490,11 +552,70 @@
   box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.15);
 }
 
-textarea.inputField {
-  resize: vertical;
-  min-height: 120px;
-  line-height: 1.5;
+/* РЕДАКТОР QUILL ДЛЯ ТЕМНОЇ ТЕМИ */
+.editorWrapper {
+  margin-bottom: 10px;
 }
+
+.editorWrapper :global(.quill) {
+  background-color: var(--bg-input);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.editorWrapper:focus-within :global(.quill) {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.15);
+}
+
+.editorWrapper :global(.ql-toolbar.ql-snow) {
+  background-color: #111111;
+  border: none;
+  border-bottom: 1px solid var(--border-light);
+  padding: 12px;
+}
+
+.editorWrapper :global(.ql-container.ql-snow) {
+  border: none;
+  background-color: var(--bg-input);
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 15px;
+  min-height: 180px;
+}
+
+.editorWrapper :global(.ql-editor) {
+  min-height: 180px;
+  padding: 20px;
+}
+
+.editorWrapper :global(.ql-editor.ql-blank::before) {
+  color: #666666;
+  font-style: normal;
+  left: 20px;
+}
+
+/* Іконки тулбару Quill */
+.editorWrapper :global(.ql-snow .ql-stroke) { stroke: #cccccc; }
+.editorWrapper :global(.ql-snow .ql-fill) { fill: #cccccc; }
+.editorWrapper :global(.ql-snow .ql-picker) { color: #cccccc; }
+
+.editorWrapper :global(.ql-snow.ql-toolbar button:hover .ql-stroke),
+.editorWrapper :global(.ql-snow .ql-toolbar button:hover .ql-stroke),
+.editorWrapper :global(.ql-snow.ql-toolbar button.ql-active .ql-stroke),
+.editorWrapper :global(.ql-snow .ql-toolbar button.ql-active .ql-stroke) {
+  stroke: var(--primary-color);
+}
+
+.editorWrapper :global(.ql-snow.ql-toolbar button:hover .ql-fill),
+.editorWrapper :global(.ql-snow .ql-toolbar button:hover .ql-fill),
+.editorWrapper :global(.ql-snow.ql-toolbar button.ql-active .ql-fill),
+.editorWrapper :global(.ql-snow .ql-toolbar button.ql-active .ql-fill) {
+  fill: var(--primary-color);
+}
+
 
 .dropZone {
   border: 2px dashed #444444;
@@ -942,6 +1063,12 @@ textarea.inputField {
   box-shadow: 0 4px 10px rgba(255, 68, 68, 0.2);
 }
 
+.statusBadge.processing {
+  background-color: rgba(0, 150, 255, 0.15);
+  color: #0096ff;
+  border: 1px solid rgba(0, 150, 255, 0.3);
+}
+
 /* =========================================
    8. АДАПТИВНІСТЬ ДЛЯ МОБІЛЬНИХ ПРИСТРОЇВ
    ========================================= */
@@ -954,6 +1081,12 @@ textarea.inputField {
   .tabBtn { width: 100%; background-color: var(--bg-input); border-radius: 8px; padding: 14px; font-size: 14px; }
   .activeTab { background-color: var(--primary-color); color: #ffffff; }
   .activeTab::after { display: none; }
+
+  /* ФІЛЬТРИ ТА ПОШУК НА МОБІЛЬНИХ */
+  .filtersControls { flex-direction: column; width: 100%; align-items: stretch; gap: 10px; }
+  .adminSearchWrapper { width: 100%; }
+  .filterWrapper { width: 100%; justify-content: space-between; box-sizing: border-box; }
+  .filterSelect { flex: 1; margin-left: 10px; }
 
   /* Замовлення */
   .orderHeader { flex-direction: column; align-items: flex-start; gap: 15px; }
@@ -969,7 +1102,17 @@ textarea.inputField {
   .formRow { flex-direction: column; gap: 15px; }
   .addProductCard { padding: 20px; }
   .submitActionsBlock { flex-direction: column; }
-  
+  .galleryPreview { gap: 5px; }
+  .previewThumbWrapper { width: 70px; height: 70px; }
+
+  /* Список товарів */
+  .adminProductsGrid { grid-template-columns: 1fr; }
+  .adminProductCard { flex-direction: column; text-align: center; padding: 20px; }
+  .adminProductThumb { width: 120px; height: 120px; margin-bottom: 10px; }
+  .adminProductActions { width: 100%; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 15px; }
+  .adminProductActions button { flex: 1; height: 44px; }
+  .adminProductActions button.actionBtn { width: 100%; flex: none; height: 44px; }
+
   /* Модалки */
   .modalOverlay { padding: 10px; }
   .reviewsModal { height: 100dvh; max-height: 100dvh; border-radius: 8px; }

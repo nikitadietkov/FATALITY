@@ -5,6 +5,7 @@ import {
   FaChevronLeft, FaChevronRight, FaTimes, FaUserCircle,
 } from 'react-icons/fa';
 import { useCart } from '../context/CartContext';
+import ProductCard from '../components/ProductCard'; 
 import styles from './Product.module.css';
 import toast from 'react-hot-toast';
 
@@ -31,7 +32,7 @@ function ImageSlider({ images, currentIndex, onPrev, onNext, onDotClick, onOpenM
     <div className={styles.imageSection}>
       <div className={styles.sliderWrapper}>
         {hasMany && (
-          <button className={`${styles.sliderArrow} ${styles.arrowLeft}`} onClick={onPrev} aria-label="Попереднє фото">
+          <button type="button" className={`${styles.sliderArrow} ${styles.arrowLeft}`} onClick={onPrev} aria-label="Попереднє фото">
             <FaChevronLeft />
           </button>
         )}
@@ -45,7 +46,7 @@ function ImageSlider({ images, currentIndex, onPrev, onNext, onDotClick, onOpenM
           />
         </div>
         {hasMany && (
-          <button className={`${styles.sliderArrow} ${styles.arrowRight}`} onClick={onNext} aria-label="Наступне фото">
+          <button type="button" className={`${styles.sliderArrow} ${styles.arrowRight}`} onClick={onNext} aria-label="Наступне фото">
             <FaChevronRight />
           </button>
         )}
@@ -56,6 +57,7 @@ function ImageSlider({ images, currentIndex, onPrev, onNext, onDotClick, onOpenM
           {images.map((_, idx) => (
             <button
               key={idx}
+              type="button"
               className={`${styles.sliderDot} ${currentIndex === idx ? styles.activeDot : ''}`}
               onClick={() => onDotClick(idx)}
               aria-label={`Фото ${idx + 1}`}
@@ -81,17 +83,17 @@ function ImageModal({ url, hasMany, onClose, onPrev, onNext }) {
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-        <button className={styles.modalCloseBtn} onClick={onClose} aria-label="Закрити">
+        <button type="button" className={styles.modalCloseBtn} onClick={onClose} aria-label="Закрити">
           <FaTimes />
         </button>
         {hasMany && (
-          <button className={`${styles.sliderArrow} ${styles.modalArrowLeft}`} onClick={onPrev}>
+          <button type="button" className={`${styles.sliderArrow} ${styles.modalArrowLeft}`} onClick={onPrev}>
             <FaChevronLeft />
           </button>
         )}
         <img key={url} src={url} alt="Повний розмір" className={styles.modalImage} />
         {hasMany && (
-          <button className={`${styles.sliderArrow} ${styles.modalArrowRight}`} onClick={onNext}>
+          <button type="button" className={`${styles.sliderArrow} ${styles.modalArrowRight}`} onClick={onNext}>
             <FaChevronRight />
           </button>
         )}
@@ -100,7 +102,8 @@ function ImageModal({ url, hasMany, onClose, onPrev, onNext }) {
   );
 }
 
-function RatingStars({ rating, reviewCount }) {
+// ---------------------------------------------------------------------------
+export function RatingStars({ rating, reviewCount }) {
   if (!rating) {
     return (
       <div className={styles.ratingContainer}>
@@ -225,11 +228,12 @@ function ReviewForm({ productId, onReviewAdded }) {
         />
 
         <button
+          type="button"
           className={styles.submitReviewBtn}
           onClick={handleSubmit}
           disabled={submitting}
         >
-          {submitting ? 'Відправляємо…' : 'Відправити відгук'}
+          {submitting ? 'Відправляємо…' : 'Відтворити відгук'}
         </button>
       </div>
     </div>
@@ -244,21 +248,32 @@ export default function Product() {
   const { addToCart } = useCart();
 
   const [product, setProduct]         = useState(null);
+  const [similarProducts, setSimilarProducts] = useState([]); 
   const [loading, setLoading]         = useState(true);
   const [error, setError]             = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const imageRef = useRef(null);
 
-  // Fetch product
   useEffect(() => {
     let cancelled = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
     const load = async () => {
+      setLoading(true);
       try {
         const res = await fetch(`${BASE_URL}/api/products/${id}`);
         if (!res.ok) throw new Error('Не вдалося завантажити товар');
         const data = await res.json();
         if (!cancelled) setProduct(data);
+
+        const simRes = await fetch(`${BASE_URL}/api/products`);
+        if (simRes.ok) {
+          const allProducts = await simRes.json();
+          const filtered = allProducts.filter(p => p._id !== id);
+          if (!cancelled) setSimilarProducts(filtered.slice(0, 4));
+        }
+
       } catch (err) {
         if (!cancelled) setError(err.message);
       } finally {
@@ -269,13 +284,23 @@ export default function Product() {
     return () => { cancelled = true; };
   }, [id]);
 
-  // Lock scroll when modal is open
+  // 🔥 НАДІЙНЕ НАТИВНЕ ОНОВЛЕННЯ ЗАГОЛОВКА СТОРІНКИ
+  useEffect(() => {
+    if (loading) {
+      document.title = 'Завантаження... | FATALITY';
+    } else if (error) {
+      document.title = 'Помилка | FATALITY';
+    } else if (product) {
+      document.title = `Купити ${product.title} (${product.condition}) | FATALITY`;
+    }
+    return () => { document.title = 'FATALITY'; };
+  }, [loading, error, product]);
+
   useEffect(() => {
     document.body.style.overflow = isModalOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [isModalOpen]);
 
-  // Derived image list
   const images = useMemo(() => {
     if (!product) return [];
     return product.imageUrls?.length ? product.imageUrls : [product.imageUrl].filter(Boolean);
@@ -339,7 +364,6 @@ export default function Product() {
     }, 400);
   }, [addToCart, product, displayImageUrl]);
 
-  // ---------------------------------------------------------------------------
   if (loading) return <div className={styles.statusMessage}>Завантаження даних...</div>;
   if (error)   return <div className={styles.statusMessage}>Помилка: {error}</div>;
   if (!product) return <div className={styles.statusMessage}>Товар не знайдено</div>;
@@ -389,10 +413,13 @@ export default function Product() {
 
           <div className={styles.descriptionBlock}>
             <h3>Опис</h3>
-            <p>{product.description}</p>
+            <div 
+              className={styles.richDescription} 
+              dangerouslySetInnerHTML={{ __html: product.description }} 
+            />
           </div>
 
-          <button className={styles.addToCartBtn} onClick={handleAddToCart}>
+          <button type="button" className={styles.addToCartBtn} onClick={handleAddToCart}>
             <FaShoppingCart /> Додати в кошик
           </button>
         </div>
@@ -418,6 +445,32 @@ export default function Product() {
           />
         </div>
       </section>
+
+      {similarProducts.length > 0 && (
+        <section className={styles.similarSection}>
+          <h2 className={styles.similarTitle}>Вам також може сподобатися</h2>
+          <div className={styles.similarGrid}>
+            {similarProducts.map((item, index) => (
+              <div 
+                key={item._id} 
+                className={styles.animatedCard} 
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <ProductCard
+                  id={item._id}
+                  title={item.title}
+                  model={item.model}
+                  condition={item.condition}
+                  price={item.price}
+                  imageUrl={item.imageUrl}
+                  imageUrls={item.imageUrls}
+                  rating={item.rating}
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

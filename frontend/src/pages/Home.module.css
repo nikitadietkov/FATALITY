@@ -102,6 +102,45 @@
     color: #E7000B;
 }
 
+/* ─── Сортування (Sort Dropdown) ────────────────────────────────────────────── */
+.sortWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.sortSelect {
+    background-color: #111111;
+    color: #ffffff;
+    border: 1px solid #333333;
+    padding: 10px 35px 10px 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+}
+
+.sortSelect:focus {
+    border-color: #E7000B;
+    box-shadow: 0 0 10px rgba(231, 0, 11, 0.15);
+}
+
+.sortSelect option {
+    background-color: #111111;
+    color: #ffffff;
+}
+
 /* ─── Mobile filter toggle ──────────────────────────────────────────────────── */
 .mobileFilterToggle {
     display: none;
@@ -140,7 +179,7 @@
 /* ─── Products grid ─────────────────────────────────────────────────────────── */
 .productsGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(6, minmax(250px, 1fr));
     gap: 24px;
     transition: opacity 0.3s ease;
     width: 100%;
@@ -507,15 +546,114 @@
     display: none;
 }
 
-/* ─── Responsive ─────────────────────────────────────────────────────────────── */
+/* ─── Pagination ────────────────────────────────────────────────────────────── */
+.paginationContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 1px solid #222222;
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+.pageBtn {
+    background-color: #111111;
+    color: #ffffff;
+    border: 1px solid #333333;
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.pageBtn:hover:not(:disabled) {
+    border-color: #E7000B;
+    color: #E7000B;
+    background-color: rgba(231, 0, 11, 0.1);
+    transform: translateY(-2px);
+}
+
+.pageBtn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.pageBtn.activePage {
+    background-color: #E7000B;
+    border-color: #E7000B;
+    color: #ffffff;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(231, 0, 11, 0.4);
+}
+
+.pageBtn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background-color: #0a0a0a;
+}
+
+.dots {
+    color: #666666;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    letter-spacing: 2px;
+}
+
+/* ─── Responsive (Адаптивність) ───────────────────────────────────────────────── */
 @media (max-width: 900px) {
     .homeLayout {
         grid-template-columns: 1fr;
         gap: 20px;
     }
 
+    .productsAreaHeader {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .headerActions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        width: 100%;
+        margin-top: 15px;
+    }
+
+    .searchWrapper {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
+
+    .searchInput {
+        width: 100%;
+    }
+
+    .searchInput:focus {
+        width: 100%;
+    }
+
+    .sortWrapper {
+        width: 100%;
+    }
+
+    .sortSelect {
+        width: 100%;
+    }
+
     .mobileFilterToggle {
         display: flex;
+        width: 100%;
+        justify-content: center;
     }
 
     .closeFilterBtn {
@@ -540,6 +678,12 @@
         margin: 0;
         box-shadow: none;
     }
+
+    .filterContainer .filterName { color: #ffffff; }
+    .filterContainer .sectionTitle { color: #eeeeee; }
+    .filterContainer .checkboxLabel { color: #cccccc; }
+    .filterContainer .priceInput { background: #1a1a1a; border-color: #333333; color: #ffffff; }
+    .filterContainer .activeFilters { border-bottom-color: #222222; }
 
     .filterContainer.open {
         left: 0;
@@ -566,5 +710,17 @@
     .productsGrid {
         grid-template-columns: repeat(2, 1fr);
         gap: 8px;
+    }
+    
+    .paginationContainer {
+        gap: 5px;
+        margin-top: 30px;
+        padding-top: 20px;
+    }
+    .pageBtn {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+        border-radius: 6px;
     }
 }
