@@ -1,9 +1,11 @@
 /* =========================================
    ГЛОБАЛЬНІ ЗМІННІ ТА ШРИФТИ
-   ========================================= */
+   ======================================== */
 @font-face {
   font-family: 'Russo One';
-  src: url('./assets/fonts/RussoOne.ttf') format('truetype');
+  src: url('/assets/fonts/RussoOne.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
 }
 
 :root {

@@ -16,15 +16,12 @@ dotenv.config();
 const app = express();
 
 // 🔒 БЕЗПЕКА: CORS приймає запити ТІЛЬКИ з твого домену (локального або бойового)
-const allowedOrigins = [process.env.CLIENT_URL || 'http://localhost:5173'];
+const rawClientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+const safeClientUrl = rawClientUrl.trim().replace(/\/$/, '');
+
 app.use(cors({
-    origin: function (origin, callback) {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('CORS policy violation'));
-        }
-    }
+    origin: [safeClientUrl, 'http://localhost:5173'],
+    credentials: true
 }));
 
 app.use(express.json());
@@ -211,7 +208,8 @@ app.post('/api/orders', async (req, res) => {
                 merchantAccount, merchantDomainName, orderReference, orderDate, amount, currency,
                 productName: productNames, productCount: productCounts, productPrice: productPrices,
                 merchantSignature: signature,
-                serviceUrl: `${process.env.SERVER_URL || 'http://localhost:5000'}/api/payment/webhook`
+                serviceUrl: `${process.env.SERVER_URL || 'http://localhost:5000'}/api/payment/webhook`,
+                returnUrl: `${merchantDomainName}/success?orderId=${orderReference}`
             }
         });
     } catch (error) {

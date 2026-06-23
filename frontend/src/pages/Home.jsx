@@ -4,13 +4,16 @@ import { FaTimes, FaSearch, FaChevronLeft, FaChevronRight } from "react-icons/fa
 import ReactSlider from 'react-slider';
 import ProductCard from '../components/ProductCard';
 import styles from './Home.module.css';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const MODELS = ['PS5', 'PS4 Pro', 'PS4', 'PS3'];
 const CONDITIONS = ['Нова', 'Вживана - Ідеальний стан', 'Вживана - Хороший стан', 'Відновлена (Refurbished)'];
 const PRICE_MIN_DEFAULT = 0;
 const PRICE_MAX_DEFAULT = 40000;
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/products';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE = `${BASE_URL}/api/products`;
 const DEBOUNCE_DELAY = 400;
 const ITEMS_PER_PAGE = 12; 
 
@@ -43,6 +46,15 @@ export default function Home() {
 
   const debouncedPriceRange = useDebounced(priceRange, DEBOUNCE_DELAY);
   const debouncedSearch = useDebounced(searchQuery, DEBOUNCE_DELAY);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+      const orderRef = searchParams.get('orderReference');
+      if (orderRef) {
+          navigate(`/success?orderId=${orderRef}`);
+      }
+  }, [searchParams, navigate]);
 
   useEffect(() => {
     document.body.style.overflow = isMobileFilterOpen ? 'hidden' : '';

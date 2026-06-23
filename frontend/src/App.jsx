@@ -7,12 +7,14 @@ import './index.css';
 
 import AdminLogin from './pages/AdminLogin';
 import Product from './pages/Product';
+import Success from './pages/Success';
 import About from './pages/About';
 import Admin from './pages/Admin';
 import Home from './pages/Home';
 import Cart from './pages/Cart';
 import TrackOrder from './pages/TrackOrder';
 import NotFound from './pages/NotFound';
+import { CartProvider } from './context/CartContext.jsx';
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('adminToken');
@@ -122,6 +124,7 @@ function AppContent() {
           <Route path="/" element={<Home />} />
           <Route path="/track-order" element={<TrackOrder />} />
           <Route path="*" element={<NotFound />} />
+          <Route path="/success" element={<Success />} />
         </Routes>
       </main>
 
