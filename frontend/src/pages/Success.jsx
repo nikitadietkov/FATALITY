@@ -1,23 +1,24 @@
-import React, { useEffect, useContext } from 'react';
+import React, { useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { CartProvider } from '../Context/CartContext.jsx'; 
+import { useCart } from '../context/CartContext'; 
 
 const Success = () => {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get('orderId') || searchParams.get('orderReference');
+  const { clearCart } = useCart(); // Дістаємо функцію очищення
   
   useEffect(() => {
-    localStorage.removeItem('cart');
-  }, []);
+    clearCart();
+  }, [clearCart]);
 
   return (
     <div className="main-content" style={{ textAlign: 'center', padding: '100px 20px' }}>
-      <h1 style={{ color: 'var(--success-color)', marginBottom: '20px' }}>
+      <h1 style={{ color: 'var(--success-color)', margin: '0 0 20px 0' }}>
         Оплата пройшла успішно! 🎉
       </h1>
       <p style={{ fontSize: '18px', color: 'var(--text-light)', marginBottom: '30px' }}>
         Дякуємо за покупку. Ваш номер замовлення: <br/>
-        <strong style={{ fontSize: '24px', color: '#fff' }}>{orderId || 'обробляється...'}</strong>
+        <strong style={{ fontSize: '24px', color: '#ffffff' }}>{orderId || 'обробляється...'}</strong>
       </p>
       <Link to="/" className="cart-button" style={{ display: 'inline-block' }}>
         Повернутися до магазину

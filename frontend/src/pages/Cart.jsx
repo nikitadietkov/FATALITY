@@ -89,7 +89,8 @@ export default function Cart() {
           clientLastName: formData.name.split(' ').slice(1).join(' ') || "",
           clientPhone: formData.phone,
           language: "UA",
-          serviceUrl: pd.serviceUrl
+          serviceUrl: pd.serviceUrl,
+          returnUrl: pd.returnUrl
       },
       function (response) {
           window.removeEventListener('message', handleWidgetClose);
