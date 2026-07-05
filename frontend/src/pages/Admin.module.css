@@ -892,6 +892,35 @@
 .deleteBtn { background-color: var(--border-light); }
 .deleteBtn:hover { background-color: var(--primary-color); }
 
+.aiButton {
+  background: linear-gradient(45deg, #7b2cbf, #9d4edd);
+  color: #ffffff;
+  border: none;
+  padding: 14px 22px;
+  border-radius: 8px;
+  font-family: 'Russo One', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(157, 78, 221, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.aiButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(157, 78, 221, 0.6);
+  background: linear-gradient(45deg, #9d4edd, #c77dff);
+}
+
+.aiButton:active {
+  transform: translateY(0);
+}
+
 /* =========================================
    7. МОДАЛЬНЕ ВІКНО ВІДГУКІВ ТА ВИДАЛЕННЯ
    ========================================= */
@@ -1109,6 +1138,511 @@
 }
 
 /* =========================================
+   СЕРВІСНІ ТІКЕТИ (КІБЕР-ПАНЕЛЬ)
+   ========================================= */
+.serviceGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+  animation: fadeSlideUp 0.4s ease-out;
+}
+
+.serviceTicket {
+  background-color: var(--bg-card); /* Такий самий фон, як у звичайних замовлень */
+  border: 1px solid var(--border-main);
+  border-radius: 12px;
+  padding: 20px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.serviceTicket:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(255, 0, 0, 0.1);
+}
+
+/* Кольорові статуси - акуратні смужки зліва (без зайвого неону) */
+.serviceTicket::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 4px; height: 100%;
+  border-radius: 12px 0 0 12px;
+  transition: background-color 0.3s;
+}
+
+.statusNew::before { background-color: var(--danger-color); }
+.statusInProgress::before { background-color: var(--warning-color); }
+.statusCompleted::before { background-color: var(--success-color); }
+.statusCancelled::before { background-color: #555555; }
+
+.statusReviewed::before { background-color: #ffaa00; }
+.statusAccepted::before { background-color: var(--success-color, #00ff88); }
+.statusRejected::before { background-color: #555555; }
+
+.ticketHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.ticketDate { color: var(--text-muted); font-size: 13px; }
+.ticketId { color: var(--primary-color); font-family: monospace; font-size: 14px; font-weight: 800; }
+
+.ticketBody { 
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+  .clientName {
+  color: var(--text-main);
+  font-size: 18px;
+  margin: 0 0 8px 0;
+  font-weight: 700;
+}
+
+.clientPhone {
+  display: inline-block;
+  color: var(--text-light);
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  transition: color 0.2s;
+}
+.clientPhone:hover { color: var(--primary-color); }
+
+.deviceTag {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-light);
+  color: var(--text-light);
+  padding: 6px 12px;
+  border-radius: 6px;
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  width: fit-content;
+}
+
+.problemBox {
+  background-color: var(--bg-input);
+  border-radius: 8px;
+  padding: 12px 15px;
+  border: 1px solid #2a2a2a;
+}
+
+.problemBox strong {
+  display: block;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.problemBox p {
+  margin: 0;
+  color: #aaaaaa;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ticketFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid var(--border-main);
+  gap: 15px;
+}
+
+.serviceStatusSelect {
+  flex: 1;
+  background-color: var(--bg-input);
+  color: var(--text-main);
+  border: 1px solid var(--border-light);
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.serviceStatusSelect:focus { border-color: var(--primary-color); }
+
+.deleteTicketBtn {
+  background-color: rgba(255, 68, 68, 0.1);
+  color: var(--danger-color);
+  border: 1px solid rgba(255, 68, 68, 0.3);
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.deleteTicketBtn:hover {
+  background-color: var(--danger-color);
+  color: #ffffff;
+  transform: scale(1.05);
+}
+
+/* =========================================
+   УПРАВЛІННЯ ВІДГУКАМИ (АДМІН)
+   ========================================= */
+
+.reviewsBtn {
+  background-color: #2a2a2a;
+  color: #ffaa00;
+  border: 1px solid #444;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.reviewsBtn:hover {
+  background-color: #333;
+  border-color: #ffaa00;
+  transform: scale(1.05);
+}
+
+.reviewsModalContent {
+  background-color: #0c0c0c;
+  border: 1px solid #333;
+  width: 90%;
+  max-width: 600px;
+  max-height: 85vh;
+  border-radius: 12px;
+  padding: 30px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.reviewsListAdmin {
+  overflow-y: auto;
+  margin-top: 20px;
+  padding-right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.reviewsListAdmin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.reviewsListAdmin::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+
+.adminReviewCard {
+  background-color: #111;
+  border: 1px solid #222;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.adminReviewHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #222;
+  padding-bottom: 12px;
+}
+
+.deleteReviewBtn {
+  background: none;
+  border: none;
+  color: #ff4444;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 5px;
+  transition: 0.2s;
+}
+
+.deleteReviewBtn:hover {
+  color: #E7000B;
+  transform: scale(1.1);
+}
+
+.adminReviewText {
+  color: #ccc;
+  font-size: 14.5px;
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+/* Відповідь Адміна */
+.adminReplyBox {
+  background-color: rgba(231, 0, 11, 0.05);
+  border-left: 3px solid #E7000B;
+  padding: 12px 15px;
+  border-radius: 4px;
+  margin-top: 15px;
+}
+
+.adminReplyBox strong {
+  color: #E7000B;
+  font-size: 13px;
+}
+
+.adminReplyBox p {
+  color: #fff;
+  font-size: 14px;
+}
+
+.editReplyBtn, .addReplyBtn {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 8px;
+}
+
+.editReplyBtn:hover, .addReplyBtn:hover {
+  color: #fff;
+}
+
+/* Форма відповіді */
+.replyInputBox {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.replyTextarea {
+  background-color: #050505;
+  border: 1px solid #333;
+  color: #fff;
+  padding: 12px;
+  border-radius: 6px;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+}
+
+.replyTextarea:focus {
+  border-color: #E7000B;
+}
+
+.replyActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.saveReplyBtn {
+  background-color: #E7000B;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Russo One', sans-serif;
+  font-weight: 400; /* Фікс шрифту */
+  font-size: 12px;
+}
+
+.saveReplyBtn:hover { background-color: #cc0000; }
+
+.cancelReplyBtn {
+  background-color: #333;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.cancelReplyBtn:hover { background-color: #444; }
+
+/* =========================================
+   TRADE-IN ТІКЕТИ ТА ГАЛЕРЕЯ (АДМІНКА)
+   ========================================= */
+
+.equipmentTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.equipTag {
+  background-color: rgba(231, 0, 11, 0.1);
+  color: #ff9999;
+  border: 1px solid rgba(231, 0, 11, 0.3);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tradeInGallery {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  margin-top: 15px;
+}
+
+.tradeInGallery::-webkit-scrollbar {
+  height: 6px;
+}
+
+.tradeInGallery::-webkit-scrollbar-thumb {
+  background: #333333;
+  border-radius: 4px;
+}
+
+.tradeInThumb {
+  width: 60px;
+  height: 60px;
+  border-radius: 6px;
+  object-fit: cover;
+  cursor: pointer;
+  border: 1px solid #333333;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.tradeInThumb:hover {
+  border-color: #E7000B;
+  transform: scale(1.05);
+}
+
+/* МОДАЛКА ДЛЯ ПЕРЕГЛЯДУ ФОТО */
+.imageModalOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.imageModalContent {
+  position: relative;
+  max-width: 90%;
+  max-height: 90vh;
+}
+
+.imageModalContent img {
+  max-width: 100%;
+  max-height: 90vh;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(231, 0, 11, 0.2);
+  user-select: none;
+}
+
+.closeImageBtn {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 30px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.closeImageBtn:hover {
+  color: #E7000B;
+}
+
+.navImgBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0,0,0,0.7);
+  color: #ffffff;
+  border: 1px solid #333333;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+
+.navImgBtn:hover {
+  background: #E7000B;
+  border-color: #E7000B;
+}
+
+.navPrev { left: -70px; }
+.navNext { right: -70px; }
+
+.imgCounter {
+  position: absolute;
+  bottom: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #888888;
+  font-family: 'Russo One', sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  letter-spacing: 2px;
+}
+
+/* =========================================
+   ФІКС ШРИФТУ ТА СТИЛІ ДЛЯ ВИКУПУ
+   ========================================= */
+
+/* Примусово прибираємо жирність для Russo One, щоб не милило */
+.pageTitle, .sectionTitle, .dangerTitle, .imgCounter {
+  font-family: 'Russo One', sans-serif;
+  font-weight: 400 !important;
+}
+
+/* Блок очікуваної ціни у тікеті Викупу */
+.expectedPriceBox {
+  background-color: rgba(0, 255, 136, 0.05);
+  border: 1px dashed #00ff88;
+  color: #00ff88;
+  padding: 10px 15px;
+  border-radius: 6px;
+  margin: 10px 0;
+  font-size: 15px;
+  display: inline-block;
+}
+
+.expectedPriceBox strong {
+  color: #ffffff;
+  margin-right: 8px;
+}
+
+/* =========================================
    8. АДАПТИВНІСТЬ ДЛЯ МОБІЛЬНИХ ПРИСТРОЇВ
    ========================================= */
 @media (max-width: 768px) {
@@ -1157,4 +1691,33 @@
   /* Модалки */
   .modalOverlay { padding: 10px; }
   .reviewsModal { height: 100dvh; max-height: 100dvh; border-radius: 8px; }
+  .serviceGrid { grid-template-columns: 1fr; gap: 15px; }
+
+  .serviceTicket {
+    padding: 15px;
+  }
+
+  .ticketHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .ticketFooter {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .serviceStatusSelect { width: 100%; padding: 12px; }
+  .deleteTicketBtn { width: 100%; height: 44px; font-weight: bold; }
+  .deleteTicketBtn::after { content: ' ВИДАЛИТИ ЗАЯВКУ'; margin-left: 8px; }
+}
+@media (max-width: 360px) {
+  .clientName {
+    font-size: 18px;
+  }
+  .clientPhone {
+    font-size: 14px;
+  }
 }

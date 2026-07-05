@@ -42,12 +42,12 @@
 
 .glitchText {
   font-size: 150px;
-  font-weight: 900;
   margin: 0;
   line-height: 1;
   color: #ffffff;
   font-family: 'Russo One', sans-serif;
   text-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+  font-weight: 400;
   position: relative;
 }
 

@@ -1,0 +1,31 @@
+.myOrdersPage { padding: 50px 20px; max-width: 900px; margin: 0 auto; min-height: 70vh; }
+.pageTitle { font-family: 'Russo One', sans-serif; font-weight: 400; color: #fff; font-size: 32px; text-align: center; margin-bottom: 40px; letter-spacing: 1px; }
+.loader { text-align: center; color: #E7000B; margin-top: 50px; font-family: 'Russo One', sans-serif; font-weight: 400; }
+.emptyState { text-align: center; background: #0c0c0c; border: 1px dashed #333; padding: 60px 20px; border-radius: 12px; }
+.emptyIcon { font-size: 50px; color: #333; margin-bottom: 20px; }
+.emptyState p { color: #888; font-size: 16px; margin-bottom: 30px; }
+.catalogBtn { background: #E7000B; color: #fff; padding: 12px 30px; border-radius: 6px; text-decoration: none; font-family: 'Russo One', sans-serif; font-weight: 400; transition: 0.3s; }
+.catalogBtn:hover { background: #cc0000; }
+
+.ordersGrid { display: flex; flex-direction: column; gap: 20px; }
+.orderCard { background: #111; border: 1px solid #222; border-radius: 12px; padding: 20px; transition: transform 0.2s; }
+.orderCard:hover { border-color: #333; transform: translateY(-2px); }
+.orderHeader { display: flex; justify-content: space-between; border-bottom: 1px solid #222; padding-bottom: 12px; margin-bottom: 15px; }
+.orderDate { color: #888; font-size: 14px; }
+.orderId { color: #555; font-size: 12px; font-family: monospace; }
+.itemRow { display: flex; justify-content: space-between; color: #ccc; margin-bottom: 8px; font-size: 15px; }
+.itemQty { color: #E7000B; font-weight: bold; }
+.orderTotal { margin-top: 15px; text-align: right; color: #fff; font-size: 18px; }
+.orderTotal strong { color: #E7000B; }
+.orderFooter { margin-top: 20px; display: flex; justify-content: flex-end; }
+
+.statusBadge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 30px; font-size: 14px; font-weight: bold; }
+.pending { background: rgba(255, 170, 0, 0.1); color: #ffaa00; border: 1px solid #ffaa00; }
+.paid { background: rgba(0, 255, 136, 0.1); color: #00ff88; border: 1px solid #00ff88; }
+.processing { background: rgba(0, 153, 255, 0.1); color: #0099ff; border: 1px solid #0099ff; }
+.shipped { background: rgba(157, 78, 221, 0.1); color: #c77dff; border: 1px solid #9d4edd; }
+.cancelled { background: #222; color: #888; border: 1px solid #444; }
+
+.shippedContainer { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; justify-content: flex-end; }
+.ttnBox { background: #050505; border: 1px dashed #9d4edd; color: #fff; padding: 7px 15px; border-radius: 6px; font-size: 14px; }
+.ttnBox b { color: #00ff88; letter-spacing: 1px; }

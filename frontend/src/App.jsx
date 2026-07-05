@@ -16,6 +16,8 @@ import Gamepass from './pages/Gamepass';
 import TrackOrder from './pages/TrackOrder';
 import NotFound from './pages/NotFound';
 import Service from './pages/Service';
+import TradeIn from './pages/TradeIn';
+import Buyout from './pages/Buyout';
 import { CartProvider } from './context/CartContext.jsx';
 
 const ProtectedRoute = ({ children }) => {
@@ -46,7 +48,6 @@ function AppContent() {
     return () => { document.body.style.overflow = ''; };
   }, [isMenuOpen]);
 
-  // Закриваємо меню і скролимо вгору при зміні маршруту
   useEffect(() => {
     setIsMenuOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -128,6 +129,8 @@ function AppContent() {
           <Route path="/success" element={<Success />} />
           <Route path="/gamepass" element={<Gamepass />} />
           <Route path="/service" element={<Service />} />
+          <Route path="/trade-in" element={<TradeIn />} />
+          <Route path="/buyout" element={<Buyout />} />
         </Routes>
       </main>
 

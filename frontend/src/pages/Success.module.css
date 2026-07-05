@@ -1,0 +1,221 @@
+/* =========================================
+   СТОРІНКА УСПІШНОЇ ОПЛАТИ (FATALITY STYLE)
+   ========================================= */
+
+.successPage {
+  min-height: calc(100vh - 100px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background-color: #050505;
+  background-image: radial-gradient(circle at center, rgba(231, 0, 11, 0.05) 0%, transparent 70%);
+}
+
+.successCard {
+  background: linear-gradient(180deg, #111111 0%, #0a0a0a 100%);
+  border: 1px solid #222222;
+  border-top: 4px solid #00ff88; /* Зелена лінія успіху */
+  border-radius: 16px;
+  padding: 50px 40px;
+  max-width: 550px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 255, 136, 0.05);
+  animation: slideUpFade 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(40px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.iconWrapper {
+  width: 90px;
+  height: 90px;
+  margin: 0 auto 25px;
+  background: rgba(0, 255, 136, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 30px rgba(0, 255, 136, 0.2);
+  animation: pulseGreen 2s infinite;
+}
+
+@keyframes pulseGreen {
+  0% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.3); }
+  70% { box-shadow: 0 0 0 20px rgba(0, 255, 136, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+}
+
+.checkIcon {
+  font-size: 45px;
+  color: #00ff88;
+}
+
+.title {
+  font-family: 'Russo One', sans-serif;
+  font-size: 32px;
+  color: #ffffff;
+  margin: 0 0 15px 0;
+  letter-spacing: 1px;
+  font-weight: 400;
+}
+
+.subtitle {
+  color: #aaaaaa;
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 0 0 30px 0;
+}
+
+.subtitle strong {
+  color: #E7000B;
+}
+
+.orderIdBox {
+  background-color: #050505;
+  border: 1px dashed #333333;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 30px;
+  transition: border-color 0.3s;
+}
+
+.orderIdBox:hover {
+  border-color: #00ff88;
+}
+
+.orderLabel {
+  display: block;
+  color: #888888;
+  font-size: 12px;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+}
+
+.idContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.orderIdText {
+  font-family: monospace;
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  word-break: break-all;
+  transition: color 0.2s;
+}
+
+.idContainer:hover .orderIdText {
+  color: #00ff88;
+}
+
+.copyIcon {
+  font-size: 18px;
+  transition: color 0.2s;
+}
+
+.nextSteps {
+  background-color: rgba(255, 255, 255, 0.03);
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin-bottom: 35px;
+  border-left: 3px solid #E7000B;
+}
+
+.nextSteps p {
+  margin: 5px 0;
+  color: #cccccc;
+  font-size: 14px;
+}
+
+.actionButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.primaryBtn, .secondaryBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-decoration: none;
+  padding: 16px 20px;
+  border-radius: 8px;
+  font-family: 'Russo One', sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  transition: all 0.3s;
+}
+
+.primaryBtn {
+  background-color: #E7000B;
+  color: #ffffff;
+  border: 1px solid #E7000B;
+}
+
+.primaryBtn:hover {
+  background-color: #cc0000;
+  box-shadow: 0 5px 20px rgba(231, 0, 11, 0.4);
+  transform: translateY(-2px);
+}
+
+.secondaryBtn {
+  background-color: transparent;
+  color: #aaaaaa;
+  border: 1px solid #333333;
+}
+
+.secondaryBtn:hover {
+  background-color: #1a1a1a;
+  color: #ffffff;
+  border-color: #555555;
+}
+
+/* =========================================
+   АДАПТИВНІСТЬ ДЛЯ МОБІЛЬНИХ ПРИСТРОЇВ
+   ========================================= */
+@media (max-width: 600px) {
+  .successPage {
+    padding: 20px 15px;
+    align-items: flex-start; /* На мобілці картка піднімається вище */
+    padding-top: 50px;
+  }
+
+  .successCard {
+    padding: 30px 20px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .iconWrapper {
+    width: 70px;
+    height: 70px;
+    margin-bottom: 20px;
+  }
+
+  .checkIcon {
+    font-size: 35px;
+  }
+
+  .orderIdText {
+    font-size: 16px; /* Менший шрифт для довгих ID на телефоні */
+  }
+
+  .primaryBtn, .secondaryBtn {
+    padding: 14px 15px;
+    font-size: 14px;
+  }
+}

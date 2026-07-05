@@ -59,6 +59,7 @@
 .title {
   font-family: 'Russo One', sans-serif;
   font-size: 42px;
+  font-weight: 400;
   margin: 0 0 15px;
   letter-spacing: 1px;
 }
@@ -141,6 +142,7 @@
 .formHeader h2 {
   margin: 0 0 10px;
   font-size: 22px;
+  font-weight: 400;
   font-family: 'Russo One', sans-serif;
 }
 

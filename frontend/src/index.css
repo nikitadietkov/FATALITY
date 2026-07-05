@@ -1,12 +1,6 @@
 /* =========================================
    ГЛОБАЛЬНІ ЗМІННІ ТА ШРИФТИ
    ======================================== */
-@font-face {
-  font-family: 'Russo One';
-  src: url('/assets/fonts/RussoOne.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-}
 
 :root {
   --primary-color: #ff0000;
@@ -38,6 +32,11 @@ html, body {
   overflow-x: hidden;
   background-color: var(--bg-main);
   color: var(--text-main);
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root, .app-container {
@@ -102,7 +101,7 @@ button {
 .logo-title {
   color: var(--primary-color);
   font-family: 'Russo One', "Arial Black", sans-serif;
-  font-weight: 900;
+  font-weight: 400;
   font-size: 28px;
   margin: 0;
   line-height: 1;
@@ -305,6 +304,7 @@ button {
   color: #ffffff;
   font-size: 24px;
   font-family: 'Russo One', sans-serif;
+  font-weight: 400;
   letter-spacing: 1px;
 }
 

@@ -18,6 +18,7 @@ const productSchema = new mongoose.Schema({
     description: { type: String, required: true },
     imageUrls: [{ type: String, required: true }],
     status: { type: String, default: 'available' },
+    searchTags: { type: String, default: '' },
 }, { timestamps: true });
 
 export default mongoose.model('Product', productSchema);

@@ -368,6 +368,7 @@
   margin-bottom: 15px;
   font-family: 'Russo One', sans-serif;
   position: relative;
+  font-weight: 400;
   z-index: 2;
 }
 
@@ -453,6 +454,7 @@
   padding: 20px 50px;
   font-size: 1.2rem;
   font-family: 'Russo One', sans-serif;
+  font-weight: 400;
   text-decoration: none;
   border-radius: 8px;
   transition: 0.3s;

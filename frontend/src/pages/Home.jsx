@@ -96,7 +96,10 @@ export default function Home() {
     if (debouncedSearch.trim()) {
       const q = debouncedSearch.toLowerCase();
       filtered = products.filter(
-        (p) => p.title.toLowerCase().includes(q) || p.model.toLowerCase().includes(q)
+        (p) => p.title.toLowerCase().includes(q) || 
+        p.model.toLowerCase().includes(q) ||
+        (p.searchTags && p.searchTags.toLowerCase().includes(q)) ||
+        (p.description && p.description.toLowerCase().includes(q))
       );
     }
 

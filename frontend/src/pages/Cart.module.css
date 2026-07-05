@@ -12,6 +12,7 @@
 .pageTitle {
   font-family: 'Russo One', sans-serif;
   font-size: 32px;
+  font-weight: 400;
   color: #ffffff;
   margin-bottom: 30px;
   text-transform: uppercase;
@@ -216,6 +217,7 @@
 .summaryTitle {
   font-family: 'Russo One', sans-serif;
   font-size: 20px;
+  font-weight: 400;
   text-transform: uppercase;
   margin-bottom: 25px;
   letter-spacing: 0.5px;
@@ -412,6 +414,7 @@
 .emptyTitle {
   font-family: 'Russo One', sans-serif;
   font-size: 28px;
+  font-weight: 400;
   margin: 0 0 15px 0;
   color: #ffffff;
 }

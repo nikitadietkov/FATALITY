@@ -5,7 +5,6 @@ import toast from 'react-hot-toast';
 import styles from './Service.module.css';
 
 const CONSOLES = [
-  'Оберіть вашу консоль...',
   'PlayStation 5',
   'PlayStation 4 (Fat / Slim / Pro)',
   'PlayStation 3',
@@ -31,7 +30,7 @@ export default function Service() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.phone || !formData.consoleModel || formData.consoleModel === CONSOLES[0]) {
+    if (!formData.name || !formData.phone || !formData.consoleModel) {
       return toast.error('Будь ласка, заповніть всі обов\'язкові поля та оберіть консоль.');
     }
 
@@ -146,8 +145,10 @@ export default function Service() {
                   onChange={handleChange}
                   className={styles.selectField}
                 >
+                  <option value="" disabled>Оберіть вашу консоль...</option>
+                  
                   {CONSOLES.map((cons, index) => (
-                    <option key={index} value={cons} disabled={index === 0}>
+                    <option key={index} value={cons}>
                       {cons}
                     </option>
                   ))}

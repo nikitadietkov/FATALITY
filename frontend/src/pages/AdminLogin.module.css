@@ -83,6 +83,7 @@
   margin: 0 0 5px 0;
   font-family: 'Montserrat', 'Russo One', sans-serif;
   animation: pulseGlow 2.5s infinite;
+  font-weight: 400;
 }
 
 .subtitle {

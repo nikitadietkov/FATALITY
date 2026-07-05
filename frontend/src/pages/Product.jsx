@@ -32,7 +32,7 @@ function ImageSlider({ images, currentIndex, onPrev, onNext, onDotClick, onOpenM
     <div className={styles.imageSection}>
       <div className={styles.sliderWrapper}>
         {hasMany && (
-          <button type="button" className={`${styles.sliderArrow} ${styles.arrowLeft}`} onClick={onPrev} aria-label="Попереднє фото">
+          <button type="button" className={`${styles.sliderArrow} ${styles.arrowLeft}`} onClick={onPrev} aria-label="Попереднє photo">
             <FaChevronLeft />
           </button>
         )}
@@ -121,7 +121,7 @@ export function RatingStars({ rating, reviewCount }) {
           {Array.from({ length: 5 }, (_, i) => <FaStar key={`filled-${i}`} />)}
         </div>
       </div>
-      <span className={styles.ratingText}>{rating} ({reviewCount})</span>
+      <span className={styles.ratingText}>{rating.toFixed(1)} ({reviewCount})</span>
     </div>
   );
 }
@@ -154,8 +154,10 @@ function ReviewCard({ review }) {
   );
 }
 
+// 🔥 ВЫПРАВЛЕНА ТА МОДЕРНІЗОВАНА ФОРМА ВІДГУКІВ З ВЕРИФІКАЦІЄЮ КЛІЄНТА
 function ReviewForm({ productId, onReviewAdded }) {
   const [name, setName]       = useState('');
+  const [contact, setContact] = useState(''); // Стейт для Email або телефону
   const [comment, setComment] = useState('');
   const [rating, setRating]   = useState(5);
   const [hover, setHover]     = useState(null);
@@ -163,24 +165,36 @@ function ReviewForm({ productId, onReviewAdded }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name.trim() || !comment.trim()) return toast.error('Заповніть всі поля!');
-
+    if (!name.trim() || !contact.trim() || !comment.trim()) {
+      return toast.error("Заповніть всі обов'язкові поля!");
+    }
+    
     setSubmitting(true);
-    const toastId = toast.loading('Відправляємо відгук...');
-
+    const loadingToast = toast.loading("Перевірка статусу покупки...");
+    
     try {
-      const res = await fetch(`${BASE_URL}/api/products/${productId}/reviews`, {
+      const response = await fetch(`${BASE_URL}/api/products/${productId}/reviews`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, rating, comment }),
+        body: JSON.stringify({ name, contact, rating, comment })
       });
-      if (!res.ok) throw new Error('server error');
-      const data = await res.json();
-      onReviewAdded(data.product);
-      setName(''); setComment(''); setRating(5);
-      toast.success('Ваш відгук успішно додано!', { id: toastId });
-    } catch {
-      toast.error('Помилка при відправці відгуку.', { id: toastId });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success("Дякуємо! Ваш верифікований відгук успішно додано.", { id: loadingToast, icon: '🔥' });
+        // Очищаємо поля форми після успіху
+        setName('');
+        setContact('');
+        setComment('');
+        setRating(5);
+        // Оновлюємо стан товару на сторінці, щоб відгук одразу з'явився
+        if (onReviewAdded) onReviewAdded(data);
+      } else {
+        toast.error(data.message || "Помилка додавання відгуку.", { id: loadingToast });
+      }
+    } catch (err) {
+      toast.error("Помилка з'єднання з сервером.", { id: loadingToast });
     } finally {
       setSubmitting(false);
     }
@@ -189,14 +203,28 @@ function ReviewForm({ productId, onReviewAdded }) {
   return (
     <div className={styles.reviewFormContainer}>
       <h3>Написати відгук</h3>
-      <div className={styles.reviewForm}>
+      <form className={styles.reviewForm} onSubmit={handleSubmit}>
         <input
           type="text"
-          placeholder="Ваше ім'я"
+          placeholder="Ваше ім'я *"
           className={styles.reviewInput}
           value={name}
           onChange={(e) => setName(e.target.value)}
+          required
         />
+
+        {/* 🔥 НОВЕ ПОЛЕ ДЛЯ ПЕРЕВІРКИ Покупця */}
+        <input
+          type="text"
+          placeholder="Email або телефон, вказаний при замовленні *"
+          className={styles.reviewInput}
+          value={contact}
+          onChange={(e) => setContact(e.target.value)}
+          required
+        />
+        <span style={{ color: '#666', display: 'block', marginTop: '-12px', marginBottom: '15px', fontSize: '11px', textAlign: 'left', lineHeight: '1.3' }}>
+          * Потрібно для підтвердження покупки. Ці дані конфіденційні та не публікуються на сайті.
+        </span>
 
         <div className={styles.interactiveRating}>
           <span>Оцінка:</span>
@@ -225,17 +253,17 @@ function ReviewForm({ productId, onReviewAdded }) {
           className={styles.reviewInput}
           value={comment}
           onChange={(e) => setComment(e.target.value)}
+          required
         />
 
         <button
-          type="button"
+          type="submit"
           className={styles.submitReviewBtn}
-          onClick={handleSubmit}
           disabled={submitting}
         >
-          {submitting ? 'Відправляємо…' : 'Відтворити відгук'}
+          {submitting ? 'Обробка запиту…' : 'Опублікувати відгук'}
         </button>
-      </div>
+      </form>
     </div>
   );
 }
@@ -438,9 +466,20 @@ export default function Product() {
             )}
           </div>
 
+          {/* Передаємо функцію setProduct, щоб підкомпонент міг миттєво оновити сторінку після успішного відгуку */}
           <ReviewForm
             productId={id}
-            onReviewAdded={(updated) => setProduct(updated)}
+            onReviewAdded={async () => {
+              try {
+                const res = await fetch(`${BASE_URL}/api/products/${id}`);
+                if (res.ok) {
+                  const freshData = await res.json();
+                  setProduct(freshData);
+                }
+              } catch (err) {
+                console.error("Не вдалося оновити товар після відгуку", err);
+              }
+            }}
           />
         </div>
       </section>

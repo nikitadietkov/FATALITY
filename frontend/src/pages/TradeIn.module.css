@@ -1,0 +1,581 @@
+/* =========================================
+   TRADE-IN ТЕРМІНАЛ СТИЛІВ
+   ========================================= */
+
+.tradeInPage {
+  padding: 60px 20px 100px;
+  max-width: 1200px;
+  margin: 0 auto;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.heroSection {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.badge {
+  display: inline-block;
+  background-color: rgba(231, 0, 11, 0.1);
+  border: 1px solid #E7000B;
+  color: #E7000B;
+  padding: 6px 16px;
+  font-family: 'Russo One', sans-serif;
+  font-size: 12px;
+  letter-spacing: 2px;
+  border-radius: 4px;
+  font-weight: 400;
+  margin-bottom: 15px;
+}
+
+.title {
+  font-family: 'Russo One', sans-serif;
+  color: #ffffff;
+  font-size: 42px;
+  font-weight: 400;
+  margin: 0 0 20px 0;
+  letter-spacing: 1px;
+}
+
+.subtitle {
+  color: #888888;
+  font-size: 16px;
+  line-height: 1.6;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.categoryWarning {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background-color: rgba(231, 0, 11, 0.15);
+  border: 1px solid #E7000B;
+  padding: 16px 24px;
+  border-radius: 8px;
+  margin: 25px auto 0;
+  max-width: 750px;
+  text-align: left;
+  box-shadow: 0 5px 20px rgba(231, 0, 11, 0.2);
+}
+
+.categoryWarning .warnIcon {
+  color: #E7000B;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.categoryWarning p {
+  margin: 0;
+  color: #ffffff;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.categoryWarning b {
+  color: #ff9999;
+}
+
+.dangerHighlight {
+  color: #ffffff;
+  background-color: rgba(231, 0, 11, 0.2);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.contentWrapper {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+/* --- САЙДБАР З ГАЙДОМ --- */
+.rulesCard {
+  background: linear-gradient(180deg, #0d0d0d 0%, #050505 100%);
+  border: 1px solid #222222;
+  border-radius: 16px;
+  padding: 30px;
+  position: sticky;
+  top: 100px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.rulesCard h3 {
+  color: #ffffff;
+  font-family: 'Russo One', sans-serif;
+  font-weight: 400;
+  margin-top: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #222222;
+  padding-bottom: 20px;
+}
+
+.iconRed {
+  color: #E7000B;
+  font-size: 18px;
+}
+
+.rulesList {
+  list-style: none;
+  padding: 0;
+  margin: 25px 0;
+}
+
+.rulesList li {
+  margin-bottom: 25px;
+  line-height: 1.6;
+  padding-left: 24px;
+  position: relative;
+}
+
+.rulesList li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  top: 2px;
+  color: #E7000B;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.rulesList li strong {
+  display: block;
+  color: #ffffff;
+  font-size: 14px;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.rulesList li span {
+  color: #888888;
+  font-size: 13.5px;
+}
+
+.warningBox {
+  background-color: rgba(255, 170, 0, 0.05);
+  border-left: 3px solid #ffaa00;
+  padding: 15px;
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+}
+
+.warnIcon {
+  color: #ffaa00;
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.warningBox p {
+  margin: 0;
+  color: #e6a115;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* --- ГОЛОВНА ФОРМА --- */
+.tradeInForm {
+  background-color: #0c0c0c;
+  border: 1px solid #1a1a1a;
+  border-radius: 16px;
+  padding: 45px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+}
+
+.formTitle {
+  color: #ffffff;
+  font-family: 'Russo One', sans-serif;
+  font-weight: 400;
+  margin-top: 0;
+  margin-bottom: 35px;
+  font-size: 20px;
+  letter-spacing: 1px;
+  position: relative;
+  padding-bottom: 10px;
+}
+
+.formTitle::after {
+  content: '';
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 40px; height: 2px;
+  background-color: #E7000B;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 25px;
+  margin-bottom: 25px;
+}
+
+.inputGroup {
+  margin-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+}
+
+.inputGroup label {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.inputGroup input, .inputGroup textarea {
+  background-color: #050505;
+  border: 1px solid #222222;
+  color: #ffffff;
+  padding: 16px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 15px;
+  transition: all 0.3s;
+  outline: none;
+}
+
+.inputGroup input:focus, .inputGroup textarea:focus {
+  border-color: #E7000B;
+  box-shadow: 0 0 15px rgba(231, 0, 11, 0.1);
+  background-color: #080808;
+}
+
+.inputGroup textarea {
+  resize: vertical;
+  min-height: 110px;
+}
+
+/* --- ЧЕКБОКСИ КОМПЛЕКТАЦІЇ --- */
+.checkboxGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.checkboxItem {
+  background-color: #050505;
+  border: 1px solid #222222;
+  color: #888888;
+  padding: 12px 20px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+
+.checkboxItem:hover {
+  border-color: #444444;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.checkboxItem.active {
+  background: linear-gradient(180deg, rgba(231, 0, 11, 0.15) 0%, rgba(231, 0, 11, 0.05) 100%);
+  border-color: #E7000B;
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(231, 0, 11, 0.1);
+}
+
+.checkIndicator {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1px solid #444444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  transition: all 0.2s;
+  background-color: #0c0c0c;
+}
+
+.active .checkIndicator {
+  border-color: #E7000B;
+  background-color: #E7000B;
+  color: #ffffff;
+}
+
+/* --- КАСТОМНЕ ДОДАВАННЯ КОМПЛЕКТУ --- */
+.customEquipBox {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  max-width: 550px;
+}
+
+.customEquipInput {
+  flex: 1;
+  padding: 12px 16px !important;
+  font-size: 14px !important;
+}
+
+.addCustomBtn {
+  background-color: transparent;
+  color: #ffffff;
+  border: 1px solid #333333;
+  padding: 0 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.addCustomBtn:hover {
+  background-color: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
+}
+
+/* --- DRAG & DROP ДРОПЗОНА --- */
+.photoUploadSection {
+  margin-bottom: 35px;
+
+}
+
+.uploadDropzone {
+  margin-top: 10px;   
+  background-color: #050505;
+  border: 2px dashed #222222;
+  border-radius: 12px;
+  padding: 45px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.uploadDropzone:hover {
+  border-color: #E7000B;
+  background-color: rgba(231, 0, 11, 0.02);
+}
+
+.dropZoneActive {
+  border-color: #00ff88 !important;
+  background-color: rgba(0, 255, 136, 0.04) !important;
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
+}
+
+.uploadIcon {
+  font-size: 36px;
+  color: #444444;
+  margin-bottom: 16px;
+  transition: color 0.3s;
+}
+
+.uploadDropzone:hover .uploadIcon {
+  color: #E7000B;
+}
+
+.dropZoneActive .uploadIcon {
+  color: #00ff88 !important;
+  transform: scale(1.1);
+}
+
+.uploadText {
+  margin: 0 0 8px 0;
+  color: #ffffff;
+  font-size: 15px;
+}
+
+.browseLink {
+  color: #E7000B;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.uploadSubtext {
+  display: block;
+  color: #555555;
+  font-size: 12px;
+}
+
+/* --- ПОПЕРЕДНІЙ ПЕРЕГЛЯД ЗОБРАЖЕНЬ --- */
+.imagePreviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 16px;
+  margin-top: 25px;
+}
+
+.imagePreview {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #222222;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+  animation: scaleIn 0.2s ease-out;
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.imagePreview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.deleteImgBtn {
+  position: absolute;
+  top: 6px; right: 6px;
+  background: rgba(0, 0, 0, 0.75);
+  color: #ff4444;
+  border: 1px solid rgba(255,255,255,0.1);
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.deleteImgBtn:hover {
+  background: #E7000B;
+  color: #ffffff;
+  border-color: #E7000B;
+  transform: scale(1.05);
+}
+
+/* --- КНОПКА ВІДПРАВКИ --- */
+.submitBtn {
+  width: 100%;
+  background-color: #E7000B;
+  color: #ffffff;
+  border: none;
+  padding: 18px;
+  border-radius: 8px;
+  font-family: 'Russo One', sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 20px rgba(231, 0, 11, 0.2);
+}
+
+.submitBtn:hover:not(:disabled) {
+  background-color: #cc0000;
+  box-shadow: 0 6px 25px rgba(231, 0, 11, 0.4);
+  transform: translateY(-2px);
+}
+
+.submitBtn:disabled {
+  background-color: #222222;
+  color: #555555;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+@keyframes slideDownFade {
+  from { opacity: 0; transform: translateY(-40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Анімація для бокового меню (виїжджає зліва) */
+@keyframes slideRightFade {
+  from { opacity: 0; transform: translateX(-50px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Анімація для форми (виїжджає знизу) */
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(50px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Анімація для полів форми (каскадна поява) */
+@keyframes fieldFadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Застосовуємо ці анімації до головних блоків */
+.heroSection {
+  opacity: 0;
+  animation: slideDownFade 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.rulesSidebar {
+  opacity: 0;
+  animation: slideRightFade 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s forwards;
+}
+
+.tradeInForm {
+  opacity: 0;
+  animation: slideUpFade 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s forwards;
+}
+
+/* Спеціальний клас для полів, щоб вони з'являлися по черзі */
+.animatedField {
+  opacity: 0;
+  animation: fieldFadeIn 0.5s ease-out forwards;
+}
+
+/* =========================================
+   АДАПТИВНІ МЕДІА-ЗАПИТИ
+   ========================================= */
+@media (min-width: 601px) {
+  .formGrid {
+    grid-template-columns: 1fr 1fr; /* Робимо у дві колонки на ПК для краси */
+  }
+}
+
+@media (max-width: 950px) {
+  .contentWrapper {
+    grid-template-columns: 1fr;
+  }
+  
+  .rulesCard {
+    position: static;
+    margin-bottom: 10px;
+  }
+}
+
+@media (max-width: 600px) {
+  .tradeInForm {
+    padding: 25px 20px;
+  }
+  
+  .title {
+    font-size: 30px;
+  }
+  
+  .customEquipBox {
+    flex-direction: column;
+  }
+  
+  .addCustomBtn {
+    padding: 12px;
+    justify-content: center;
+  }
+}

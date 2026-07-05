@@ -1,7 +1,7 @@
 import { 
   FaBoxes, FaDollarSign, FaUser, FaClock, FaShoppingBag, 
   FaPlusCircle, FaCloudUploadAlt, FaEdit, FaTrash, 
-  FaSearch, FaTimes, FaSignOutAlt
+  FaSearch, FaTimes, FaSignOutAlt, FaRecycle, FaMoneyBillWave, FaCommentDots
 } from 'react-icons/fa';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -28,7 +28,7 @@ export default function Admin() {
   const [activeTab, setActiveTab] = useState('orders');
   
   const [newProduct, setNewProduct] = useState({ 
-    title: '', model: '', price: '', condition: 'Вживана - Ідеальний стан', description: '' 
+    title: '', model: '', price: '', condition: 'Вживана - Ідеальний стан', description: '', searchTags: ''
   });
   
   const [replyText, setReplyText] = useState('');
@@ -39,10 +39,24 @@ export default function Admin() {
   const [filterStatus, setFilterStatus] = useState('All');
   const [orderSearchQuery, setOrderSearchQuery] = useState('');
   
-  const [replyingToReviewId, setReplyingToReviewId] = useState(null);
+  // --- СТЕЙТИ ДЛЯ ВІДГУКІВ ---
   const [selectedProductReviews, setSelectedProductReviews] = useState(null);
+  const [replyingToReviewId, setReplyingToReviewId] = useState(null);
+  
   const [editProductId, setEditProductId] = useState(null);
+  
   const [orderToDelete, setOrderToDelete] = useState(null);
+  const [serviceRequests, setServiceRequests] = useState([]);
+  const [serviceToDelete, setServiceToDelete] = useState(null);  
+
+  const [tradeInRequests, setTradeInRequests] = useState([]);
+  const [tradeInToDelete, setTradeInToDelete] = useState(null);
+  
+  const [buyoutRequests, setBuyoutRequests] = useState([]);
+  const [buyoutToDelete, setBuyoutToDelete] = useState(null);
+
+  const [viewImages, setViewImages] = useState(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
@@ -50,17 +64,14 @@ export default function Admin() {
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
     toast.success('Сеанс завершено. До зустрічі!', { icon: '👋' });
-    navigate('/admin/login');
+    navigate('/admin-login');
   };
 
-  
   useEffect(() => {
     document.body.style.backgroundColor = '#0A0A0A';
     const mainEl = document.querySelector('main');
     if(mainEl) mainEl.style.backgroundColor = '#0A0A0A';
-
     fetchInitialData();
-
     return () => {
       document.body.style.backgroundColor = '';
       if(mainEl) mainEl.style.backgroundColor = '';
@@ -70,31 +81,37 @@ export default function Admin() {
   const fetchInitialData = async () => {
     try {
       const token = localStorage.getItem('adminToken');
-      
-      if (!token) {
-        navigate('/admin/login');
-        return;
-      }
+      if (!token) { navigate('/admin-login'); return; }
 
-      const [ordersRes, productsRes] = await Promise.all([
+      const [ordersRes, productsRes, serviceRes, tradeInRes, buyoutRes] = await Promise.all([
         fetch(`${API_BASE}/api/orders`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch(`${API_BASE}/api/products`)
+        fetch(`${API_BASE}/api/products`),
+        fetch(`${API_BASE}/api/service-requests`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`${API_BASE}/api/trade-in`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`${API_BASE}/api/buyout`, { headers: { 'Authorization': `Bearer ${token}` } })
       ]);
 
       if (ordersRes.status === 401 || ordersRes.status === 403) {
-        localStorage.removeItem('adminToken');
-        navigate('/admin-login');
-        return;
+        localStorage.removeItem('adminToken'); navigate('/admin-login'); return;
       }
 
       if (!ordersRes.ok) throw new Error(`Доступ заборонено (${ordersRes.status})`);
-      if (!productsRes.ok) throw new Error(`Помилка завантаження товарів (${productsRes.status})`);
+      if (!productsRes.ok) throw new Error(`Помилка товарів (${productsRes.status})`);
+      if (!serviceRes.ok) throw new Error(`Помилка сервісів (${serviceRes.status})`);
+      if (!tradeInRes.ok) throw new Error(`Помилка Трейд-ін (${tradeInRes.status})`);
+      if (!buyoutRes.ok) throw new Error(`Помилка Викупу (${buyoutRes.status})`);
       
       const ordersData = await ordersRes.json();
       const productsData = await productsRes.json();
+      const serviceData = await serviceRes.json();
+      const tradeInData = await tradeInRes.json();
+      const buyoutData = await buyoutRes.json();
       
       setOrders(Array.isArray(ordersData) ? ordersData : []);
       setProductsList(Array.isArray(productsData) ? productsData : []);
+      setServiceRequests(Array.isArray(serviceData) ? serviceData : []);
+      setTradeInRequests(Array.isArray(tradeInData) ? tradeInData : []);
+      setBuyoutRequests(Array.isArray(buyoutData) ? buyoutData : []);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -104,7 +121,6 @@ export default function Admin() {
 
   const filteredOrders = useMemo(() => {
     if (!Array.isArray(orders)) return [];
-    
     return orders.filter(order => {
       const matchesStatus = filterStatus === 'All' ? true : order.status === filterStatus;
       const query = orderSearchQuery.toLowerCase().trim();
@@ -117,16 +133,15 @@ export default function Admin() {
     });
   }, [orders, filterStatus, orderSearchQuery]);
 
+  // --- ЛОГІКА ТОВАРІВ ---
   const handleDragOver = (e) => { e.preventDefault(); setIsDragging(true); };
   const handleDragLeave = (e) => { e.preventDefault(); setIsDragging(false); };
   const handleDrop = (e) => { e.preventDefault(); setIsDragging(false); handleFileSelection(e.dataTransfer.files); };
   const handleFileInput = (e) => handleFileSelection(e.target.files);
-  
   const removeImage = (indexToRemove, e) => {
     e.stopPropagation();
     setImageFiles(prev => prev.filter((_, idx) => idx !== indexToRemove));
   };
-
   const handleFileSelection = (files) => {
     setProductMsg('');
     const validFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
@@ -137,7 +152,6 @@ export default function Admin() {
   const handleAddOrEditProduct = async (e) => {
     e.preventDefault();
     setProductMsg('');
-    
     const isDescEmpty = !newProduct.description || newProduct.description === '<p><br></p>';
     if (isDescEmpty) return toast.error('Додайте опис товару!');
     if (!editProductId && imageFiles.length === 0) return toast.error('Завантажте хоча б 1 фото!');
@@ -152,6 +166,7 @@ export default function Admin() {
       formData.append('price', newProduct.price);
       formData.append('condition', newProduct.condition);
       formData.append('description', newProduct.description);
+      formData.append('searchTags', newProduct.searchTags || '');
       imageFiles.forEach(file => formData.append('images', file));
 
       const method = editProductId ? 'PUT' : 'POST';
@@ -165,19 +180,34 @@ export default function Admin() {
 
       if (response.ok) {
         toast.success(editProductId ? 'Товар успішно оновлено!' : 'Товар успішно додано!', { id: loadingToast });
-        setNewProduct({ title: '', model: '', price: '', condition: 'Вживана - Ідеальний стан', description: '' });
+        setNewProduct({ title: '', model: '', price: '', condition: 'Вживана - Ідеальний стан', description: '', searchTags: '' });
         setImageFiles([]); 
         setEditProductId(null); 
         if (fileInputRef.current) fileInputRef.current.value = '';
-        
         const updatedProducts = await fetch(`${API_BASE}/api/products`).then(res => res.json());
         setProductsList(Array.isArray(updatedProducts) ? updatedProducts : []);
       } else {
         toast.error('❌ Помилка при збереженні.', { id: loadingToast });
       }
-    } catch (err) { 
-      toast.error('Помилка сервера', { id: loadingToast }); 
-    }
+    } catch (err) { toast.error('Помилка сервера', { id: loadingToast }); }
+  };
+
+  const handleGenerateTags = async () => {
+    if (!newProduct.title) return toast.error('Спочатку введіть назву товару!');
+    const loadingToast = toast.loading('Штучний інтелект аналізує товар...');
+    try {
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`${API_BASE}/api/generate-tags`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ title: newProduct.title, description: newProduct.description })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setNewProduct(prev => ({ ...prev, searchTags: data.tags }));
+        toast.success('Ідеальні теги згенеровано!', { id: loadingToast, icon: '🧠' });
+      } else { toast.error('Помилка генерації.', { id: loadingToast }); }
+    } catch (error) { toast.error('Втрачено зв\'язок з AI', { id: loadingToast }); }
   };
 
   const handleDeleteProduct = async (id) => {
@@ -188,20 +218,15 @@ export default function Admin() {
       if (response.ok) {
         setProductsList(prev => prev.filter(p => p._id !== id));
         toast.success('Товар назавжди видалено!');
-      } else {
-        toast.error("Помилка видалення товару");
-      }
+      } else { toast.error("Помилка видалення товару"); }
     } catch (err) { console.error(err); }
   };
 
   const handleEditClick = (product) => {
     setEditProductId(product._id);
     setNewProduct({ 
-      title: product.title || '', 
-      model: product.model || '', 
-      price: product.price || '', 
-      condition: product.condition || 'Вживана - Ідеальний стан', 
-      description: product.description || '' 
+      title: product.title || '', model: product.model || '', price: product.price || '', 
+      condition: product.condition || 'Вживана - Ідеальний стан', description: product.description || '', searchTags: product.searchTags || ''
     });
     setImageFiles([]); 
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -209,34 +234,72 @@ export default function Admin() {
   
   const cancelEdit = () => {
     setEditProductId(null); 
-    setNewProduct({ title: '', model: '', price: '', condition: 'Вживана - Ідеальний стан', description: '' });
-    setImageFiles([]); 
-    setProductMsg('');
+    setNewProduct({ title: '', model: '', price: '', condition: 'Вживана - Ідеальний стан', description: '', searchTags: '' });
+    setImageFiles([]); setProductMsg('');
   };
 
+  // --- ЛОГІКА ВІДГУКІВ (НОВЕ) ---
+  const openReviewsModal = (product) => {
+    setSelectedProductReviews(product);
+    setReplyText('');
+    setReplyingToReviewId(null);
+  };
+
+  const handleDeleteReview = async (productId, reviewId) => {
+    if (!window.confirm("Точно видалити цей відгук?")) return;
+    try {
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`${API_BASE}/api/products/${productId}/reviews/${reviewId}`, {
+        method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const updatedProduct = await response.json();
+        // Оновлюємо товар у списку
+        setProductsList(prev => prev.map(p => p._id === productId ? updatedProduct : p));
+        // Оновлюємо модалку
+        setSelectedProductReviews(updatedProduct);
+        toast.success("Відгук видалено!");
+      } else { toast.error("Помилка видалення."); }
+    } catch (error) { toast.error("Помилка сервера."); }
+  };
+
+  const handleReplySubmit = async (productId, reviewId) => {
+    if (!replyText.trim()) return toast.error("Введіть текст відповіді!");
+    try {
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`${API_BASE}/api/products/${productId}/reviews/${reviewId}/reply`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ reply: replyText })
+      });
+      if (response.ok) {
+        const updatedProduct = await response.json();
+        setProductsList(prev => prev.map(p => p._id === productId ? updatedProduct : p));
+        setSelectedProductReviews(updatedProduct);
+        setReplyingToReviewId(null);
+        setReplyText('');
+        toast.success("Відповідь опубліковано!");
+      } else { toast.error("Помилка збереження."); }
+    } catch (error) { toast.error("Помилка сервера."); }
+  };
+
+  // --- ЛОГІКА ЗАМОВЛЕНЬ ---
   const handleUpdateOrderStatus = async (orderId) => {
     const statusEl = document.getElementById(`status-${orderId}`);
     const ttnEl = document.getElementById(`ttn-${orderId}`);
     if (!statusEl || !ttnEl) return;
-
     try {
       const token = localStorage.getItem('adminToken');
       const response = await fetch(`${API_BASE}/api/orders/${orderId}/status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ status: statusEl.value, trackingNumber: ttnEl.value })
       });
-
       if (response.ok) {
         const updatedOrder = await response.json();
         setOrders(prev => prev.map(o => o._id === orderId ? updatedOrder : o));
         toast.success('Статус та ТТН успішно оновлено!');
-      } else {
-        toast.error('Помилка оновлення статусу.');
-      }
-    } catch (err) { 
-        toast.error('Помилка з\'єднання з сервером.');
-    }
+      } else { toast.error('Помилка оновлення статусу.'); }
+    } catch (err) { toast.error('Помилка з\'єднання з сервером.'); }
   };
 
   const handleDeleteOrder = async () => {
@@ -244,22 +307,49 @@ export default function Admin() {
     const loadingToast = toast.loading('Видалення замовлення...');
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await fetch(`${API_BASE}/api/orders/${orderToDelete}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const response = await fetch(`${API_BASE}/api/orders/${orderToDelete}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
       if (response.ok) {
         setOrders(prev => prev.filter(o => o._id !== orderToDelete));
         toast.success('Замовлення успішно видалено!', { id: loadingToast });
-      } else {
-        toast.error("Помилка видалення замовлення", { id: loadingToast });
-      }
-    } catch (err) { 
-      toast.error('Помилка сервера', { id: loadingToast }); 
-    } finally {
-      setOrderToDelete(null); 
-    }
+      } else { toast.error("Помилка видалення замовлення", { id: loadingToast }); }
+    } catch (err) { toast.error('Помилка сервера', { id: loadingToast }); 
+    } finally { setOrderToDelete(null); }
   };
+
+  // --- ІНШІ ОБРОБНИКИ СТАТУСІВ (Service, TradeIn, Buyout) ---
+  const handleUpdateStatus = async (endpoint, id, newStatus, stateUpdater) => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch(`${API_BASE}/api/${endpoint}/${id}/status`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        stateUpdater(prev => prev.map(r => r._id === id ? updated : r));
+        toast.success('Статус оновлено!');
+      }
+    } catch (err) { toast.error('Помилка оновлення'); }
+  };
+
+  const confirmDeleteTicket = async (endpoint, id, stateUpdater, setDeleteId) => {
+    if (!id) return;
+    const loadingToast = toast.loading('Видалення заявки...');
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch(`${API_BASE}/api/${endpoint}/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+      if (res.ok) {
+        stateUpdater(prev => prev.filter(r => r._id !== id));
+        toast.success('Заявку успішно видалено!', { id: loadingToast });
+      } else { toast.error('Помилка видалення', { id: loadingToast }); }
+    } catch (err) { toast.error('Помилка сервера', { id: loadingToast }); } 
+    finally { setDeleteId(null); }
+  };
+
+  // --- ФОТОГАЛЕРЕЯ ---
+  const openImageViewer = (images, index) => { setViewImages(images); setCurrentImageIndex(index); };
+  const nextImage = (e) => { e.stopPropagation(); setCurrentImageIndex(prev => (prev + 1) % viewImages.length); };
+  const prevImage = (e) => { e.stopPropagation(); setCurrentImageIndex(prev => (prev - 1 + viewImages.length) % viewImages.length); };
 
   const renderStatusBadge = (status) => {
     switch(status) {
@@ -269,43 +359,6 @@ export default function Admin() {
       case 'Cancelled': return <span className={`${styles.statusBadge} ${styles.cancelled}`}>СКАСОВАНО</span>;
       default: return <span className={`${styles.statusBadge} ${styles.pending}`}>ОЧІКУЄ ОПЛАТИ</span>;
     }
-  };
-
-  const handleDeleteReview = async (productId, reviewId) => {
-    if (!window.confirm("Точно видалити цей відгук?")) return;
-    try {
-      const token = localStorage.getItem('adminToken');
-      const response = await fetch(`${API_BASE}/api/products/${productId}/reviews/${reviewId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setProductsList(prev => prev.map(p => p._id === productId ? data.product : p));
-        setSelectedProductReviews(data.product);
-        toast.success("Відгук видалено!");
-      }
-    } catch (err) { toast.error("Помилка видалення"); }
-  };
-
-  const handleReplyReview = async (productId, reviewId) => {
-    if (!replyText.trim()) return toast.error("Введіть текст відповіді");
-    try {
-      const token = localStorage.getItem('adminToken');
-      const response = await fetch(`${API_BASE}/api/products/${productId}/reviews/${reviewId}/reply`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ reply: replyText })
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setProductsList(prev => prev.map(p => p._id === productId ? data.product : p));
-        setSelectedProductReviews(data.product);
-        setReplyingToReviewId(null);
-        setReplyText('');
-        toast.success("Відповідь опубліковано!");
-      }
-    } catch (err) { toast.error("Помилка відправки відповіді"); }
   };
 
   const safeOrders = Array.isArray(orders) ? orders : [];
@@ -328,8 +381,12 @@ export default function Admin() {
         <div className={styles.tabsWrapper}>
           <button type="button" className={`${styles.tabBtn} ${activeTab === 'orders' ? styles.activeTab : ''}`} onClick={() => setActiveTab('orders')}>Замовлення</button>
           <button type="button" className={`${styles.tabBtn} ${activeTab === 'products' ? styles.activeTab : ''}`} onClick={() => setActiveTab('products')}>Управління товарами</button>
+          <button type="button" className={`${styles.tabBtn} ${activeTab === 'service' ? styles.activeTab : ''}`} onClick={() => setActiveTab('service')}>🛠 Сервісний центр</button>
+          <button type="button" className={`${styles.tabBtn} ${activeTab === 'tradein' ? styles.activeTab : ''}`} onClick={() => setActiveTab('tradein')}><FaRecycle/> Trade-In</button>
+          <button type="button" className={`${styles.tabBtn} ${activeTab === 'buyout' ? styles.activeTab : ''}`} onClick={() => setActiveTab('buyout')}><FaMoneyBillWave/> Викуп</button>
         </div>
 
+        {/* --- ВКЛАДКА: ЗАМОВЛЕННЯ --- */}
         {activeTab === 'orders' && (
           <div className={styles.tabContent}>
             <div className={styles.statsGrid}>
@@ -362,31 +419,17 @@ export default function Admin() {
               <div className={styles.filtersControls}>
                 <div className={styles.adminSearchWrapper}>
                   <FaSearch className={styles.adminSearchIcon} />
-                  <input
-                    type="text"
-                    placeholder="Пошук (Ім'я, Телефон, ID)..."
-                    className={styles.adminSearchInput}
-                    value={orderSearchQuery}
-                    onChange={(e) => setOrderSearchQuery(e.target.value)}
-                  />
-                  {orderSearchQuery && (
-                    <button type="button" className={styles.adminSearchClear} onClick={() => setOrderSearchQuery('')}>
-                      <FaTimes />
-                    </button>
-                  )}
+                  <input type="text" placeholder="Пошук (Ім'я, Телефон, ID)..." className={styles.adminSearchInput} value={orderSearchQuery} onChange={(e) => setOrderSearchQuery(e.target.value)} />
+                  {orderSearchQuery && <button type="button" className={styles.adminSearchClear} onClick={() => setOrderSearchQuery('')}><FaTimes /></button>}
                 </div>
 
                 <div className={styles.filterWrapper}>
                   <label htmlFor="statusFilter">Фільтр:</label>
-                  <select 
-                    id="statusFilter"
-                    className={styles.filterSelect}
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                  >
+                  <select id="statusFilter" className={styles.filterSelect} value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
                     <option value="All">Всі замовлення</option>
                     <option value="Pending">Очікують оплати</option>
                     <option value="Paid">Оплачені</option>
+                    <option value="Processing">Обробка замовлення</option>
                     <option value="Shipped">Відправлені</option>
                     <option value="Cancelled">Скасовані</option>
                   </select>
@@ -396,13 +439,10 @@ export default function Admin() {
 
             <div className={styles.ordersList}>
               {filteredOrders.length === 0 ? (
-                <p className={styles.noOrders}>
-                  {safeOrders.length === 0 ? "База даних порожня." : "За вказаними критеріями замовлень не знайдено."}
-                </p>
+                <p className={styles.noOrders}>{safeOrders.length === 0 ? "База даних порожня." : "За вказаними критеріями замовлень не знайдено."}</p>
               ) : (
                 filteredOrders.map((order, index) => (
                     <div key={order._id} className={styles.orderCard} style={{ animationDelay: `${Math.min(index * 0.05, 0.4)}s` }}>
-                      
                       <div className={styles.orderHeader}>
                         <div className={styles.orderMeta}>
                           <span className={styles.orderId}>ID: {order._id}</span>
@@ -410,14 +450,7 @@ export default function Admin() {
                         </div>
                         <div className={styles.orderStatusActions}>
                           {renderStatusBadge(order.status)}
-                          <button 
-                            type="button"
-                            className={styles.deleteOrderBtn} 
-                            onClick={() => setOrderToDelete(order._id)}
-                            title="Видалити замовлення"
-                          >
-                            <FaTrash />
-                          </button>
+                          <button type="button" className={styles.deleteOrderBtn} onClick={() => setOrderToDelete(order._id)} title="Видалити замовлення"><FaTrash /></button>
                         </div>
                       </div>
 
@@ -450,16 +483,9 @@ export default function Admin() {
                             <option value="Shipped">Відправлено</option>
                             <option value="Cancelled">Скасовано</option>
                           </select>
-                          <input 
-                            id={`ttn-${order._id}`} 
-                            type="text" 
-                            placeholder="ТТН Нової Пошти" 
-                            defaultValue={order.trackingNumber || ''} 
-                            className={styles.ttnInput} 
-                          />
+                          <input id={`ttn-${order._id}`} type="text" placeholder="ТТН Нової Пошти" defaultValue={order.trackingNumber || ''} className={styles.ttnInput} />
                           <button type="button" className={styles.updateStatusBtn} onClick={() => handleUpdateOrderStatus(order._id)}>Зберегти</button>
                         </div>
-                        
                         <div className={styles.totalBlock}>
                           <span className={styles.totalLabel}>Разом:</span>
                           <span className={styles.totalPrice}>{order.totalAmount} грн</span>
@@ -472,48 +498,23 @@ export default function Admin() {
           </div>
         )}
 
+        {/* --- ВКЛАДКА: ТОВАРИ --- */}
         {activeTab === 'products' && (
           <div className={styles.tabContent}>
             <div className={styles.addProductCard}>
-              <h3>
+              <h3 className={styles.formTitle}>
                 {editProductId ? <FaEdit style={{ color: 'var(--success-color)' }} /> : <FaPlusCircle />} 
                 {editProductId ? 'Редагування товару' : 'Додати нову консоль'}
               </h3>
               <form onSubmit={handleAddOrEditProduct} className={styles.productForm}>
                 <div className={styles.formRow}>
-                  <input 
-                    type="text" 
-                    placeholder="Назва (напр. Sony PlayStation 5)" 
-                    required 
-                    className={styles.inputField} 
-                    value={newProduct.title || ''} 
-                    onChange={e => setNewProduct(prev => ({...prev, title: e.target.value}))} 
-                  />
-                  <input 
-                    type="text" 
-                    placeholder="Модель (напр. PS5)" 
-                    required 
-                    className={styles.inputField} 
-                    value={newProduct.model || ''} 
-                    onChange={e => setNewProduct(prev => ({...prev, model: e.target.value}))} 
-                  />
+                  <input type="text" placeholder="Назва (напр. Sony PlayStation 5)" required className={styles.inputField} value={newProduct.title || ''} onChange={e => setNewProduct(prev => ({...prev, title: e.target.value}))} />
+                  <input type="text" placeholder="Модель (напр. PS5)" required className={styles.inputField} value={newProduct.model || ''} onChange={e => setNewProduct(prev => ({...prev, model: e.target.value}))} />
                 </div>
 
                 <div className={styles.formRow}>
-                  <input 
-                    type="number" 
-                    placeholder="Ціна (грн)" 
-                    required 
-                    className={styles.inputField} 
-                    value={newProduct.price || ''} 
-                    onChange={e => setNewProduct(prev => ({...prev, price: e.target.value}))} 
-                  />
-                  <select 
-                    className={styles.inputField} 
-                    required 
-                    value={newProduct.condition || 'Вживана - Ідеальний стан'} 
-                    onChange={e => setNewProduct(prev => ({...prev, condition: e.target.value}))}
-                  >
+                  <input type="number" placeholder="Ціна (грн)" required className={styles.inputField} value={newProduct.price || ''} onChange={e => setNewProduct(prev => ({...prev, price: e.target.value}))} />
+                  <select className={styles.inputField} required value={newProduct.condition || 'Вживана - Ідеальний стан'} onChange={e => setNewProduct(prev => ({...prev, condition: e.target.value}))}>
                     <option value="Нова">Нова</option>
                     <option value="Вживана - Ідеальний стан">Вживана - Ідеальний стан</option>
                     <option value="Вживана - Хороший стан">Вживана - Хороший стан</option>
@@ -521,23 +522,17 @@ export default function Admin() {
                   </select>
                 </div>
 
-                <div className={styles.editorWrapper}>
-                  <ReactQuill 
-                    theme="snow"
-                    modules={quillModules}
-                    value={newProduct.description || ''}
-                    onChange={(content) => setNewProduct(prev => ({...prev, description: content}))}
-                    placeholder="Опис товару (комплектація, гарантія, дефекти... Можна використовувати списки!)"
-                  />
+                <div className={styles.formRow} style={{ alignItems: 'center', gap: '15px' }}>
+                  <input type="text" placeholder="Приховані пошукові теги (через кому)" className={styles.inputField} style={{ flex: 1, marginBottom: 0 }} value={newProduct.searchTags || ''} onChange={e => setNewProduct(prev => ({...prev, searchTags: e.target.value}))} />
+                  <button type="button" onClick={handleGenerateTags} className={styles.aiButton} title="Згенерувати теги">✨ AI Теги</button>
                 </div>
 
-                <div 
-                  className={`${styles.dropZone} ${isDragging ? styles.dropZoneActive : ''}`}
-                  onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
-                  onClick={() => fileInputRef.current?.click()}
-                >
+                <div className={styles.editorWrapper}>
+                  <ReactQuill theme="snow" modules={quillModules} value={newProduct.description || ''} onChange={(content) => setNewProduct(prev => ({...prev, description: content}))} placeholder="Опис товару (комплектація, гарантія...)" />
+                </div>
+
+                <div className={`${styles.dropZone} ${isDragging ? styles.dropZoneActive : ''}`} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} onClick={() => fileInputRef.current?.click()}>
                   <input ref={fileInputRef} type="file" multiple accept="image/*" className={styles.hiddenFileInput} onChange={handleFileInput} />
-                  
                   {imageFiles.length > 0 ? (
                     <div className={styles.galleryPreview}>
                       {imageFiles.map((file, idx) => (
@@ -560,9 +555,7 @@ export default function Admin() {
                     {editProductId ? 'ЗБЕРЕГТИ ЗМІНИ' : 'ЗАВАНТАЖИТИ В БАЗУ'}
                   </button>
                   {editProductId && (
-                    <button type="button" className={styles.cancelProductBtn} onClick={cancelEdit}>
-                      СКАСУВАТИ
-                    </button>
+                    <button type="button" className={styles.cancelProductBtn} onClick={cancelEdit}>СКАСУВАТИ</button>
                   )}
                 </div>
               </form>
@@ -570,7 +563,6 @@ export default function Admin() {
 
             <div className={styles.adminProductsSection}>
               <h3 className={styles.sectionTitle}>Існуючі товари в базі</h3>
-              
               <div className={styles.adminProductsGrid}>
                 {productsList.length === 0 ? (
                   <p className={styles.noOrders}>Немає товарів.</p>
@@ -578,31 +570,23 @@ export default function Admin() {
                   productsList.map(product => {
                     const firstImg = product.imageUrls && product.imageUrls.length > 0 ? product.imageUrls[0] : product.imageUrl;
                     const validThumb = firstImg?.startsWith('/uploads') ? `${API_BASE}${firstImg}` : firstImg;
-
                     return (
                       <div key={product._id} className={styles.adminProductCard}>
-                        <Link 
-                          to={`/product/${product._id}`} 
-                          className={styles.adminProductLinkWrapper}
-                          title="Відкрити сторінку товару"
-                        >
-                          <img src={validThumb || 'https://via.placeholder.com/100?text=No+Image'} alt={product.title} className={styles.adminProductThumb} />
+                        <Link to={`/product/${product._id}`} className={styles.adminProductLinkWrapper} title="Відкрити сторінку">
+                          <img src={validThumb || 'https://via.placeholder.com/100'} alt={product.title} className={styles.adminProductThumb} />
                           <div className={styles.adminProductInfo}>
                             <h4>{product.title}</h4>
                             <span className={styles.adminProductPrice}>{product.price} грн</span>
                           </div>
                         </Link>
-
+                        
+                        {/* 🔥 ДОДАНО КНОПКУ ВІДГУКІВ ТУТ */}
                         <div className={styles.adminProductActions}>
-                          <button type="button" className={styles.editBtn} onClick={() => handleEditClick(product)} title="Редагувати">
-                            <FaEdit />
+                          <button type="button" className={styles.reviewsBtn} onClick={() => openReviewsModal(product)} title="Керування відгуками">
+                            <FaCommentDots /> {product.reviews?.length || 0}
                           </button>
-                          <button type="button" className={styles.deleteBtn} onClick={() => handleDeleteProduct(product._id)} title="Видалити">
-                            <FaTrash />
-                          </button>
-                          <button type="button" className={styles.actionBtn} onClick={() => setSelectedProductReviews(product)}>
-                            💬 Відгуки ({product.reviews?.length || 0})
-                          </button>
+                          <button type="button" className={styles.editBtn} onClick={() => handleEditClick(product)} title="Редагувати"><FaEdit /></button>
+                          <button type="button" className={styles.deleteBtn} onClick={() => handleDeleteProduct(product._id)} title="Видалити"><FaTrash /></button>
                         </div>
                       </div>
                     );
@@ -612,54 +596,234 @@ export default function Admin() {
             </div>
           </div>
         )}
+
+        {/* --- ВКЛАДКА: СЕРВІСНИЙ ЦЕНТР --- */}
+        {activeTab === 'service' && (
+          <div className={styles.tabContent}>
+            <div className={styles.ordersHeaderRow}>
+              <h3 className={styles.sectionTitle}>Заявки на ремонт та профілактику</h3>
+            </div>
+            <div className={styles.serviceGrid}>
+              {serviceRequests.length === 0 ? (
+                <p className={styles.noOrders}>Немає нових заявок на сервіс.</p>
+              ) : (
+                serviceRequests.map((req, index) => (
+                  <div key={req._id} className={`${styles.serviceTicket} ${styles[`status${req.status.replace(' ', '')}`]}`} style={{ animationDelay: `${index * 0.05}s` }}>
+                    <div className={styles.ticketHeader}>
+                      <span className={styles.ticketDate}>{new Date(req.createdAt).toLocaleString('uk-UA', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+                      <span className={styles.ticketId}>ID: {req._id.slice(-6)}</span>
+                    </div>
+                    <div className={styles.ticketBody}>
+                      <h4 className={styles.clientName}>{req.name}</h4>
+                      <a href={`tel:${req.phone}`} className={styles.clientPhone}>📞 {req.phone}</a>
+                      <div className={styles.deviceTag}>🎮 {req.consoleModel}</div>
+                      <div className={styles.problemBox}>
+                        <strong>Суть проблеми:</strong>
+                        <p>{req.problem || 'Клієнт не залишив опису'}</p>
+                      </div>
+                    </div>
+                    <div className={styles.ticketFooter}>
+                      <select value={req.status} onChange={(e) => handleUpdateStatus('service-requests', req._id, e.target.value, setServiceRequests)} className={styles.serviceStatusSelect}>
+                        <option value="New">Нова заявка</option>
+                        <option value="In Progress">В роботі</option>
+                        <option value="Completed">Завершено</option>
+                        <option value="Cancelled">Відхилено</option>
+                      </select>
+                      <button onClick={() => setServiceToDelete(req._id)} className={styles.deleteTicketBtn} title="Видалити заявку"><FaTrash /></button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* --- ВКЛАДКА: ТРЕЙД-ІН --- */}
+        {activeTab === 'tradein' && (
+          <div className={styles.tabContent}>
+            <div className={styles.ordersHeaderRow}>
+              <h3 className={styles.sectionTitle}>Заявки на Trade-In (Оцінка консолей)</h3>
+            </div>
+            <div className={styles.serviceGrid}>
+              {tradeInRequests.length === 0 ? (
+                <p className={styles.noOrders}>Немає нових заявок на Trade-In.</p>
+              ) : (
+                tradeInRequests.map((req, index) => (
+                  <div key={req._id} className={`${styles.serviceTicket} ${styles[`status${req.status.replace(' ', '')}`]}`} style={{ animationDelay: `${index * 0.05}s` }}>
+                    <div className={styles.ticketHeader}>
+                      <span className={styles.ticketDate}>{new Date(req.createdAt).toLocaleString('uk-UA', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+                      <span className={styles.ticketId}>ID: {req._id.slice(-6)}</span>
+                    </div>
+                    <div className={styles.ticketBody}>
+                      <h4 className={styles.clientName}>{req.name}</h4>
+                      <a href={`tel:${req.phone}`} className={styles.clientPhone}>📞 {req.phone}</a>
+                      <div className={styles.deviceTag}>🎮 {req.consoleName}</div>
+                      {req.equipment && req.equipment.length > 0 && (
+                        <div className={styles.equipmentTags}>
+                          {req.equipment.map((item, idx) => <span key={idx} className={styles.equipTag}>{item}</span>)}
+                        </div>
+                      )}
+                      <div className={styles.problemBox}><strong>Опис / Стан:</strong><p>{req.description || 'Без додаткового опису'}</p></div>
+                      {req.images && req.images.length > 0 && (
+                        <div className={styles.tradeInGallery}>
+                          {req.images.map((img, idx) => {
+                            const imgUrl = img.startsWith('/') ? `${API_BASE}${img}` : img;
+                            return <img key={idx} src={imgUrl} alt="Консоль клієнта" className={styles.tradeInThumb} onClick={() => openImageViewer(req.images, idx)} title="Натисни для перегляду" />
+                          })}
+                        </div>
+                      )}
+                    </div>
+                    <div className={styles.ticketFooter}>
+                      <select value={req.status} onChange={(e) => handleUpdateStatus('trade-in', req._id, e.target.value, setTradeInRequests)} className={styles.serviceStatusSelect}>
+                        <option value="New">Нова заявка</option>
+                        <option value="Reviewed">На розгляді</option>
+                        <option value="Accepted">Прийнято (Чекаємо девайс)</option>
+                        <option value="Rejected">Відхилено</option>
+                      </select>
+                      <button onClick={() => setTradeInToDelete(req._id)} className={styles.deleteTicketBtn} title="Видалити заявку"><FaTrash /></button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* --- ВКЛАДКА: ВИКУП --- */}
+        {activeTab === 'buyout' && (
+          <div className={styles.tabContent}>
+            <div className={styles.ordersHeaderRow}>
+              <h3 className={styles.sectionTitle}>Заявки на терміновий Викуп</h3>
+            </div>
+            <div className={styles.serviceGrid}>
+              {buyoutRequests.length === 0 ? (
+                <p className={styles.noOrders}>Немає нових заявок на викуп.</p>
+              ) : (
+                buyoutRequests.map((req, index) => (
+                  <div key={req._id} className={`${styles.serviceTicket} ${styles[`status${req.status.replace(' ', '')}`]}`} style={{ animationDelay: `${index * 0.05}s` }}>
+                    <div className={styles.ticketHeader}>
+                      <span className={styles.ticketDate}>{new Date(req.createdAt).toLocaleString('uk-UA', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+                      <span className={styles.ticketId}>ID: {req._id.slice(-6)}</span>
+                    </div>
+                    <div className={styles.ticketBody}>
+                      <h4 className={styles.clientName}>{req.name}</h4>
+                      <a href={`tel:${req.phone}`} className={styles.clientPhone}>📞 {req.phone}</a>
+                      <div className={styles.deviceTag}>🎮 {req.consoleName}</div>
+                      <div className={styles.expectedPriceBox}><strong>Очікувана сума:</strong> {req.expectedPrice ? `${req.expectedPrice} грн` : 'Не вказано'}</div>
+                      {req.equipment && req.equipment.length > 0 && (
+                        <div className={styles.equipmentTags}>
+                          {req.equipment.map((item, idx) => <span key={idx} className={styles.equipTag}>{item}</span>)}
+                        </div>
+                      )}
+                      <div className={styles.problemBox}><strong>Опис / Стан:</strong><p>{req.description || 'Без додаткового опису'}</p></div>
+                      {req.images && req.images.length > 0 && (
+                        <div className={styles.tradeInGallery}>
+                          {req.images.map((img, idx) => {
+                            const imgUrl = img.startsWith('/') ? `${API_BASE}${img}` : img;
+                            return <img key={idx} src={imgUrl} alt="Консоль клієнта" className={styles.tradeInThumb} onClick={() => openImageViewer(req.images, idx)} title="Натисни для перегляду" />
+                          })}
+                        </div>
+                      )}
+                    </div>
+                    <div className={styles.ticketFooter}>
+                      <select value={req.status} onChange={(e) => handleUpdateStatus('buyout', req._id, e.target.value, setBuyoutRequests)} className={styles.serviceStatusSelect}>
+                        <option value="New">Нова заявка</option>
+                        <option value="Reviewed">На розгляді</option>
+                        <option value="Accepted">Готові викупити</option>
+                        <option value="Rejected">Відхилено</option>
+                      </select>
+                      <button onClick={() => setBuyoutToDelete(req._id)} className={styles.deleteTicketBtn} title="Видалити заявку"><FaTrash /></button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
+      {/* --- МОДАЛЬНІ ВІКНА --- */}
+      
+      {/* Модалка Галереї */}
+      {viewImages && (
+        <div className={styles.imageModalOverlay} onClick={() => setViewImages(null)}>
+          <div className={styles.imageModalContent} onClick={e => e.stopPropagation()}>
+            <button className={styles.closeImageBtn} onClick={() => setViewImages(null)}>✖</button>
+            {viewImages.length > 1 && <button className={`${styles.navImgBtn} ${styles.navPrev}`} onClick={prevImage}>❮</button>}
+            <img src={viewImages[currentImageIndex].startsWith('/') ? `${API_BASE}${viewImages[currentImageIndex]}` : viewImages[currentImageIndex]} alt="Full size preview" />
+            {viewImages.length > 1 && <button className={`${styles.navImgBtn} ${styles.navNext}`} onClick={nextImage}>❯</button>}
+            <div className={styles.imgCounter}>{currentImageIndex + 1} / {viewImages.length}</div>
+          </div>
+        </div>
+      )}
+
+      {/* 🔥 МОДАЛКА УПРАВЛІННЯ ВІДГУКАМИ (НОВА) */}
       {selectedProductReviews && (
-        <div className={styles.modalOverlay} onClick={() => { setSelectedProductReviews(null); setReplyingToReviewId(null); }}>
-          <div className={styles.reviewsModal} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.modalOverlay} onClick={() => setSelectedProductReviews(null)}>
+          <div className={styles.reviewsModalContent} onClick={e => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h3>Відгуки: {selectedProductReviews.title}</h3>
-              <button type="button" className={styles.closeModalBtn} onClick={() => setSelectedProductReviews(null)}>✖</button>
+              <h3 className={styles.pageTitle} style={{ margin: 0, fontSize: '20px' }}>
+                Відгуки: {selectedProductReviews.title}
+              </h3>
+              <button className={styles.closeModalBtn} onClick={() => setSelectedProductReviews(null)}>✖</button>
             </div>
             
-            <div className={styles.modalBody}>
-              {!selectedProductReviews.reviews || selectedProductReviews.reviews.length === 0 ? (
-                <p className={styles.noReviews}>На цей товар ще немає відгуків.</p>
+            <div className={styles.reviewsListAdmin}>
+              {(!selectedProductReviews.reviews || selectedProductReviews.reviews.length === 0) ? (
+                <p className={styles.noOrders} style={{ marginTop: '30px' }}>Цей товар ще не має відгуків.</p>
               ) : (
-                selectedProductReviews.reviews.map(review => (
-                  <div key={review._id} className={styles.adminReviewCard}>
+                selectedProductReviews.reviews.map(rev => (
+                  <div key={rev._id} className={styles.adminReviewCard}>
                     <div className={styles.adminReviewHeader}>
-                      <strong>{review.name}</strong>
-                      <span className={styles.stars}>{"★".repeat(review.rating)}{"☆".repeat(5-review.rating)}</span>
-                      <span className={styles.date}>{new Date(review.createdAt).toLocaleDateString('uk-UA')}</span>
-                    </div>
-                    <p className={styles.adminReviewText}>{review.comment}</p>
-                    
-                    {review.adminReply && (
-                      <div className={styles.existingReply}>
-                        <strong>Ваша відповідь:</strong> {review.adminReply}
-                      </div>
-                    )}
-
-                    <div className={styles.adminReviewActions}>
-                      {!review.adminReply && replyingToReviewId !== review._id && (
-                        <button type="button" className={styles.replyBtn} onClick={() => setReplyingToReviewId(review._id)}>Відповісти</button>
-                      )}
-                      <button type="button" className={styles.deleteReviewBtn} onClick={() => handleDeleteReview(selectedProductReviews._id, review._id)}>Видалити</button>
-                    </div>
-
-                    {replyingToReviewId === review._id && (
-                      <div className={styles.replyBox}>
-                        <textarea 
-                          placeholder="Напишіть вашу відповідь клієнту..." 
-                          value={replyText} 
-                          onChange={(e) => setReplyText(e.target.value)}
-                        />
-                        <div className={styles.replyBoxActions}>
-                          <button type="button" onClick={() => handleReplyReview(selectedProductReviews._id, review._id)}>Зберегти відповідь</button>
-                          <button type="button" onClick={() => setReplyingToReviewId(null)} className={styles.cancelReplyBtn}>Скасувати</button>
+                      <div>
+                        <strong style={{ color: '#fff', fontSize: '16px' }}>{rev.name}</strong> 
+                        <span style={{ color: '#ffaa00', marginLeft: '10px' }}>⭐ {rev.rating}/5</span>
+                        <div style={{ fontSize: '12px', color: '#888', marginTop: '4px' }}>
+                          {new Date(rev.createdAt).toLocaleString('uk-UA')}
                         </div>
                       </div>
+                      <button 
+                        className={styles.deleteReviewBtn} 
+                        onClick={() => handleDeleteReview(selectedProductReviews._id, rev._id)}
+                        title="Видалити відгук"
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
+                    
+                    <p className={styles.adminReviewText}>{rev.comment}</p>
+                    
+                    {rev.adminReply ? (
+                      <div className={styles.adminReplyBox}>
+                        <strong>🎮 Ваша відповідь:</strong> 
+                        <p style={{ margin: '5px 0' }}>{rev.adminReply}</p>
+                        <button 
+                          className={styles.editReplyBtn} 
+                          onClick={() => { setReplyingToReviewId(rev._id); setReplyText(rev.adminReply); }}
+                        >
+                          Змінити відповідь
+                        </button>
+                      </div>
+                    ) : (
+                      replyingToReviewId === rev._id ? (
+                        <div className={styles.replyInputBox}>
+                          <textarea 
+                            value={replyText} 
+                            onChange={e => setReplyText(e.target.value)} 
+                            placeholder="Напишіть відповідь клієнту..." 
+                            rows="3"
+                            className={styles.replyTextarea}
+                          />
+                          <div className={styles.replyActions}>
+                            <button className={styles.saveReplyBtn} onClick={() => handleReplySubmit(selectedProductReviews._id, rev._id)}>Зберегти</button>
+                            <button className={styles.cancelReplyBtn} onClick={() => setReplyingToReviewId(null)}>Скасувати</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button className={styles.addReplyBtn} onClick={() => { setReplyingToReviewId(rev._id); setReplyText(''); }}>
+                          Відповісти клієнту
+                        </button>
+                      )
                     )}
                   </div>
                 ))
@@ -669,6 +833,7 @@ export default function Admin() {
         </div>
       )}
 
+      {/* Модалки Видалення (Order, Service, TradeIn, Buyout) */}
       {orderToDelete && (
         <div className={styles.modalOverlay} onClick={() => setOrderToDelete(null)}>
           <div className={styles.deleteConfirmModal} onClick={(e) => e.stopPropagation()}>
@@ -676,16 +841,65 @@ export default function Admin() {
               <h3 className={styles.dangerTitle}><FaTrash /> Видалення замовлення</h3>
               <button type="button" className={styles.closeModalBtn} onClick={() => setOrderToDelete(null)}>✖</button>
             </div>
-            
             <div className={styles.modalBodyConfirm}>
-              <p>
-                Ви впевнені, що хочете видалити це замовлення? <br/>
-                <b>Цю дію неможливо скасувати!</b>
-              </p>
-              
+              <p>Ви впевнені, що хочете видалити це замовлення? <br/><b>Цю дію неможливо скасувати!</b></p>
               <div className={styles.confirmActions}>
                 <button type="button" className={styles.cancelConfirmBtn} onClick={() => setOrderToDelete(null)}>СКАСУВАТИ</button>
                 <button type="button" className={styles.deleteConfirmBtn} onClick={handleDeleteOrder}>ВИДАЛИТИ</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {serviceToDelete && (
+        <div className={styles.modalOverlay} onClick={() => setServiceToDelete(null)}>
+          <div className={styles.deleteConfirmModal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.dangerTitle}><FaTrash /> Видалення заявки на ремонт</h3>
+              <button type="button" className={styles.closeModalBtn} onClick={() => setServiceToDelete(null)}>✖</button>
+            </div>
+            <div className={styles.modalBodyConfirm}>
+              <p>Ви впевнені, що хочете видалити цю заявку? <br/><b>Цю дію неможливо скасувати!</b></p>
+              <div className={styles.confirmActions}>
+                <button type="button" className={styles.cancelConfirmBtn} onClick={() => setServiceToDelete(null)}>СКАСУВАТИ</button>
+                <button type="button" className={styles.deleteConfirmBtn} onClick={() => confirmDeleteTicket('service-requests', serviceToDelete, setServiceRequests, setServiceToDelete)}>ВИДАЛИТИ</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {tradeInToDelete && (
+        <div className={styles.modalOverlay} onClick={() => setTradeInToDelete(null)}>
+          <div className={styles.deleteConfirmModal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.dangerTitle}><FaTrash /> Видалення заявки Trade-In</h3>
+              <button type="button" className={styles.closeModalBtn} onClick={() => setTradeInToDelete(null)}>✖</button>
+            </div>
+            <div className={styles.modalBodyConfirm}>
+              <p>Ви впевнені, що хочете видалити цю заявку? <br/><b>Цю дію неможливо скасувати!</b></p>
+              <div className={styles.confirmActions}>
+                <button type="button" className={styles.cancelConfirmBtn} onClick={() => setTradeInToDelete(null)}>СКАСУВАТИ</button>
+                <button type="button" className={styles.deleteConfirmBtn} onClick={() => confirmDeleteTicket('trade-in', tradeInToDelete, setTradeInRequests, setTradeInToDelete)}>ВИДАЛИТИ</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {buyoutToDelete && (
+        <div className={styles.modalOverlay} onClick={() => setBuyoutToDelete(null)}>
+          <div className={styles.deleteConfirmModal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.dangerTitle}><FaTrash /> Видалення заявки на Викуп</h3>
+              <button type="button" className={styles.closeModalBtn} onClick={() => setBuyoutToDelete(null)}>✖</button>
+            </div>
+            <div className={styles.modalBodyConfirm}>
+              <p>Ви впевнені, що хочете видалити цю заявку? <br/><b>Цю дію неможливо скасувати!</b></p>
+              <div className={styles.confirmActions}>
+                <button type="button" className={styles.cancelConfirmBtn} onClick={() => setBuyoutToDelete(null)}>СКАСУВАТИ</button>
+                <button type="button" className={styles.deleteConfirmBtn} onClick={() => confirmDeleteTicket('buyout', buyoutToDelete, setBuyoutRequests, setBuyoutToDelete)}>ВИДАЛИТИ</button>
               </div>
             </div>
           </div>

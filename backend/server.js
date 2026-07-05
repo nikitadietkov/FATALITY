@@ -1,3 +1,4 @@
+import { GoogleGenAI } from '@google/genai';
 import nodemailer from 'nodemailer';
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
@@ -11,12 +12,13 @@ import fs from 'fs';
 
 import Order from './models/Order.js';
 import Product from './models/Product.js';
+import BuyoutRequest from './models/BuyoutRequest.js';
 import ServiceRequest from './models/ServiceRequest.js';
+import TradeInRequest from './models/TradeInRequest.js';
 
 dotenv.config();
 const app = express();
 
-// 🔒 БЕЗПЕКА: CORS приймає запити ТІЛЬКИ з твого домену (локального або бойового)
 const rawClientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
 const safeClientUrl = rawClientUrl.trim().replace(/\/$/, '');
 
@@ -42,6 +44,31 @@ const storage = multer.diskStorage({
     filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname.replace(/\s+/g, '-'))
 });
 const upload = multer({ storage });
+
+const sendTelegramMessage = async (message) => {
+    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = process.env.TELEGRAM_CHAT_ID;
+    
+    if (!botToken || !chatId) {
+        console.log("⚠️ Telegram Bot не налаштовано (немає токена або ID чату).");
+        return;
+    }
+
+    const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+    try {
+        await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                chat_id: chatId, 
+                text: message, 
+                parse_mode: 'HTML' 
+            })
+        });
+    } catch (err) {
+        console.error("❌ Помилка відправки в Telegram:", err);
+    }
+};
 
 const verifyAdmin = (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -95,9 +122,9 @@ app.get('/api/products/:id', async (req, res) => {
 
 app.post('/api/products', verifyAdmin, upload.array('images', 5), async (req, res) => {
     try {
-        const { title, model, price, condition, description } = req.body;
+        const { title, model, price, condition, description, searchTags } = req.body;
         const imageUrls = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
-        const newProduct = new Product({ title, model, price, condition, description, imageUrls });
+        const newProduct = new Product({ title, model, price, condition, description, searchTags, imageUrls });
         await newProduct.save();
         res.status(201).json(newProduct);
     } catch (error) {
@@ -107,8 +134,8 @@ app.post('/api/products', verifyAdmin, upload.array('images', 5), async (req, re
 
 app.put('/api/products/:id', verifyAdmin, upload.array('images', 5), async (req, res) => {
     try {
-        const { title, model, price, condition, description } = req.body;
-        let updateData = { title, model, price, condition, description };
+        const { title, model, price, condition, description, searchTags } = req.body;
+        let updateData = { title, model, price, condition, description, searchTags };
         if (req.files && req.files.length > 0) {
             updateData.imageUrls = req.files.map(file => `/uploads/${file.filename}`);
         }
@@ -121,21 +148,80 @@ app.put('/api/products/:id', verifyAdmin, upload.array('images', 5), async (req,
 
 app.post('/api/products/:id/reviews', async (req, res) => {
     try {
-        const { name, rating, comment } = req.body;
+        const { name, rating, comment, contact } = req.body;
+        
+        // 1. Перевіряємо, чи є такий клієнт у базі замовлень
+        const hasPurchased = await Order.findOne({
+            $or: [{ email: contact }, { phone: contact }],
+            status: 'Shipped'
+        });
+
+        if (!hasPurchased) {
+            return res.status(403).json({ 
+                message: "Відгук відхилено: ми не знайшли успішних замовлень за цим Email або номером телефону." 
+            });
+        }
+
         const product = await Product.findById(req.params.id);
         if (!product) return res.status(404).json({ message: "Товар не знайдено" });
 
         product.reviews.push({ name, rating: Number(rating), comment });
-        const totalRating = product.reviews.reduce((acc, item) => item.rating + acc, 0);
-        product.rating = (totalRating / product.reviews.length).toFixed(1);
+
+        const totalRating = product.reviews.reduce((sum, rev) => sum + rev.rating, 0);
+        product.rating = totalRating / product.reviews.length;
 
         await product.save();
-        res.status(201).json({ message: "Відгук успішно додано", product });
+        
+        res.status(201).json(product);
     } catch (error) {
-        res.status(500).json({ message: "Помилка сервера" });
+        console.error("Помилка відгуку:", error);
+        res.status(500).json({ message: "Помилка сервера при додаванні відгуку" });
+    }
+});
+// =========================================
+// ВИДАЛЕННЯ ВІДГУКУ (АДМІН)
+// =========================================
+app.delete('/api/products/:productId/reviews/:reviewId', verifyAdmin, async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.productId);
+        if (!product) return res.status(404).json({ message: "Товар не знайдено" });
+
+        // Фільтруємо відгуки, залишаючи всі, крім того, що видаляємо
+        product.reviews = product.reviews.filter(r => r._id.toString() !== req.params.reviewId);
+
+        // Перераховуємо рейтинг
+        const totalRating = product.reviews.reduce((sum, rev) => sum + rev.rating, 0);
+        product.rating = product.reviews.length > 0 ? (totalRating / product.reviews.length).toFixed(1) : 0;
+
+        await product.save();
+        res.json(product); // Повертаємо оновлений товар
+    } catch (error) {
+        res.status(500).json({ message: "Помилка видалення відгуку" });
     }
 });
 
+// =========================================
+// ВІДПОВІДЬ НА ВІДГУК ВІД МАГАЗИНУ (АДМІН)
+// =========================================
+app.post('/api/products/:productId/reviews/:reviewId/reply', verifyAdmin, async (req, res) => {
+    try {
+        const { reply } = req.body;
+        const product = await Product.findById(req.params.productId);
+        if (!product) return res.status(404).json({ message: "Товар не знайдено" });
+
+        // Знаходимо конкретний відгук за його ID
+        const review = product.reviews.id(req.params.reviewId);
+        if (!review) return res.status(404).json({ message: "Відгук не знайдено" });
+
+        // Записуємо відповідь
+        review.adminReply = reply;
+        await product.save();
+
+        res.json(product); // Повертаємо оновлений товар
+    } catch (error) {
+        res.status(500).json({ message: "Помилка збереження відповіді" });
+    }
+});
 app.delete('/api/products/:productId/reviews/:reviewId', verifyAdmin, async (req, res) => {
     try {
         const product = await Product.findById(req.params.productId);
@@ -183,36 +269,228 @@ app.delete('/api/products/:id', verifyAdmin, async (req, res) => {
     }
 });
 
+app.post('/api/generate-tags', verifyAdmin, async (req, res) => {
+    try {
+        const { title, description } = req.body;
+        const apiKey = process.env.GEMINI_API_KEY;
+        
+        if (!apiKey) {
+             return res.status(500).json({ message: "Gemini API ключ не налаштовано в .env" });
+        }
+
+        const ai = new GoogleGenAI({ apiKey });
+        
+        const prompt = `Проаналізуй цей товар для ігрового магазину:
+Назва: ${title}
+Опис: ${description || 'Опис відсутній'}
+
+Згенеруй 20-25 релевантних пошукових тегів (синоніми, сленг, можливі помилки при написанні, пов'язані бренди). 
+Поверни ЛИШЕ рядок тегів через кому, без додаткового тексту, нумерації чи лапок. Наприклад: плойка, пс5, playstation 5, соні, ігрова приставка`;
+
+        // Викликаємо швидку та безкоштовну модель Flash
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+        });
+        
+        res.json({ tags: response.text.trim() });
+    } catch (error) {
+        console.error("Помилка генерації AI тегів:", error);
+        res.status(500).json({ message: "Помилка AI. Перевірте ключ або логи сервера." });
+    }
+});
+
 app.post('/api/service-requests', async (req, res) => {
     try {
         const { name, phone, consoleModel, problem } = req.body;
-
-        const newRequest = new ServiceRequest({ 
-            name, 
-            phone, 
-            consoleModel, 
-            problem 
-        });
-
+        const newRequest = new ServiceRequest({ name, phone, consoleModel, problem });
         await newRequest.save();
+        
+        const tgMessage = `
+🚨 <b>НОВА ЗАЯВКА НА СЕРВІС!</b> 🚨
 
-        res.status(201).json({ 
-            message: "Заявку успішно створено", 
-            request: newRequest 
-        });
+👤 <b>Клієнт:</b> ${name}
+📞 <b>Телефон:</b> ${phone}
+🎮 <b>Пристрій:</b> ${consoleModel}
+
+💬 <b>Проблема:</b>
+<i>${problem || 'Клієнт не залишив опису...'}</i>`;
+        
+        await sendTelegramMessage(tgMessage);
+        
+        res.status(201).json({ message: "Заявку успішно створено", request: newRequest });
     } catch (error) {
-        console.error("❌ Помилка створення заявки на сервіс:", error);
         res.status(500).json({ message: "Помилка при відправленні заявки" });
     }
 });
 
-// Відразу додамо GET роут для адмінки (щоб потім вивести ці заявки)
 app.get('/api/service-requests', verifyAdmin, async (req, res) => {
     try {
         const requests = await ServiceRequest.find().sort({ createdAt: -1 });
         res.json(requests);
     } catch (error) {
         res.status(500).json({ message: "Помилка завантаження заявок" });
+    }
+});
+
+app.put('/api/service-requests/:id/status', verifyAdmin, async (req, res) => {
+    try {
+        const { status } = req.body;
+        const updated = await ServiceRequest.findByIdAndUpdate(req.params.id, { status }, { new: true });
+        res.json(updated);
+    } catch (error) {
+        res.status(500).json({ message: "Помилка оновлення статусу" });
+    }
+});
+
+app.delete('/api/service-requests/:id', verifyAdmin, async (req, res) => {
+    try {
+        await ServiceRequest.findByIdAndDelete(req.params.id);
+        res.json({ message: "Заявку видалено" });
+    } catch (error) {
+        res.status(500).json({ message: "Помилка видалення" });
+    }
+});
+
+// =========================================
+// РОУТИ ДЛЯ ТРЕЙД-ІН (ОБМІН КОНСОЛЕЙ)
+// =========================================
+app.post('/api/trade-in', upload.array('images', 10), async (req, res) => {
+    try {
+        const { name, phone, consoleName, description } = req.body;
+        let equipment = [];
+        if (req.body.equipment) {
+            equipment = Array.isArray(req.body.equipment) ? req.body.equipment : req.body.equipment.split(',');
+        }
+        
+        const images = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
+
+        if (images.length === 0) {
+            return res.status(400).json({ message: "Потрібно завантажити хоча б одне фото" });
+        }
+
+        const newTradeIn = new TradeInRequest({ name, phone, consoleName, equipment, description, images });
+        await newTradeIn.save();
+        
+        const tgMessage = `
+♻️ <b>НОВА ЗАЯВКА НА TRADE-IN!</b> ♻️
+
+👤 <b>Клієнт:</b> ${name}
+📞 <b>Телефон:</b> ${phone}
+🎮 <b>Консоль:</b> ${consoleName}
+
+📦 <b>Комплектація:</b> ${equipment.length > 0 ? equipment.join(', ') : 'Не вказано'}
+💬 <b>Опис / Дефекти:</b>
+<i>${description || 'Без опису'}</i>
+📸 <b>Прикріплено фото:</b> ${images.length} шт.
+
+👉 Зайдіть в Адмін-панель, щоб переглянути фото та оцінити консоль!`;
+        
+        await sendTelegramMessage(tgMessage);
+        
+        res.status(201).json({ message: "Заявку успішно відправлено", request: newTradeIn });
+    } catch (error) {
+        console.error("Помилка Trade-In:", error);
+        res.status(500).json({ message: "Помилка при відправленні заявки" });
+    }
+});
+
+app.get('/api/trade-in', verifyAdmin, async (req, res) => {
+    try {
+        const requests = await TradeInRequest.find().sort({ createdAt: -1 });
+        res.json(requests);
+    } catch (error) {
+        res.status(500).json({ message: "Помилка завантаження заявок" });
+    }
+});
+
+app.put('/api/trade-in/:id/status', verifyAdmin, async (req, res) => {
+    try {
+        const { status } = req.body;
+        const updated = await TradeInRequest.findByIdAndUpdate(req.params.id, { status }, { new: true });
+        res.json(updated);
+    } catch (error) {
+        res.status(500).json({ message: "Помилка оновлення статусу" });
+    }
+});
+
+app.delete('/api/trade-in/:id', verifyAdmin, async (req, res) => {
+    try {
+        await TradeInRequest.findByIdAndDelete(req.params.id);
+        res.json({ message: "Заявку видалено" });
+    } catch (error) {
+        res.status(500).json({ message: "Помилка видалення" });
+    }
+});
+
+// =========================================
+// РОУТИ ДЛЯ ВИКУПУ (BUYOUT)
+// =========================================
+app.post('/api/buyout', upload.array('images', 10), async (req, res) => {
+    try {
+        const { name, phone, consoleName, expectedPrice, description } = req.body;
+        
+        let equipment = [];
+        if (req.body.equipment) {
+            equipment = Array.isArray(req.body.equipment) ? req.body.equipment : req.body.equipment.split(',');
+        }
+        
+        const images = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
+
+        if (images.length === 0) {
+            return res.status(400).json({ message: "Потрібно завантажити хоча б одне фото" });
+        }
+
+        const newBuyout = new BuyoutRequest({ name, phone, consoleName, expectedPrice, equipment, description, images });
+        await newBuyout.save();
+        
+        const tgMessage = `
+💰 <b>НОВА ЗАЯВКА НА ВИКУП!</b> 💰
+
+👤 <b>Клієнт:</b> ${name}
+📞 <b>Телефон:</b> ${phone}
+🎮 <b>Консоль:</b> ${consoleName}
+💵 <b>Очікує отримати:</b> ${expectedPrice || 'Не вказано'} грн
+
+📦 <b>Комплектація:</b> ${equipment.length > 0 ? equipment.join(', ') : 'Не вказано'}
+💬 <b>Опис:</b>
+<i>${description || 'Без опису'}</i>
+📸 <b>Прикріплено фото:</b> ${images.length} шт.`;
+        
+        await sendTelegramMessage(tgMessage);
+        
+        res.status(201).json({ message: "Заявку успішно відправлено", request: newBuyout });
+    } catch (error) {
+        console.error("Помилка Buyout:", error);
+        res.status(500).json({ message: "Помилка при відправленні заявки" });
+    }
+});
+
+app.get('/api/buyout', verifyAdmin, async (req, res) => {
+    try {
+        const requests = await BuyoutRequest.find().sort({ createdAt: -1 });
+        res.json(requests);
+    } catch (error) {
+        res.status(500).json({ message: "Помилка завантаження заявок" });
+    }
+});
+
+app.put('/api/buyout/:id/status', verifyAdmin, async (req, res) => {
+    try {
+        const { status } = req.body;
+        const updated = await BuyoutRequest.findByIdAndUpdate(req.params.id, { status }, { new: true });
+        res.json(updated);
+    } catch (error) {
+        res.status(500).json({ message: "Помилка оновлення статусу" });
+    }
+});
+
+app.delete('/api/buyout/:id', verifyAdmin, async (req, res) => {
+    try {
+        await BuyoutRequest.findByIdAndDelete(req.params.id);
+        res.json({ message: "Заявку видалено" });
+    } catch (error) {
+        res.status(500).json({ message: "Помилка видалення" });
     }
 });
 
@@ -243,7 +521,7 @@ app.post('/api/orders', async (req, res) => {
                 productName: productNames, productCount: productCounts, productPrice: productPrices,
                 merchantSignature: signature,
                 serviceUrl: `${process.env.SERVER_URL || 'http://localhost:5000'}/api/payment/webhook`,
-                returnUrl: `${merchantDomainName}/success?orderId=${orderReference}`
+                returnUrl: `${process.env.SERVER_URL || 'http://localhost:5000'}/api/orders/payment-return/${orderReference}`
             }
         });
     } catch (error) {
@@ -251,6 +529,20 @@ app.post('/api/orders', async (req, res) => {
         res.status(500).json({ message: "Помилка при оформленні замовлення" });
     }
 });
+
+const handlePaymentReturn = (req, res) => {
+    const orderId = req.params.orderId || (req.body && req.body.orderReference); 
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    
+    if (orderId) {
+        res.redirect(303, `${clientUrl}/success?orderId=${orderId}`);
+    } else {
+        res.redirect(303, `${clientUrl}/`);
+    }
+};
+
+app.all('/api/orders/payment-return', handlePaymentReturn);
+app.all('/api/orders/payment-return/:orderId', handlePaymentReturn);
 
 app.put('/api/orders/:id/status', verifyAdmin, async (req, res) => {
     try {
@@ -296,6 +588,7 @@ app.get('/api/orders', verifyAdmin, async (req, res) => {
         res.status(500).json({ message: "Помилка сервера" });
     }
 });
+
 app.delete('/api/orders/:id', verifyAdmin, async (req, res) => {
     try {
         const deletedOrder = await Order.findByIdAndDelete(req.params.id);
@@ -308,26 +601,22 @@ app.delete('/api/orders/:id', verifyAdmin, async (req, res) => {
     }
 });
 
-// 🔒 БЕЗПЕКА: ВЕБХУК З ПЕРЕВІРКОЮ ПІДПИСУ ВІД WAYFORPAY
 app.post('/api/payment/webhook', async (req, res) => {
     try {
         let data = req.body;
         if (typeof req.body === 'string') {
             try { data = JSON.parse(req.body); } catch(e) {}
         }
+        
+        if (!data || !data.merchantAccount) {
+            return res.status(400).send("No data received");
+        }
 
         const { merchantAccount, orderReference, amount, currency, authCode, cardPan, transactionStatus, reasonCode, merchantSignature, time } = data;
-        
-        // 1. Отримуємо секретний ключ
         const secret = process.env.WAYFORPAY_SECRET || 'flk3409refn54t54t*FNJRET';
-        
-        // 2. Створюємо строку для підпису (суворий стандарт WayForPay для вебхука)
         const signString = `${merchantAccount};${orderReference};${amount};${currency};${authCode};${cardPan};${transactionStatus};${reasonCode}`;
-        
-        // 3. Генеруємо очікуваний підпис
         const expectedSignature = crypto.createHmac('md5', secret).update(signString).digest('hex');
 
-        // 4. Порівнюємо підписи (Відхиляємо хакерів)
         if (merchantSignature !== expectedSignature) {
             console.warn(`⚠️ ВТРУЧАННЯ! Невірний підпис вебхука для замовлення ${orderReference}`);
             return res.status(400).send("Invalid Signature");
@@ -376,6 +665,19 @@ app.post('/api/orders/track', async (req, res) => {
     } catch (error) {
         console.error("Трекінг помилка:", error);
         res.status(500).json({ message: "Помилка сервера" });
+    }
+});
+
+app.post('/api/orders/bulk', async (req, res) => {
+    try {
+        const { ids } = req.body;
+        if (!ids || !Array.isArray(ids) || ids.length === 0) {
+            return res.json([]);
+        }
+        const orders = await Order.find({ _id: { $in: ids } }).sort({ createdAt: -1 });
+        res.json(orders);
+    } catch (error) {
+        res.status(500).json({ message: "Помилка завантаження ваших замовлень" });
     }
 });
 
