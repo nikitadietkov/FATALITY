@@ -23,8 +23,9 @@ const rawClientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
 const safeClientUrl = rawClientUrl.trim().replace(/\/$/, '');
 
 app.use(cors({
-    origin: [safeClientUrl, 'http://localhost:5173'],
-    credentials: true
+    origin: [safeClientUrl, 'http://localhost:5173', 'https://comforting-starburst-22a5df.netlify.app'],
+    credentials: true,
+    optionsSuccessStatus: 200
 }));
 
 app.use(express.json());
@@ -681,5 +682,8 @@ app.post('/api/orders/bulk', async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server started on ${PORT} port`));
+const PORT = process.env.PORT || 5000; 
+
+app.listen(PORT, () => {
+    console.log(`🚀 Server started on port ${PORT}`);
+});

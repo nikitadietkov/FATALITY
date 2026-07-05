@@ -100,7 +100,6 @@ const TradeIn = () => {
           Оціни свій девайс онлайн. Здай стару консоль та забирай нову з максимальною вигодою.
         </p>
         
-        {/* 🔥 НОВИЙ ВЕЛИКИЙ БАНЕР-ПОПЕРЕДЖЕННЯ */}
         <div className={styles.categoryWarning}>
           <FaExclamationTriangle className={styles.warnIcon} />
           <p>
