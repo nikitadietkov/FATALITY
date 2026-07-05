@@ -1,0 +1,275 @@
+.servicePage {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px 60px;
+  color: #ffffff;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Hero Section ───────────────────────────────────────────────────────── */
+.heroSection {
+  background: radial-gradient(circle at center, #1a0505 0%, #050505 100%);
+  border: 1px solid #222222;
+  border-radius: 16px;
+  padding: 60px 20px;
+  text-align: center;
+  margin-bottom: 50px;
+  position: relative;
+  overflow: hidden;
+}
+
+.heroSection::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-image: linear-gradient(rgba(231, 0, 11, 0.05) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(231, 0, 11, 0.05) 1px, transparent 1px);
+  background-size: 30px 30px;
+  pointer-events: none;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 1;
+}
+
+.iconWrapper {
+  width: 80px;
+  height: 80px;
+  background-color: rgba(231, 0, 11, 0.1);
+  border: 1px solid rgba(231, 0, 11, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  box-shadow: 0 0 30px rgba(231, 0, 11, 0.2);
+}
+
+.heroIcon {
+  font-size: 35px;
+  color: #E7000B;
+}
+
+.title {
+  font-family: 'Russo One', sans-serif;
+  font-size: 42px;
+  margin: 0 0 15px;
+  letter-spacing: 1px;
+}
+
+.redText {
+  color: #E7000B;
+}
+
+.subtitle {
+  color: #aaaaaa;
+  font-size: 18px;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* ─── Layout ─────────────────────────────────────────────────────────────── */
+.mainContent {
+  display: grid;
+  grid-template-columns: 1fr 450px;
+  gap: 40px;
+  align-items: start;
+}
+
+/* ─── Services Grid ──────────────────────────────────────────────────────── */
+.servicesGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.serviceCard {
+  background-color: #111111;
+  border: 1px solid #222222;
+  padding: 30px;
+  border-radius: 12px;
+  transition: transform 0.3s, border-color 0.3s;
+}
+
+.serviceCard:hover {
+  transform: translateX(5px);
+  border-color: #E7000B;
+}
+
+.cardIcon {
+  font-size: 35px;
+  color: #E7000B;
+  margin-bottom: 15px;
+}
+
+.serviceCard h3 {
+  margin: 0 0 10px;
+  font-size: 20px;
+  color: #ffffff;
+}
+
+.serviceCard p {
+  margin: 0;
+  color: #888888;
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+/* ─── Form Section ───────────────────────────────────────────────────────── */
+.formSection {
+  background-color: #0a0a0a;
+  border: 1px solid #222;
+  border-top: 4px solid #E7000B;
+  border-radius: 12px;
+  padding: 35px;
+  position: sticky;
+  top: 20px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+}
+
+.formHeader {
+  margin-bottom: 25px;
+}
+
+.formHeader h2 {
+  margin: 0 0 10px;
+  font-size: 22px;
+  font-family: 'Russo One', sans-serif;
+}
+
+.formHeader p {
+  margin: 0;
+  color: #888;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.serviceForm {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inputGroup label {
+  font-size: 13px;
+  color: #aaaaaa;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.inputField, .selectField, .textareaField {
+  background-color: #111111;
+  border: 1px solid #333333;
+  color: #ffffff;
+  padding: 14px 15px;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.3s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.inputField:focus, .selectField:focus, .textareaField:focus {
+  border-color: #E7000B;
+}
+
+/* Кастомізація селекту */
+.selectWrapper {
+  position: relative;
+}
+.selectField {
+  appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  background-size: 16px;
+  padding-right: 40px;
+}
+.selectField option {
+  background-color: #111111;
+  color: #ffffff;
+}
+
+.textareaField {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.submitBtn {
+  background-color: #E7000B;
+  color: #ffffff;
+  border: none;
+  padding: 16px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 800;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 10px;
+}
+
+.submitBtn:hover:not(:disabled) {
+  background-color: #cc0000;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(231, 0, 11, 0.3);
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.disclaimer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  color: #666666;
+  font-size: 12px;
+}
+
+.disclaimer svg {
+  color: #00a859;
+}
+
+/* ─── Адаптивність ───────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .mainContent {
+    grid-template-columns: 1fr;
+  }
+  .formSection {
+    position: static;
+  }
+}
+
+@media (max-width: 600px) {
+  .heroSection { padding: 40px 15px; }
+  .title { font-size: 28px; }
+  .subtitle { font-size: 15px; }
+  .formRow { grid-template-columns: 1fr; }
+  .serviceCard { padding: 20px; }
+}

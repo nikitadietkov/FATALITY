@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { CiFilter } from "react-icons/ci";
-import { FaTimes, FaSearch, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaTimes, FaSearch, FaChevronLeft, FaChevronRight, FaMapMarkerAlt, FaWrench, FaExchangeAlt, FaMoneyBillWave } from "react-icons/fa";
 import ReactSlider from 'react-slider';
 import ProductCard from '../components/ProductCard';
 import styles from './Home.module.css';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const MODELS = ['PS5', 'PS4 Pro', 'PS4', 'PS3'];
@@ -128,23 +128,15 @@ export default function Home() {
     currentPage * ITEMS_PER_PAGE
   );
 
-  // 🔥 СТАБІЛЬНИЙ СКРОЛ ЧЕРЕЗ setTimeout
   const handlePageChange = (page) => {
     if (page < 1 || page > totalPages || page === currentPage) return;
-    
     setCurrentPage(page);
-    
-    // Даємо 50мс браузеру на відмальовку карток, щоб висота сторінки не стрибала
     setTimeout(() => {
       if (productsTopRef.current) {
         const headerOffset = 100;
         const elementPosition = productsTopRef.current.getBoundingClientRect().top;
         const offsetPosition = elementPosition + window.scrollY - headerOffset;
-
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: "smooth"
-        });
+        window.scrollTo({ top: offsetPosition, behavior: "smooth" });
       }
     }, 50);
   };
@@ -175,7 +167,6 @@ export default function Home() {
     return pages;
   };
 
-  // ── Helpers ─────────────────────────────────────────────────────────────────
   const toggleItem = useCallback((setState) => (value) => {
     setState((prev) =>
       prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
@@ -196,10 +187,8 @@ export default function Home() {
 
   const hasActiveFilters = activeFilterCount > 0 || searchQuery.trim().length > 0;
 
-  // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div className={styles.homeLayout}>
-
       {isMobileFilterOpen && (
         <div
           className={styles.mobileFilterOverlay}
@@ -209,21 +198,13 @@ export default function Home() {
       )}
 
       {/* ── Filter sidebar ──────────────────────────────────────────────────── */}
-      <aside
-        className={`${styles.filterContainer} ${isMobileFilterOpen ? styles.open : ''}`}
-        aria-label="Панель фільтрів"
-      >
+      <aside className={`${styles.filterContainer} ${isMobileFilterOpen ? styles.open : ''}`} aria-label="Панель фільтрів">
         <div className={styles.filterHeaderMobile}>
           <section className={styles.filterTitle}>
             <CiFilter className={styles.filterIcon} aria-hidden="true" />
             <p className={styles.filterName}>Фільтри</p>
           </section>
-          <button
-            type="button"
-            className={styles.closeFilterBtn}
-            onClick={() => setIsMobileFilterOpen(false)}
-            aria-label="Закрити фільтри"
-          >
+          <button type="button" className={styles.closeFilterBtn} onClick={() => setIsMobileFilterOpen(false)}>
             <FaTimes />
           </button>
         </div>
@@ -232,31 +213,21 @@ export default function Home() {
           <div className={styles.activeFilters}>
             {selectedModels.map((m) => (
               <span key={m} className={styles.chip}>
-                {m}
-                <button type="button" onClick={() => toggleItem(setSelectedModels)(m)} aria-label={`Видалити фільтр ${m}`}>
-                  <FaTimes />
-                </button>
+                {m} <button type="button" onClick={() => toggleItem(setSelectedModels)(m)}><FaTimes /></button>
               </span>
             ))}
             {selectedConditions.map((c) => (
               <span key={c} className={styles.chip}>
-                {c}
-                <button type="button" onClick={() => toggleItem(setSelectedConditions)(c)} aria-label={`Видалити фільтр ${c}`}>
-                  <FaTimes />
-                </button>
+                {c} <button type="button" onClick={() => toggleItem(setSelectedConditions)(c)}><FaTimes /></button>
               </span>
             ))}
             {(priceRange[0] !== PRICE_MIN_DEFAULT || priceRange[1] !== PRICE_MAX_DEFAULT) && (
               <span className={styles.chip}>
                 {priceRange[0]} – {priceRange[1]} грн
-                <button type="button" onClick={() => setPriceRange([PRICE_MIN_DEFAULT, PRICE_MAX_DEFAULT])} aria-label="Скинути ціну">
-                  <FaTimes />
-                </button>
+                <button type="button" onClick={() => setPriceRange([PRICE_MIN_DEFAULT, PRICE_MAX_DEFAULT])}><FaTimes /></button>
               </span>
             )}
-            <button type="button" className={styles.clearAll} onClick={clearAllFilters}>
-              Скинути все
-            </button>
+            <button type="button" className={styles.clearAll} onClick={clearAllFilters}>Скинути все</button>
           </div>
         )}
 
@@ -264,11 +235,7 @@ export default function Home() {
           <h3 className={styles.sectionTitle}>Модель</h3>
           {MODELS.map((model) => (
             <label key={model} className={styles.checkboxLabel}>
-              <input
-                type="checkbox"
-                checked={selectedModels.includes(model)}
-                onChange={() => toggleItem(setSelectedModels)(model)}
-              />
+              <input type="checkbox" checked={selectedModels.includes(model)} onChange={() => toggleItem(setSelectedModels)(model)} />
               {model}
             </label>
           ))}
@@ -278,11 +245,7 @@ export default function Home() {
           <h3 className={styles.sectionTitle}>Стан</h3>
           {CONDITIONS.map((condition) => (
             <label key={condition} className={styles.checkboxLabel}>
-              <input
-                type="checkbox"
-                checked={selectedConditions.includes(condition)}
-                onChange={() => toggleItem(setSelectedConditions)(condition)}
-              />
+              <input type="checkbox" checked={selectedConditions.includes(condition)} onChange={() => toggleItem(setSelectedConditions)(condition)} />
               {condition}
             </label>
           ))}
@@ -291,46 +254,51 @@ export default function Home() {
         <section className={styles.filterSection}>
           <h3 className={styles.sectionTitle}>Ціна (грн)</h3>
           <div className={styles.priceInputsGroup}>
-            <input
-              type="number"
-              placeholder="Min"
-              className={styles.priceInput}
-              value={priceRange[0]}
-              min={PRICE_MIN_DEFAULT}
-              max={priceRange[1]}
-              onChange={(e) => setPriceRange([Math.min(Number(e.target.value), priceRange[1]), priceRange[1]])}
-            />
+            <input type="number" placeholder="Min" className={styles.priceInput} value={priceRange[0]} onChange={(e) => setPriceRange([Math.min(Number(e.target.value), priceRange[1]), priceRange[1]])} />
             <span className={styles.priceDivider}>–</span>
-            <input
-              type="number"
-              placeholder="Max"
-              className={styles.priceInput}
-              value={priceRange[1]}
-              min={priceRange[0]}
-              max={PRICE_MAX_DEFAULT}
-              onChange={(e) => setPriceRange([priceRange[0], Math.max(Number(e.target.value), priceRange[0])])}
-            />
+            <input type="number" placeholder="Max" className={styles.priceInput} value={priceRange[1]} onChange={(e) => setPriceRange([priceRange[0], Math.max(Number(e.target.value), priceRange[0])])} />
           </div>
           <div className={styles.sliderWrapper}>
-            <ReactSlider
-              className={styles.dualSlider}
-              thumbClassName={styles.thumb}
-              trackClassName="track"
-              value={priceRange}
-              min={PRICE_MIN_DEFAULT}
-              max={PRICE_MAX_DEFAULT}
-              onChange={setPriceRange}
-              ariaLabel={['Мінімальна ціна', 'Максимальна ціна']}
-            />
+            <ReactSlider className={styles.dualSlider} thumbClassName={styles.thumb} trackClassName="track" value={priceRange} min={PRICE_MIN_DEFAULT} max={PRICE_MAX_DEFAULT} onChange={setPriceRange} />
           </div>
         </section>
       </aside>
 
       {/* ── Products area ───────────────────────────────────────────────────── */}
       <section className={styles.productsArea} ref={productsTopRef}>
+        
+        <div className={styles.nativeLocationHint}>
+          <FaMapMarkerAlt className={styles.nativeLocIcon} />
+          <span>Працюємо офлайн: м. Дніпро. Завітайте на безкоштовний тест-драйв перед покупкою!</span>
+        </div>
+
+        <div className={styles.actionCardsContainer}>
+          <Link to="/service" className={styles.actionCard}>
+            <div className={styles.actionIconWrapper}><FaWrench /></div>
+            <div className={styles.actionText}>
+              <h3>Сервіс</h3>
+              <p>Чистка, термопаста, ремонт</p>
+            </div>
+          </Link>
+          <Link to="/trade-in" className={styles.actionCard}>
+            <div className={styles.actionIconWrapper}><FaExchangeAlt /></div>
+            <div className={styles.actionText}>
+              <h3>Трейд-ін</h3>
+              <p>Обміняй стару консоль на нову</p>
+            </div>
+          </Link>
+          <Link to="/buyout" className={styles.actionCard}>
+            <div className={styles.actionIconWrapper}><FaMoneyBillWave /></div>
+            <div className={styles.actionText}>
+              <h3>Викуп</h3>
+              <p>Миттєва оцінка та виплата</p>
+            </div>
+          </Link>
+        </div>
+
         <div className={styles.productsAreaHeader}>
           <div className={styles.titleGroup}>
-            <h2 className={styles.productsTitle}>Всі товари</h2>
+            <h2 className={styles.productsTitle}>Товари та послуги</h2>
             {!loading && (
               <span className={styles.productCount}>
                 {visibleProducts.length} товар{visibleProducts.length === 1 ? '' : 'ів'}
@@ -340,12 +308,7 @@ export default function Home() {
 
           <div className={styles.headerActions}>
             <div className={styles.sortWrapper}>
-              <select 
-                className={styles.sortSelect} 
-                value={sortBy} 
-                onChange={(e) => setSortBy(e.target.value)}
-                aria-label="Сортування товарів"
-              >
+              <select className={styles.sortSelect} value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
                 <option value="newest">Спочатку нові</option>
                 <option value="price-asc">Від дешевих до дорогих</option>
                 <option value="price-desc">Від дорогих до дешевих</option>
@@ -354,37 +317,14 @@ export default function Home() {
 
             <div className={styles.searchWrapper}>
               <FaSearch className={styles.searchIcon} aria-hidden="true" />
-              <input
-                type="search"
-                placeholder="Пошук консолі..."
-                className={styles.searchInput}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                aria-label="Пошук товарів"
-              />
+              <input type="search" placeholder="Пошук консолі..." className={styles.searchInput} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
               {searchQuery && (
-                <button
-                  type="button"
-                  className={styles.searchClear}
-                  onClick={() => setSearchQuery('')}
-                  aria-label="Очистити пошук"
-                >
-                  <FaTimes />
-                </button>
+                <button type="button" className={styles.searchClear} onClick={() => setSearchQuery('')}><FaTimes /></button>
               )}
             </div>
 
-            <button
-              type="button"
-              className={styles.mobileFilterToggle}
-              onClick={() => setIsMobileFilterOpen(true)}
-              aria-label={`Відкрити фільтри${activeFilterCount ? ` (${activeFilterCount} активних)` : ''}`}
-            >
-              <CiFilter size={20} />
-              Фільтри
-              {activeFilterCount > 0 && (
-                <span className={styles.filterBadge}>{activeFilterCount}</span>
-              )}
+            <button type="button" className={styles.mobileFilterToggle} onClick={() => setIsMobileFilterOpen(true)}>
+              <CiFilter size={20} /> Фільтри {activeFilterCount > 0 && <span className={styles.filterBadge}>{activeFilterCount}</span>}
             </button>
           </div>
         </div>
@@ -396,23 +336,13 @@ export default function Home() {
           </div>
         )}
 
-        {error && (
-          <div className={styles.errorMessage} role="alert">
-            ⚠ {error}
-          </div>
-        )}
+        {error && <div className={styles.errorMessage}>⚠ {error}</div>}
 
         {!loading && !error && visibleProducts.length === 0 && (
           <div className={styles.emptyState}>
             <p className={styles.emptyStateTitle}>Нічого не знайдено</p>
-            <p className={styles.emptyStateText}>
-              Спробуйте змінити фільтри або пошуковий запит.
-            </p>
-            {hasActiveFilters && (
-              <button type="button" className={styles.emptyStateClear} onClick={clearAllFilters}>
-                Скинути фільтри
-              </button>
-            )}
+            <p className={styles.emptyStateText}>Спробуйте змінити фільтри або пошуковий запит.</p>
+            {hasActiveFilters && <button type="button" className={styles.emptyStateClear} onClick={clearAllFilters}>Скинути фільтри</button>}
           </div>
         )}
 
@@ -420,48 +350,17 @@ export default function Home() {
           <>
             <div className={`${styles.productsGrid} ${loading ? styles.loadingGrid : ''}`}>
               {paginatedProducts.map((item, index) => (
-                <div
-                  key={`${item._id}-${animationKey}`}
-                  className={styles.animatedCard}
-                  style={{ animationDelay: `${Math.min(index * 0.05, 0.5)}s` }}
-                >
-                  <ProductCard
-                    id={item._id}
-                    title={item.title}
-                    model={item.model}
-                    condition={item.condition}
-                    price={item.price}
-                    imageUrl={item.imageUrl}
-                    imageUrls={item.imageUrls}
-                    rating={item.rating}
-                  />
+                <div key={`${item._id}-${animationKey}`} className={styles.animatedCard} style={{ animationDelay: `${Math.min(index * 0.05, 0.5)}s` }}>
+                  <ProductCard id={item._id} title={item.title} model={item.model} condition={item.condition} price={item.price} imageUrl={item.imageUrl} imageUrls={item.imageUrls} rating={item.rating} />
                 </div>
               ))}
             </div>
 
             {totalPages > 1 && (
               <div className={styles.paginationContainer}>
-                <button
-                  type="button"
-                  className={styles.pageBtn}
-                  disabled={currentPage === 1}
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  aria-label="Попередня сторінка"
-                >
-                  <FaChevronLeft />
-                </button>
-                
+                <button type="button" className={styles.pageBtn} disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)}><FaChevronLeft /></button>
                 {getPageElements()}
-                
-                <button
-                  type="button"
-                  className={styles.pageBtn}
-                  disabled={currentPage === totalPages}
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  aria-label="Наступна сторінка"
-                >
-                  <FaChevronRight />
-                </button>
+                <button type="button" className={styles.pageBtn} disabled={currentPage === totalPages} onClick={() => handlePageChange(currentPage + 1)}><FaChevronRight /></button>
               </div>
             )}
           </>

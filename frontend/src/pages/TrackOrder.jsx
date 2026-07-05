@@ -55,7 +55,6 @@ export default function TrackOrder() {
       );
     }
 
-    // 🔥 ЗАМІНЕНО FaCheckCircle на FaCheck
     const steps = [
       { id: 'Pending', label: 'Очікує оплати', icon: <FaClock /> },
       { id: 'Paid', label: 'Оплачено', icon: <FaCheck /> },

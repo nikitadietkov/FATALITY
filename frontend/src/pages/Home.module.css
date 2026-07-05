@@ -13,6 +13,84 @@
     gap: 24px;
 }
 
+/* ─── Trust Banner ──────────────────────────────────────────────────────────── */
+.nativeLocationHint {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #888888;
+    font-size: 13px;
+    margin-bottom: 25px;
+    padding: 6px 12px;
+    background-color: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    border: 1px solid #222222;
+}
+
+.nativeLocIcon {
+    color: #E7000B;
+}
+
+/* ─── Action Cards ──────────────────────────────────────────────────────────── */
+.actionCardsContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.actionCard {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background-color: #111111;
+    border: 1px solid #222222;
+    padding: 20px;
+    border-radius: 12px;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.actionCard:hover {
+    transform: translateY(-4px);
+    border-color: #E7000B;
+    box-shadow: 0 8px 20px rgba(231, 0, 11, 0.15);
+}
+
+.actionIconWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(231, 0, 11, 0.1);
+    color: #E7000B;
+    width: 45px;
+    height: 45px;
+    border-radius: 10px;
+    font-size: 20px;
+    flex-shrink: 0;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.actionCard:hover .actionIconWrapper {
+    background-color: #E7000B;
+    color: #ffffff;
+}
+
+.actionText h3 {
+    margin: 0 0 5px 0;
+    color: #ffffff;
+    font-size: 16px;
+    text-transform: uppercase;
+    font-family: 'Russo One', sans-serif;
+}
+
+.actionText p {
+    margin: 0;
+    color: #888888;
+    font-size: 13px;
+    line-height: 1.3;
+}
+
 .productsAreaHeader {
     display: flex;
     justify-content: space-between;
@@ -614,6 +692,12 @@
     .homeLayout {
         grid-template-columns: 1fr;
         gap: 20px;
+    }
+
+    .actionCardsContainer {
+        grid-template-columns: 1fr;
+        gap: 15px;
+        margin-bottom: 25px;
     }
 
     .productsAreaHeader {

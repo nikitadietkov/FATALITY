@@ -1,10 +1,10 @@
 import { 
   FaBoxes, FaDollarSign, FaUser, FaClock, FaShoppingBag, 
   FaPlusCircle, FaCloudUploadAlt, FaEdit, FaTrash, 
-  FaSearch, FaTimes 
+  FaSearch, FaTimes, FaSignOutAlt
 } from 'react-icons/fa';
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css'; 
 import styles from './Admin.module.css';
@@ -45,7 +45,15 @@ export default function Admin() {
   const [orderToDelete, setOrderToDelete] = useState(null);
 
   const fileInputRef = useRef(null);
+  const navigate = useNavigate();
 
+  const handleLogout = () => {
+    localStorage.removeItem('adminToken');
+    toast.success('Сеанс завершено. До зустрічі!', { icon: '👋' });
+    navigate('/admin/login');
+  };
+
+  
   useEffect(() => {
     document.body.style.backgroundColor = '#0A0A0A';
     const mainEl = document.querySelector('main');
@@ -62,12 +70,24 @@ export default function Admin() {
   const fetchInitialData = async () => {
     try {
       const token = localStorage.getItem('adminToken');
+      
+      if (!token) {
+        navigate('/admin/login');
+        return;
+      }
+
       const [ordersRes, productsRes] = await Promise.all([
         fetch(`${API_BASE}/api/orders`, { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(`${API_BASE}/api/products`)
       ]);
 
-      if (!ordersRes.ok) throw new Error(`Доступ до замовлень заборонено (${ordersRes.status})`);
+      if (ordersRes.status === 401 || ordersRes.status === 403) {
+        localStorage.removeItem('adminToken');
+        navigate('/admin-login');
+        return;
+      }
+
+      if (!ordersRes.ok) throw new Error(`Доступ заборонено (${ordersRes.status})`);
       if (!productsRes.ok) throw new Error(`Помилка завантаження товарів (${productsRes.status})`);
       
       const ordersData = await ordersRes.json();
@@ -244,7 +264,7 @@ export default function Admin() {
   const renderStatusBadge = (status) => {
     switch(status) {
       case 'Paid': return <span className={`${styles.statusBadge} ${styles.paid}`}>ОПЛАЧЕНО</span>;
-      case 'Processing': return <span className={`${styles.statusBadge} ${styles.processing}`}>В ОБРОБЦІ</span>; // 🔥 ДОДАНО СЮДИ
+      case 'Processing': return <span className={`${styles.statusBadge} ${styles.processing}`}>В ОБРОБЦІ</span>;
       case 'Shipped': return <span className={`${styles.statusBadge} ${styles.shipped}`}>ВІДПРАВЛЕНО</span>;
       case 'Cancelled': return <span className={`${styles.statusBadge} ${styles.cancelled}`}>СКАСОВАНО</span>;
       default: return <span className={`${styles.statusBadge} ${styles.pending}`}>ОЧІКУЄ ОПЛАТИ</span>;
@@ -298,7 +318,12 @@ export default function Admin() {
   return (
     <>
       <div className={styles.adminPage}>
-        <h2 className={styles.pageTitle}>Система керування</h2>
+        <div className={styles.adminTopHeader}>
+          <h2 className={styles.pageTitle}>Система керування</h2>
+          <button type="button" className={styles.logoutBtn} onClick={handleLogout} title="Завершити сеанс">
+            <FaSignOutAlt /> Вийти
+          </button>
+        </div>
 
         <div className={styles.tabsWrapper}>
           <button type="button" className={`${styles.tabBtn} ${activeTab === 'orders' ? styles.activeTab : ''}`} onClick={() => setActiveTab('orders')}>Замовлення</button>

@@ -11,6 +11,7 @@ import fs from 'fs';
 
 import Order from './models/Order.js';
 import Product from './models/Product.js';
+import ServiceRequest from './models/ServiceRequest.js';
 
 dotenv.config();
 const app = express();
@@ -179,6 +180,39 @@ app.delete('/api/products/:id', verifyAdmin, async (req, res) => {
         res.json({ message: "Товар успішно видалено" });
     } catch (error) {
         res.status(500).json({ message: "Помилка видалення товару" });
+    }
+});
+
+app.post('/api/service-requests', async (req, res) => {
+    try {
+        const { name, phone, consoleModel, problem } = req.body;
+
+        const newRequest = new ServiceRequest({ 
+            name, 
+            phone, 
+            consoleModel, 
+            problem 
+        });
+
+        await newRequest.save();
+
+        res.status(201).json({ 
+            message: "Заявку успішно створено", 
+            request: newRequest 
+        });
+    } catch (error) {
+        console.error("❌ Помилка створення заявки на сервіс:", error);
+        res.status(500).json({ message: "Помилка при відправленні заявки" });
+    }
+});
+
+// Відразу додамо GET роут для адмінки (щоб потім вивести ці заявки)
+app.get('/api/service-requests', verifyAdmin, async (req, res) => {
+    try {
+        const requests = await ServiceRequest.find().sort({ createdAt: -1 });
+        res.json(requests);
+    } catch (error) {
+        res.status(500).json({ message: "Помилка завантаження заявок" });
     }
 });
 

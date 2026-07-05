@@ -5,7 +5,7 @@ import {
   FaPlaystation, FaSkull, FaWrench, FaMicrochip, 
   FaTemperatureLow, FaShieldAlt, FaGamepad, FaGhost, 
   FaChevronDown, FaTerminal, FaTrophy, FaBolt, 
-  FaSyncAlt, FaFingerprint, FaCrosshairs, FaCheckCircle
+  FaSyncAlt, FaFingerprint, FaCrosshairs, FaCheckCircle, FaMapMarkerAlt
 } from 'react-icons/fa';
 import styles from './About.module.css';
 
@@ -50,7 +50,7 @@ const processSteps = [
 
 const faqs = [
   { q: "Чи є ризик бану консолі в PSN?", a: "Абсолютно нульовий. Кожна приставка перевіряється на чистоту MAC-адреси та відсутність банів у базі Sony. Ми гарантуємо 100% доступ до онлайну." },
-  { q: "Чому б/в у вас краще, ніж з рук на OLX?", a: "Купуючи з рук, ви граєте в рулетку. У нас ви отримуєте консоль після повного ТО, із заміненою термопастою та офіційною гарантією магазину." },
+  { q: "Чому б/в у нас краще, ніж з рук на OLX?", a: "Купуючи з рук, ви граєте в рулетку. У нас ви отримуєте консоль після повного ТО, із заміненою термопастою та офіційною гарантією магазину." },
   { q: "Чи оригінальні геймпади в комплекті?", a: "Так. Ми суворо відбраковуємо китайські репліки. Ви отримуєте лише оригінальні DualShock 4 або DualSense з перевіреними стіками." }
 ];
 
@@ -132,10 +132,10 @@ export default function About() {
                 ПЕРЕЗАВАНТАЖЕННЯ <span className={styles.redText}>ГЕЙМІНГУ</span>
               </h2>
               <p className={styles.heroDescription}>
-                Ми не просто продаємо консолі. Ми повертаємо їх до життя. 
-                Кожна приставка у FATALITY — це кібернетичний організм, 
+                Ми не просто інтернет-магазин. FATALITY — це реальний шоурум у м. Дніпро та професійний сервісний центр. 
+                Кожна приставка — це кібернетичний організм, 
                 який пройшов повне очищення, заміну "крові" (термопасти) 
-                та жорсткий стрес-тест.
+                та жорсткий стрес-тест перед тим, як потрапити до ваших рук.
               </p>
             </div>
             
@@ -248,6 +248,12 @@ export default function About() {
               <FaSyncAlt className={styles.valueIconHuge} />
               <h3>Trade-IN 2.0</h3>
               <p>Принеси свою стару PS3 або PS4 і отримай миттєву знижку на консоль нового покоління.</p>
+            </div>
+
+            <div className={styles.valueCard}>
+              <FaMapMarkerAlt className={styles.valueIconHuge} />
+              <h3>Фізичний магазин</h3>
+              <p>Чекаємо на вас у нашому шоурумі в м. Дніпро. Будь-яку консоль можна оглянути, потримати в руках та провести тест-драйв перед покупкою.</p>
             </div>
           </div>
         </div>

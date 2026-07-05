@@ -12,8 +12,10 @@ import About from './pages/About';
 import Admin from './pages/Admin';
 import Home from './pages/Home';
 import Cart from './pages/Cart';
+import Gamepass from './pages/Gamepass';
 import TrackOrder from './pages/TrackOrder';
 import NotFound from './pages/NotFound';
+import Service from './pages/Service';
 import { CartProvider } from './context/CartContext.jsx';
 
 const ProtectedRoute = ({ children }) => {
@@ -92,7 +94,6 @@ function AppContent() {
             ) : (
               <Link to="/about" className="nav-link">Про нас</Link>
             )}
-            {/* 🔥 ДОДАНО ПОСИЛАННЯ В ШАПКУ */}
             <Link to="/track-order" className="nav-link" style={{ color: 'var(--primary-color)' }}>Мої замовлення</Link>
           </nav>
 
@@ -125,6 +126,8 @@ function AppContent() {
           <Route path="/track-order" element={<TrackOrder />} />
           <Route path="*" element={<NotFound />} />
           <Route path="/success" element={<Success />} />
+          <Route path="/gamepass" element={<Gamepass />} />
+          <Route path="/service" element={<Service />} />
         </Routes>
       </main>
 
@@ -137,7 +140,6 @@ function AppContent() {
           <div className="footer-links">
             <Link to="/">Каталог</Link>
             <Link to="/about">Про нас</Link>
-            {/* 🔥 ДОДАНО ПОСИЛАННЯ В ПІДВАЛ */}
             <Link to="/track-order">Мої замовлення</Link>
             <Link to="/cart">Кошик</Link>
           </div>

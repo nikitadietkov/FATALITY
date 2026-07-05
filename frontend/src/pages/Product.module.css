@@ -29,10 +29,9 @@
 
 .backLink:hover { color: #ff0000; }
 
-/* --- Product grid (🔥 ФІКС СТИСКАННЯ ФОТО) --- */
 .productContainer {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); /* ЗАЛІЗНА ФІКСАЦІЯ КОЛОНОК */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 50px;
   background-color: #0a0a0a;
   padding: 40px;
@@ -272,7 +271,6 @@
   line-height: 1.6;
   margin-bottom: 40px;
   font-size: 15px;
-  /* 🔥 ФІКСИ ПЕРЕНОСУ ТЕКСТУ */
   word-wrap: break-word;
   overflow-wrap: break-word;
   word-break: normal;

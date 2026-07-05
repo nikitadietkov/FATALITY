@@ -60,7 +60,7 @@
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 2px;
-  margin-bottom: 35px;
+  margin-bottom: 0;
   border-left: 5px solid var(--primary-color);
   padding-left: 15px;
   opacity: 0;
@@ -173,9 +173,9 @@
 .green { background-color: rgba(0, 168, 89, 0.15); color: var(--success-color); }
 .orange { background-color: rgba(255, 153, 0, 0.15); color: var(--warning-color); }
 
-.statLabel {
-  display: block;
-  font-size: 13px;
+  .statLabel {
+    display: block;
+    font-size: 13px;
   color: var(--text-muted);
   margin-bottom: 5px;
   text-transform: uppercase;
@@ -492,6 +492,45 @@
   font-size: 24px;
   font-weight: 900;
   color: var(--text-main);
+}
+
+/* =========================================
+   ШАПКА АДМІНКИ ТА КНОПКА ВИХОДУ
+   ========================================= */
+.adminTopHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 35px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.logoutBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: rgba(255, 68, 68, 0.1);
+  color: var(--danger-color);
+  border: 1px solid rgba(255, 68, 68, 0.3);
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 14px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.logoutBtn:hover {
+  background-color: var(--danger-color);
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 68, 68, 0.3);
+}
+
+.logoutBtn:active {
+  transform: translateY(0);
 }
 
 /* =========================================
@@ -1075,6 +1114,8 @@
 @media (max-width: 768px) {
   .adminPage { padding: 20px 10px; }
   .pageTitle { font-size: 24px; margin-bottom: 20px; border-width: 4px; }
+  .adminTopHeader { flex-direction: column; align-items: flex-start; }
+  .logoutBtn { width: 100%; justify-content: center; }
 
   /* Вкладки */
   .tabsWrapper { flex-direction: column; gap: 10px; border-bottom: none; padding-bottom: 0; }

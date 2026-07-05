@@ -284,7 +284,6 @@ export default function Product() {
     return () => { cancelled = true; };
   }, [id]);
 
-  // 🔥 НАДІЙНЕ НАТИВНЕ ОНОВЛЕННЯ ЗАГОЛОВКА СТОРІНКИ
   useEffect(() => {
     if (loading) {
       document.title = 'Завантаження... | FATALITY';
