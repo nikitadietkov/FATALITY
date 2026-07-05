@@ -5,7 +5,6 @@ import ReactSlider from 'react-slider';
 import ProductCard from '../components/ProductCard';
 import styles from './Home.module.css';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const MODELS = ['PS5', 'PS4 Pro', 'PS4', 'PS3'];

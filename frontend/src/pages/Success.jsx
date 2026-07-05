@@ -1,6 +1,6 @@
 import React, { useEffect, useContext } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { CartContext } from '../context/CartContext'; 
+import { CartProvider } from '../Context/CartContext.jsx'; 
 
 const Success = () => {
   const [searchParams] = useSearchParams();
