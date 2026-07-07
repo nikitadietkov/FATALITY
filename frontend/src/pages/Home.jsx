@@ -3,13 +3,14 @@ import { CiFilter } from "react-icons/ci";
 import { 
   FaTimes, FaSearch, FaChevronLeft, FaChevronRight, 
   FaMapMarkerAlt, FaWrench, FaExchangeAlt, FaMoneyBillWave, 
-  FaThLarge, FaList, FaFire, FaGamepad, FaChevronDown
+  FaThLarge, FaList, FaFire, FaGamepad, FaChevronDown, FaHeart 
 } from "react-icons/fa";
 import ReactSlider from 'react-slider';
 import ProductCard from '../components/ProductCard';
 import styles from './Home.module.css';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import toast from 'react-hot-toast';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const CONDITIONS = ['Нова', 'Вживана - Ідеальний стан', 'Вживана - Хороший стан', 'Відновлена (Refurbished)'];
@@ -42,7 +43,7 @@ const SkeletonCard = () => (
 export default function Home() {
   const [catalogTree, setCatalogTree] = useState({}); 
   const [selectedCategories, setSelectedCategories] = useState([]);
-  const [selectedBrands, setSelectedBrands] = useState([]); // Тепер зберігає "Категорія::Бренд"
+  const [selectedBrands, setSelectedBrands] = useState([]); 
   const [selectedConditions, setSelectedConditions] = useState([]);
   const [expandedCategories, setExpandedCategories] = useState(['Консолі']); 
   
@@ -60,12 +61,28 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState(1);
   const [animationKey, setAnimationKey] = useState(0);
 
+  // 🔴 Favorites State & LocalStorage Init
+  const [favorites, setFavorites] = useState(() => {
+    try {
+      const saved = localStorage.getItem('fatality_favorites');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+
   const productsTopRef = useRef(null);
 
   const debouncedPriceRange = useDebounced(priceRange, DEBOUNCE_DELAY);
   const debouncedSearch = useDebounced(searchQuery, DEBOUNCE_DELAY);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+
+  // 🔴 Sync Favorites to LocalStorage
+  useEffect(() => {
+    localStorage.setItem('fatality_favorites', JSON.stringify(favorites));
+  }, [favorites]);
 
   useEffect(() => {
       const orderRef = searchParams.get('orderReference');
@@ -119,7 +136,6 @@ export default function Home() {
           maxPrice: debouncedPriceRange[1],
         });
         
-        // Розділяємо композитні ключі назад на категорії та бренди для бекенду
         const cats = new Set(selectedCategories);
         const brs = new Set();
         selectedBrands.forEach(b => {
@@ -152,7 +168,11 @@ export default function Home() {
   const visibleProducts = useMemo(() => {
     let filtered = products;
 
-    // ТОЧНЕ ФІЛЬТРУВАННЯ: Товар має відповідати або вибраній категорії, або зв'язці "Категорія+Бренд"
+    // 🔴 Фільтр по улюблених
+    if (showFavoritesOnly) {
+      filtered = filtered.filter(p => favorites.includes(p._id));
+    }
+
     if (selectedCategories.length > 0 || selectedBrands.length > 0) {
       filtered = filtered.filter(p => {
         const catMatch = selectedCategories.includes(p.category);
@@ -188,11 +208,11 @@ export default function Home() {
       }
       return 0;
     });
-  }, [products, debouncedSearch, sortBy, selectedCategories, selectedBrands, selectedConditions]);
+  }, [products, debouncedSearch, sortBy, selectedCategories, selectedBrands, selectedConditions, showFavoritesOnly, favorites]);
 
   // Pagination logic
-  useEffect(() => { setCurrentPage(1); }, [debouncedSearch, sortBy, selectedCategories, selectedBrands, selectedConditions, debouncedPriceRange]);
-  useEffect(() => { setAnimationKey(prev => prev + 1); }, [debouncedSearch, sortBy, selectedCategories, selectedBrands, selectedConditions, debouncedPriceRange, currentPage, viewMode]);
+  useEffect(() => { setCurrentPage(1); }, [debouncedSearch, sortBy, selectedCategories, selectedBrands, selectedConditions, debouncedPriceRange, showFavoritesOnly]);
+  useEffect(() => { setAnimationKey(prev => prev + 1); }, [debouncedSearch, sortBy, selectedCategories, selectedBrands, selectedConditions, debouncedPriceRange, showFavoritesOnly, currentPage, viewMode]);
 
   const totalPages = Math.ceil(visibleProducts.length / ITEMS_PER_PAGE);
   const paginatedProducts = visibleProducts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
@@ -235,12 +255,29 @@ export default function Home() {
     setExpandedCategories(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]);
   };
 
+  // 🔴 Favorites Toggle Action
+  const toggleFavorite = useCallback((id, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setFavorites(prev => {
+      const isFav = prev.includes(id);
+      if (isFav) {
+        toast('Видалено з улюблених', { icon: '💔' });
+        return prev.filter(fId => fId !== id);
+      } else {
+        toast('Додано в улюблені', { icon: '❤️' });
+        return [...prev, id];
+      }
+    });
+  }, []);
+
   const clearAllFilters = useCallback(() => {
     setSelectedCategories([]);
     setSelectedBrands([]);
     setSelectedConditions([]);
     setPriceRange([...priceBounds]);
     setSearchQuery('');
+    setShowFavoritesOnly(false); // 🔴 Скидаємо фільтр улюблених
   }, [priceBounds]);
 
   const applyQuickFilter = (type) => {
@@ -250,9 +287,16 @@ export default function Home() {
       setSearchQuery('PS5');
     }
     if (type === 'budget') setPriceRange([priceBounds[0], 10000]);
+    if (type === 'favorites') { // 🔴 Включаємо тільки улюблені
+      if (favorites.length === 0) {
+        toast.error("Ваш список улюблених порожній.");
+      } else {
+        setShowFavoritesOnly(true);
+      }
+    }
   };
 
-  const activeFilterCount = selectedCategories.length + selectedBrands.length + selectedConditions.length + (priceRange[0] > priceBounds[0] || priceRange[1] < priceBounds[1] ? 1 : 0);
+  const activeFilterCount = selectedCategories.length + selectedBrands.length + selectedConditions.length + (priceRange[0] > priceBounds[0] || priceRange[1] < priceBounds[1] ? 1 : 0) + (showFavoritesOnly ? 1 : 0);
   const hasActiveFilters = activeFilterCount > 0 || searchQuery.trim().length > 0;
 
   return (
@@ -276,6 +320,11 @@ export default function Home() {
 
         {hasActiveFilters && (
           <div className={styles.activeFilters}>
+            {showFavoritesOnly && (
+               <span className={styles.chip}>
+                 Тільки улюблені <button type="button" onClick={() => setShowFavoritesOnly(false)}><FaTimes /></button>
+               </span>
+            )}
             {selectedCategories.map((c) => (
               <span key={`cat-${c}`} className={styles.chip}>
                 {c} <button type="button" onClick={() => toggleItem(setSelectedCategories)(c)}><FaTimes /></button>
@@ -406,15 +455,17 @@ export default function Home() {
 
         <div className={styles.productsAreaHeader}>
           <div className={styles.titleGroup}>
-            <h2 className={styles.productsTitle}>Каталог</h2>
+            <h2 className={styles.productsTitle}>{showFavoritesOnly ? 'Улюблені товари' : 'Каталог'}</h2>
             {!loading && <span className={styles.productCount}>{visibleProducts.length} товар{visibleProducts.length === 1 ? '' : 'ів'}</span>}
           </div>
 
           <div className={styles.headerActions}>
             <div className={styles.quickFilters}>
               <button onClick={() => applyQuickFilter('all')} className={styles.quickFilterBtn}>Всі</button>
-              <button onClick={() => applyQuickFilter('ps5')} className={`${styles.quickFilterBtn} ${styles.highlightBtn}`}><FaGamepad/> PS5</button>
-              <button onClick={() => applyQuickFilter('budget')} className={styles.quickFilterBtn}>До 10,000₴</button>
+              <button onClick={() => applyQuickFilter('ps5')} className={`${styles.quickFilterBtn} ${selectedBrands.includes('Консолі::Sony') && !showFavoritesOnly ? styles.highlightBtn : ''}`}><FaGamepad/> PS5</button>
+              <button onClick={() => applyQuickFilter('favorites')} className={`${styles.quickFilterBtn} ${showFavoritesOnly ? styles.highlightBtn : ''}`}>
+                <FaHeart /> Улюблені {favorites.length > 0 && `(${favorites.length})`}
+              </button>
             </div>
 
             <div className={styles.viewToggles}>
@@ -469,7 +520,20 @@ export default function Home() {
             <div className={viewMode === 'grid' ? styles.productsGrid : styles.productsList}>
               {paginatedProducts.map((item, index) => (
                 <div key={`${item._id}-${animationKey}`} className={`${styles.animatedCard} ${viewMode === 'list' ? styles.listCardWrapper : ''}`} style={{ animationDelay: `${Math.min(index * 0.03, 0.3)}s` }}>
-                  <ProductCard id={item._id} title={item.title} model={item.model} condition={item.condition} price={item.price} imageUrl={item.imageUrl} imageUrls={item.imageUrls} rating={item.rating} layoutMode={viewMode} />
+                  {/* 🔴 Передаємо стан та функцію у ProductCard */}
+                  <ProductCard 
+                    id={item._id} 
+                    title={item.title} 
+                    model={item.model} 
+                    condition={item.condition} 
+                    price={item.price} 
+                    imageUrl={item.imageUrl} 
+                    imageUrls={item.imageUrls} 
+                    rating={item.rating} 
+                    layoutMode={viewMode}
+                    isFavorite={favorites.includes(item._id)}
+                    onToggleFavorite={(e) => toggleFavorite(item._id, e)}
+                  />
                 </div>
               ))}
             </div>

@@ -193,6 +193,40 @@
     transform: scale(0.95);
 }
 
+.wishlistBtn {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 3;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.wishlistBtn:hover {
+    background: rgba(255, 0, 0, 0.8);
+    border-color: #ff0000;
+}
+
+.wishlistBtn.isFavorite {
+    color: #ff0000;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.wishlistBtn.isFavorite:hover {
+    background: #ffffff;
+}
+
 /* =========================================
    АДАПТИВ ДЛЯ 2-Х КАРТОК НА ТЕЛЕФОНІ
    ========================================= */

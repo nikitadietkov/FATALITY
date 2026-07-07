@@ -1,13 +1,15 @@
 import { useMemo, useCallback } from 'react';
-import { FaShoppingCart, FaStar } from 'react-icons/fa';
+import { FaShoppingCart, FaStar, FaHeart, FaRegHeart } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import styles from './ProductCard.module.css';
 
-export default function ProductCard({ id, title, model, condition, price, imageUrl, imageUrls, rating }) {
+export default function ProductCard({ 
+  id, title, model, condition, price, imageUrl, imageUrls, rating, 
+  isFavorite, onToggleFavorite // 🔴 New props
+}) {
   const { addToCart } = useCart();
 
-  // Оптимізація: обчислюємо URL картинки лише при зміні пропсів
   const validImageUrl = useMemo(() => {
     const arrayImages = imageUrls && imageUrls.length > 0 ? imageUrls : [imageUrl].filter(Boolean);
     const firstImg = arrayImages[0];
@@ -20,7 +22,7 @@ export default function ProductCard({ id, title, model, condition, price, imageU
   }, [imageUrl, imageUrls]);
 
   const handleAddToCart = useCallback((e) => {
-    e.preventDefault(); // Запобігаємо переходу за посиланням при кліку на кошик
+    e.preventDefault();
     addToCart({ id, title, model, price, imageUrl: validImageUrl });
     
     const button = e.currentTarget;
@@ -35,7 +37,6 @@ export default function ProductCard({ id, title, model, condition, price, imageU
     const flyer = document.createElement('div');
     flyer.className = 'flying-item';
     
-    // Стилізація елементу, що летить
     Object.assign(flyer.style, {
       left: `${imgRect.left}px`,
       top: `${imgRect.top}px`,
@@ -53,7 +54,6 @@ export default function ProductCard({ id, title, model, condition, price, imageU
 
     document.body.appendChild(flyer);
 
-    // Анімація польоту
     requestAnimationFrame(() => {
       Object.assign(flyer.style, {
         left: `${cartRect.left + cartRect.width / 2 - 20}px`,
@@ -65,44 +65,24 @@ export default function ProductCard({ id, title, model, condition, price, imageU
       });
     });
     
-    // Видалення після завершення
     setTimeout(() => {
       flyer.remove();
       window.dispatchEvent(new CustomEvent('animate-cart'));
     }, 400);
   }, [addToCart, id, title, model, price, validImageUrl]);
 
-  const renderStars = () => {
-    if (!rating || rating === 0) {
-      return (
-        <div className={styles.ratingContainer}>
-          <span className={styles.noRatingText}>Ще немає відгуків :(</span>
-        </div>
-      );
-    } 
-
-    const fillPercentage = (rating / 5) * 100;
-
-    return (
-      <div className={styles.ratingContainer} title={`Рейтинг: ${rating} з 5`}>
-        <div className={styles.starsWrapper}>
-          <div className={styles.starsOuter}>
-            <FaStar /><FaStar /><FaStar /><FaStar /><FaStar />
-          </div>
-          <div className={styles.starsInner} style={{ width: `${fillPercentage}%` }}>
-            <FaStar /><FaStar /><FaStar /><FaStar /><FaStar />
-          </div>
-        </div>
-        <span className={styles.ratingText}>{rating}</span>
-      </div>
-    );
-  };
-
   return (
     <article className={styles.card}>
-      <span className={styles.conditionBadge}>
-        {condition}
-      </span>
+      {/* 🔴 Wishlist Toggle */}
+      <button 
+        className={`${styles.wishlistBtn} ${isFavorite ? styles.isFavorite : ''}`}
+        onClick={onToggleFavorite}
+        aria-label={isFavorite ? "Видалити з улюблених" : "Додати в улюблені"}
+      >
+        {isFavorite ? <FaHeart /> : <FaRegHeart />}
+      </button>
+
+      <span className={styles.conditionBadge}>{condition}</span>
       
       <Link to={`/product/${id}`} className={styles.imageWrapper}>
         <img src={validImageUrl} alt={title} loading="lazy" />
@@ -113,8 +93,6 @@ export default function ProductCard({ id, title, model, condition, price, imageU
           <h4 className={styles.title} title={title}>{title}</h4>
         </Link>
         <span className={styles.modelName}>{model} Консоль</span>
-        
-        {renderStars()}
         
         <div className={styles.footer}>
           <span className={styles.price}>{price} грн</span>

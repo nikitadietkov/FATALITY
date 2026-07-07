@@ -3,11 +3,12 @@ import { useParams, Link } from 'react-router-dom';
 import {
   FaShoppingCart, FaArrowLeft, FaStar,
   FaChevronLeft, FaChevronRight, FaTimes, FaUserCircle,
+  FaRegHeart, FaHeart, FaShareAlt, FaTruck, FaShieldAlt
 } from 'react-icons/fa';
 import { useCart } from '../context/CartContext';
 import ProductCard from '../components/ProductCard'; 
-import styles from './Product.module.css';
 import toast from 'react-hot-toast';
+import styles from './Product.module.css';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -24,6 +25,28 @@ function resolveImageUrl(raw) {
 // Sub-components
 // ---------------------------------------------------------------------------
 
+function SkeletonLoader() {
+  return (
+    <div className={styles.productPage}>
+      <div className={styles.skeletonBreadcrumb}></div>
+      <div className={styles.productContainer}>
+        <div className={styles.skeletonImage}></div>
+        <div className={styles.infoSection}>
+          <div className={styles.skeletonBadge}></div>
+          <div className={styles.skeletonTitle}></div>
+          <div className={styles.skeletonTitle} style={{ width: '60%' }}></div>
+          <div className={styles.skeletonRating}></div>
+          <div className={styles.skeletonPrice}></div>
+          <div className={styles.skeletonDesc}></div>
+          <div className={styles.skeletonDesc}></div>
+          <div className={styles.skeletonDesc} style={{ width: '80%' }}></div>
+          <div className={styles.skeletonBtn}></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ImageSlider({ images, currentIndex, onPrev, onNext, onDotClick, onOpenModal, imageRef }) {
   const url = resolveImageUrl(images[currentIndex]);
   const hasMany = images.length > 1;
@@ -32,7 +55,7 @@ function ImageSlider({ images, currentIndex, onPrev, onNext, onDotClick, onOpenM
     <div className={styles.imageSection}>
       <div className={styles.sliderWrapper}>
         {hasMany && (
-          <button type="button" className={`${styles.sliderArrow} ${styles.arrowLeft}`} onClick={onPrev} aria-label="Попереднє photo">
+          <button type="button" className={`${styles.sliderArrow} ${styles.arrowLeft}`} onClick={onPrev} aria-label="Попереднє фото">
             <FaChevronLeft />
           </button>
         )}
@@ -102,7 +125,6 @@ function ImageModal({ url, hasMany, onClose, onPrev, onNext }) {
   );
 }
 
-// ---------------------------------------------------------------------------
 export function RatingStars({ rating, reviewCount }) {
   if (!rating) {
     return (
@@ -121,7 +143,7 @@ export function RatingStars({ rating, reviewCount }) {
           {Array.from({ length: 5 }, (_, i) => <FaStar key={`filled-${i}`} />)}
         </div>
       </div>
-      <span className={styles.ratingText}>{rating.toFixed(1)} ({reviewCount})</span>
+      <span className={styles.ratingText}>{rating.toFixed(1)} ({reviewCount} відгуків)</span>
     </div>
   );
 }
@@ -154,13 +176,12 @@ function ReviewCard({ review }) {
   );
 }
 
-// 🔥 ВЫПРАВЛЕНА ТА МОДЕРНІЗОВАНА ФОРМА ВІДГУКІВ З ВЕРИФІКАЦІЄЮ КЛІЄНТА
 function ReviewForm({ productId, onReviewAdded }) {
-  const [name, setName]       = useState('');
-  const [contact, setContact] = useState(''); // Стейт для Email або телефону
+  const [name, setName] = useState('');
+  const [contact, setContact] = useState('');
   const [comment, setComment] = useState('');
-  const [rating, setRating]   = useState(5);
-  const [hover, setHover]     = useState(null);
+  const [rating, setRating] = useState(5);
+  const [hover, setHover] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -182,13 +203,11 @@ function ReviewForm({ productId, onReviewAdded }) {
       const data = await response.json();
 
       if (response.ok) {
-        toast.success("Дякуємо! Ваш верифікований відгук успішно додано.", { id: loadingToast, icon: '🔥' });
-        // Очищаємо поля форми після успіху
+        toast.success("Дякуємо! Ваш відгук успішно додано.", { id: loadingToast, icon: '🔥' });
         setName('');
         setContact('');
         setComment('');
         setRating(5);
-        // Оновлюємо стан товару на сторінці, щоб відгук одразу з'явився
         if (onReviewAdded) onReviewAdded(data);
       } else {
         toast.error(data.message || "Помилка додавання відгуку.", { id: loadingToast });
@@ -213,17 +232,16 @@ function ReviewForm({ productId, onReviewAdded }) {
           required
         />
 
-        {/* 🔥 НОВЕ ПОЛЕ ДЛЯ ПЕРЕВІРКИ Покупця */}
         <input
           type="text"
-          placeholder="Email або телефон, вказаний при замовленні *"
+          placeholder="Email або телефон із замовлення *"
           className={styles.reviewInput}
           value={contact}
           onChange={(e) => setContact(e.target.value)}
           required
         />
-        <span style={{ color: '#666', display: 'block', marginTop: '-12px', marginBottom: '15px', fontSize: '11px', textAlign: 'left', lineHeight: '1.3' }}>
-          * Потрібно для підтвердження покупки. Ці дані конфіденційні та не публікуються на сайті.
+        <span className={styles.privacyNote}>
+          * Потрібно для підтвердження покупки. Дані конфіденційні.
         </span>
 
         <div className={styles.interactiveRating}>
@@ -256,11 +274,7 @@ function ReviewForm({ productId, onReviewAdded }) {
           required
         />
 
-        <button
-          type="submit"
-          className={styles.submitReviewBtn}
-          disabled={submitting}
-        >
+        <button type="submit" className={styles.submitReviewBtn} disabled={submitting}>
           {submitting ? 'Обробка запиту…' : 'Опублікувати відгук'}
         </button>
       </form>
@@ -275,12 +289,14 @@ export default function Product() {
   const { id } = useParams();
   const { addToCart } = useCart();
 
-  const [product, setProduct]         = useState(null);
+  const [product, setProduct] = useState(null);
   const [similarProducts, setSimilarProducts] = useState([]); 
-  const [loading, setLoading]         = useState(true);
-  const [error, setError]             = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
   const imageRef = useRef(null);
 
   useEffect(() => {
@@ -301,7 +317,6 @@ export default function Product() {
           const filtered = allProducts.filter(p => p._id !== id);
           if (!cancelled) setSimilarProducts(filtered.slice(0, 4));
         }
-
       } catch (err) {
         if (!cancelled) setError(err.message);
       } finally {
@@ -313,13 +328,9 @@ export default function Product() {
   }, [id]);
 
   useEffect(() => {
-    if (loading) {
-      document.title = 'Завантаження... | FATALITY';
-    } else if (error) {
-      document.title = 'Помилка | FATALITY';
-    } else if (product) {
-      document.title = `Купити ${product.title} (${product.condition}) | FATALITY`;
-    }
+    if (loading) document.title = 'Завантаження... | FATALITY';
+    else if (error) document.title = 'Помилка | FATALITY';
+    else if (product) document.title = `Купити ${product.title} (${product.condition}) | FATALITY`;
     return () => { document.title = 'FATALITY'; };
   }, [loading, error, product]);
 
@@ -345,6 +356,24 @@ export default function Product() {
     setCurrentIndex((i) => (i === images.length - 1 ? 0 : i + 1));
   }, [images.length]);
 
+  const handleShare = async () => {
+    const shareData = {
+      title: product.title,
+      text: `Подивись на цей товар: ${product.title} у FATALITY!`,
+      url: window.location.href,
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        toast.success("Посилання скопійовано в буфер обміну!");
+      }
+    } catch (err) {
+      console.log('Помилка при поширенні:', err);
+    }
+  };
+
   const handleAddToCart = useCallback(() => {
     addToCart({
       id: product._id,
@@ -356,12 +385,16 @@ export default function Product() {
 
     const img = imageRef.current;
     const cartBtn = document.querySelector('.cart-button');
-    if (!img || !cartBtn) return;
+    if (!img || !cartBtn) {
+      toast.success("Товар додано до кошика!");
+      return;
+    }
 
     const { left: iL, top: iT, width: iW, height: iH } = img.getBoundingClientRect();
     const { left: cL, top: cT, width: cW, height: cH } = cartBtn.getBoundingClientRect();
 
-    const flyer = Object.assign(document.createElement('div'), { className: 'flying-item' });
+    const flyer = document.createElement('div');
+    flyer.className = 'flying-item';
     Object.assign(flyer.style, {
       left: `${iL}px`, top: `${iT}px`,
       width: `${iW}px`, height: `${iH}px`,
@@ -371,7 +404,9 @@ export default function Product() {
       backgroundRepeat: 'no-repeat',
       backgroundPosition: 'center',
       zIndex: 9999,
-      position: 'fixed'
+      position: 'fixed',
+      pointerEvents: 'none',
+      transition: 'all 0.6s cubic-bezier(0.25, 1, 0.5, 1)'
     });
     document.body.appendChild(flyer);
 
@@ -381,18 +416,18 @@ export default function Product() {
         top:  `${cT + cH / 2 - 20}px`,
         width: '40px', height: '40px',
         borderRadius: '50%',
-        opacity: '0',
+        opacity: '0.5',
       });
     });
 
     setTimeout(() => {
       flyer.remove();
       window.dispatchEvent(new CustomEvent('animate-cart'));
-    }, 400);
+    }, 600);
   }, [addToCart, product, displayImageUrl]);
 
-  if (loading) return <div className={styles.statusMessage}>Завантаження даних...</div>;
-  if (error)   return <div className={styles.statusMessage}>Помилка: {error}</div>;
+  if (loading) return <SkeletonLoader />;
+  if (error) return <div className={styles.statusMessage}>Помилка: {error}</div>;
   if (!product) return <div className={styles.statusMessage}>Товар не знайдено</div>;
 
   return (
@@ -407,7 +442,14 @@ export default function Product() {
         />
       )}
 
-      <Link to="/" className={styles.backLink}><FaArrowLeft /> Назад до каталогу</Link>
+      {/* Modern Breadcrumbs */}
+      <nav className={styles.breadcrumb}>
+        <Link to="/"><FaArrowLeft /> Головна</Link>
+        <span className={styles.separator}>/</span>
+        <Link to="/catalog">Каталог</Link>
+        <span className={styles.separator}>/</span>
+        <span className={styles.currentCrumb}>{product.model}</span>
+      </nav>
 
       <div className={styles.productContainer}>
         <ImageSlider
@@ -428,37 +470,66 @@ export default function Product() {
 
           <h1 className={styles.title}>{product.title}</h1>
 
-          <RatingStars
-            rating={product.rating}
-            reviewCount={product.reviews?.length ?? 0}
-          />
+          <div className={styles.ratingShareRow}>
+            <RatingStars rating={product.rating} reviewCount={product.reviews?.length ?? 0} />
+            <button className={styles.iconBtn} onClick={handleShare} aria-label="Поділитися" title="Поділитися">
+              <FaShareAlt />
+            </button>
+          </div>
 
           <div className={styles.priceBlock}>
-            <span className={styles.price}>{product.price} грн</span>
-            <span className={styles.status}>В наявності</span>
+            <div className={styles.priceWrapper}>
+              <span className={styles.price}>{product.price} грн</span>
+              <span className={styles.status}>В наявності</span>
+            </div>
+          </div>
+          
+          {/* Trust Badges */}
+          <div className={styles.trustBadges}>
+            <div className={styles.badge}>
+              <FaTruck className={styles.badgeIcon} />
+              <span>Швидка доставка по Україні</span>
+            </div>
+            <div className={styles.badge}>
+              <FaShieldAlt className={styles.badgeIcon} />
+              <span>Гарантія якості FATALITY</span>
+            </div>
+          </div>
+
+          <div className={styles.actionBlock}>
+            <button type="button" className={styles.addToCartBtn} onClick={handleAddToCart}>
+              <FaShoppingCart /> Додати в кошик
+            </button>
+            <button 
+              type="button" 
+              className={`${styles.wishlistBtn} ${isWishlisted ? styles.wishlisted : ''}`}
+              onClick={() => setIsWishlisted(!isWishlisted)}
+              aria-label="Додати в улюблене"
+            >
+              {isWishlisted ? <FaHeart /> : <FaRegHeart />}
+            </button>
           </div>
 
           <div className={styles.descriptionBlock}>
-            <h3>Опис</h3>
+            <h3>Опис товару</h3>
             <div 
               className={styles.richDescription} 
               dangerouslySetInnerHTML={{ __html: product.description }} 
             />
           </div>
-
-          <button type="button" className={styles.addToCartBtn} onClick={handleAddToCart}>
-            <FaShoppingCart /> Додати в кошик
-          </button>
         </div>
       </div>
 
       <section className={styles.reviewsSection} aria-label="Відгуки покупців">
-        <h2 className={styles.reviewsTitle}>Відгуки покупців</h2>
+        <h2 className={styles.reviewsTitle}>Відгуки покупців ({product.reviews?.length ?? 0})</h2>
 
         <div className={styles.reviewsLayout}>
           <div className={styles.reviewsList}>
             {!product.reviews?.length ? (
-              <p className={styles.noReviewsMsg}>Станьте першим, хто залишить відгук!</p>
+              <div className={styles.emptyReviews}>
+                <FaStar className={styles.emptyReviewsIcon} />
+                <p>Станьте першим, хто залишить відгук!</p>
+              </div>
             ) : (
               product.reviews.map((review, i) => (
                 <ReviewCard key={review._id ?? i} review={review} />
@@ -466,7 +537,6 @@ export default function Product() {
             )}
           </div>
 
-          {/* Передаємо функцію setProduct, щоб підкомпонент міг миттєво оновити сторінку після успішного відгуку */}
           <ReviewForm
             productId={id}
             onReviewAdded={async () => {
@@ -489,11 +559,7 @@ export default function Product() {
           <h2 className={styles.similarTitle}>Вам також може сподобатися</h2>
           <div className={styles.similarGrid}>
             {similarProducts.map((item, index) => (
-              <div 
-                key={item._id} 
-                className={styles.animatedCard} 
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
+              <div key={item._id} className={styles.animatedCard} style={{ animationDelay: `${index * 0.1}s` }}>
                 <ProductCard
                   id={item._id}
                   title={item.title}
