@@ -1,16 +1,18 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { CiFilter } from "react-icons/ci";
-import { FaTimes, FaSearch, FaChevronLeft, FaChevronRight, FaMapMarkerAlt, FaWrench, FaExchangeAlt, FaMoneyBillWave } from "react-icons/fa";
+import { 
+  FaTimes, FaSearch, FaChevronLeft, FaChevronRight, 
+  FaMapMarkerAlt, FaWrench, FaExchangeAlt, FaMoneyBillWave, 
+  FaThLarge, FaList, FaFire, FaGamepad, FaChevronDown
+} from "react-icons/fa";
 import ReactSlider from 'react-slider';
 import ProductCard from '../components/ProductCard';
 import styles from './Home.module.css';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const MODELS = ['PS5', 'PS4 Pro', 'PS4', 'PS3'];
 const CONDITIONS = ['Нова', 'Вживана - Ідеальний стан', 'Вживана - Хороший стан', 'Відновлена (Refurbished)'];
-const PRICE_MIN_DEFAULT = 0;
-const PRICE_MAX_DEFAULT = 40000;
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const API_BASE = `${BASE_URL}/api/products`;
 const DEBOUNCE_DELAY = 400;
@@ -26,16 +28,33 @@ function useDebounced(value, delay) {
   return debounced;
 }
 
+// ─── Micro-Components ────────────────────────────────────────────────────────
+const SkeletonCard = () => (
+  <div className={styles.skeletonCard}>
+    <div className={styles.skeletonImg}></div>
+    <div className={styles.skeletonText} style={{ width: '80%' }}></div>
+    <div className={styles.skeletonText} style={{ width: '60%' }}></div>
+    <div className={styles.skeletonBtn}></div>
+  </div>
+);
+
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function Home() {
-  const [selectedModels, setSelectedModels] = useState([]);
+  const [catalogTree, setCatalogTree] = useState({}); 
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedBrands, setSelectedBrands] = useState([]); // Тепер зберігає "Категорія::Бренд"
   const [selectedConditions, setSelectedConditions] = useState([]);
-  const [priceRange, setPriceRange] = useState([PRICE_MIN_DEFAULT, PRICE_MAX_DEFAULT]);
+  const [expandedCategories, setExpandedCategories] = useState(['Консолі']); 
+  
+  const [priceBounds, setPriceBounds] = useState([0, 40000]); 
+  const [priceRange, setPriceRange] = useState([0, 40000]); 
+  
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  const [viewMode, setViewMode] = useState('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [currentPage, setCurrentPage] = useState(1);
@@ -50,9 +69,7 @@ export default function Home() {
 
   useEffect(() => {
       const orderRef = searchParams.get('orderReference');
-      if (orderRef) {
-          navigate(`/success?orderId=${orderRef}`);
-      }
+      if (orderRef) navigate(`/success?orderId=${orderRef}`);
   }, [searchParams, navigate]);
 
   useEffect(() => {
@@ -60,7 +77,37 @@ export default function Home() {
     return () => { document.body.style.overflow = ''; };
   }, [isMobileFilterOpen]);
 
-  // ── Fetch products ─────────────────────────────────────────────────────────
+  // 1. Fetch Bounds & Build Catalog
+  useEffect(() => {
+    fetch(`${API_BASE}/meta`)
+      .then(res => res.json())
+      .then(data => {
+        const min = data.minPrice || 0;
+        const max = data.maxPrice || 40000;
+        setPriceBounds([min, max]);
+        setPriceRange([min, max]);
+      })
+      .catch(err => console.error("Помилка завантаження меж цін:", err));
+
+    fetch(`${API_BASE}`)
+      .then(res => res.json())
+      .then(data => {
+        const tree = {};
+        data.forEach(p => {
+          const cat = p.category || 'Інше';
+          const brand = p.brand || 'Інше';
+          if (!tree[cat]) tree[cat] = [];
+          if (!tree[cat].includes(brand)) tree[cat].push(brand);
+        });
+        setCatalogTree(tree);
+        if (Object.keys(tree).length > 0 && !expandedCategories.length) {
+          setExpandedCategories([Object.keys(tree)[0]]);
+        }
+      })
+      .catch(err => console.error("Помилка побудови каталогу:", err));
+  }, []);
+
+  // 2. Fetch Products
   useEffect(() => {
     const controller = new AbortController();
 
@@ -71,7 +118,18 @@ export default function Home() {
           minPrice: debouncedPriceRange[0],
           maxPrice: debouncedPriceRange[1],
         });
-        if (selectedModels.length)     params.set('models', selectedModels.join(','));
+        
+        // Розділяємо композитні ключі назад на категорії та бренди для бекенду
+        const cats = new Set(selectedCategories);
+        const brs = new Set();
+        selectedBrands.forEach(b => {
+          const [c, br] = b.split('::');
+          cats.add(c);
+          brs.add(br);
+        });
+
+        if (cats.size) params.set('categories', Array.from(cats).join(','));
+        if (brs.size) params.set('brands', Array.from(brs).join(','));
         if (selectedConditions.length) params.set('conditions', selectedConditions.join(','));
 
         const res = await fetch(`${API_BASE}?${params}`, { signal: controller.signal });
@@ -82,22 +140,38 @@ export default function Home() {
       } catch (err) {
         if (err.name !== 'AbortError') setError(err.message);
       } finally {
-        setLoading(false);
+        setTimeout(() => setLoading(false), 400); 
       }
     };
 
     fetchProducts();
     return () => controller.abort(); 
-  }, [selectedModels, selectedConditions, debouncedPriceRange]);
+  }, [selectedCategories, selectedBrands, selectedConditions, debouncedPriceRange]);
 
-  // ── Client-side search & sorting filter ─────────────────────────────────────
+  // 3. Exact Client-Side Filtering & Sorting
   const visibleProducts = useMemo(() => {
     let filtered = products;
+
+    // ТОЧНЕ ФІЛЬТРУВАННЯ: Товар має відповідати або вибраній категорії, або зв'язці "Категорія+Бренд"
+    if (selectedCategories.length > 0 || selectedBrands.length > 0) {
+      filtered = filtered.filter(p => {
+        const catMatch = selectedCategories.includes(p.category);
+        const brandMatch = selectedBrands.includes(`${p.category}::${p.brand}`);
+        return catMatch || brandMatch;
+      });
+    }
+
+    if (selectedConditions.length > 0) {
+      filtered = filtered.filter(p => selectedConditions.includes(p.condition));
+    }
+
     if (debouncedSearch.trim()) {
       const q = debouncedSearch.toLowerCase();
-      filtered = products.filter(
+      filtered = filtered.filter(
         (p) => p.title.toLowerCase().includes(q) || 
-        p.model.toLowerCase().includes(q) ||
+        (p.model && p.model.toLowerCase().includes(q)) ||
+        (p.category && p.category.toLowerCase().includes(q)) ||
+        (p.brand && p.brand.toLowerCase().includes(q)) ||
         (p.searchTags && p.searchTags.toLowerCase().includes(q)) ||
         (p.description && p.description.toLowerCase().includes(q))
       );
@@ -114,22 +188,14 @@ export default function Home() {
       }
       return 0;
     });
-  }, [products, debouncedSearch, sortBy]);
+  }, [products, debouncedSearch, sortBy, selectedCategories, selectedBrands, selectedConditions]);
 
-  // ── Логіка Пагінації та Анімацій ────────────────────────────────────────────
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [debouncedSearch, sortBy, selectedModels, selectedConditions, debouncedPriceRange]);
-
-  useEffect(() => {
-    setAnimationKey(prev => prev + 1);
-  }, [debouncedSearch, sortBy, selectedModels, selectedConditions, debouncedPriceRange, currentPage]);
+  // Pagination logic
+  useEffect(() => { setCurrentPage(1); }, [debouncedSearch, sortBy, selectedCategories, selectedBrands, selectedConditions, debouncedPriceRange]);
+  useEffect(() => { setAnimationKey(prev => prev + 1); }, [debouncedSearch, sortBy, selectedCategories, selectedBrands, selectedConditions, debouncedPriceRange, currentPage, viewMode]);
 
   const totalPages = Math.ceil(visibleProducts.length / ITEMS_PER_PAGE);
-  const paginatedProducts = visibleProducts.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+  const paginatedProducts = visibleProducts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   const handlePageChange = (page) => {
     if (page < 1 || page > totalPages || page === currentPage) return;
@@ -147,20 +213,11 @@ export default function Home() {
   const getPageElements = () => {
     const pages = [];
     let lastAdded = 0;
-    
     for (let i = 1; i <= totalPages; i++) {
       if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
-        if (lastAdded + 1 !== i) {
-          pages.push(<span key={`dots-${i}`} className={styles.dots}>...</span>);
-        }
+        if (lastAdded + 1 !== i) pages.push(<span key={`dots-${i}`} className={styles.dots}>...</span>);
         pages.push(
-          <button
-            key={i}
-            type="button"
-            className={`${styles.pageBtn} ${currentPage === i ? styles.activePage : ''}`}
-            onClick={() => handlePageChange(i)}
-            aria-current={currentPage === i ? "page" : undefined}
-          >
+          <button key={i} type="button" className={`${styles.pageBtn} ${currentPage === i ? styles.activePage : ''}`} onClick={() => handlePageChange(i)} aria-current={currentPage === i ? "page" : undefined}>
             {i}
           </button>
         );
@@ -171,34 +228,41 @@ export default function Home() {
   };
 
   const toggleItem = useCallback((setState) => (value) => {
-    setState((prev) =>
-      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
-    );
+    setState((prev) => prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]);
   }, []);
+
+  const toggleCategoryExpand = (cat) => {
+    setExpandedCategories(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]);
+  };
 
   const clearAllFilters = useCallback(() => {
-    setSelectedModels([]);
+    setSelectedCategories([]);
+    setSelectedBrands([]);
     setSelectedConditions([]);
-    setPriceRange([PRICE_MIN_DEFAULT, PRICE_MAX_DEFAULT]);
+    setPriceRange([...priceBounds]);
     setSearchQuery('');
-  }, []);
+  }, [priceBounds]);
 
-  const activeFilterCount =
-    selectedModels.length +
-    selectedConditions.length +
-    (priceRange[0] !== PRICE_MIN_DEFAULT || priceRange[1] !== PRICE_MAX_DEFAULT ? 1 : 0);
+  const applyQuickFilter = (type) => {
+    clearAllFilters();
+    if (type === 'ps5') {
+      setSelectedBrands(['Консолі::Sony']);
+      setSearchQuery('PS5');
+    }
+    if (type === 'budget') setPriceRange([priceBounds[0], 10000]);
+  };
 
+  const activeFilterCount = selectedCategories.length + selectedBrands.length + selectedConditions.length + (priceRange[0] > priceBounds[0] || priceRange[1] < priceBounds[1] ? 1 : 0);
   const hasActiveFilters = activeFilterCount > 0 || searchQuery.trim().length > 0;
 
   return (
     <div className={styles.homeLayout}>
-      {isMobileFilterOpen && (
-        <div
-          className={styles.mobileFilterOverlay}
-          onClick={() => setIsMobileFilterOpen(false)}
-          aria-hidden="true"
-        />
-      )}
+      <Helmet>
+        <title>Каталог консолей | FATALITY</title>
+        <meta name="description" content="Купити, обміняти або відремонтувати ігрові консолі PlayStation у магазині FATALITY." />
+      </Helmet>
+
+      {isMobileFilterOpen && <div className={styles.mobileFilterOverlay} onClick={() => setIsMobileFilterOpen(false)} aria-hidden="true" />}
 
       {/* ── Filter sidebar ──────────────────────────────────────────────────── */}
       <aside className={`${styles.filterContainer} ${isMobileFilterOpen ? styles.open : ''}`} aria-label="Панель фільтрів">
@@ -207,27 +271,33 @@ export default function Home() {
             <CiFilter className={styles.filterIcon} aria-hidden="true" />
             <p className={styles.filterName}>Фільтри</p>
           </section>
-          <button type="button" className={styles.closeFilterBtn} onClick={() => setIsMobileFilterOpen(false)}>
-            <FaTimes />
-          </button>
+          <button type="button" className={styles.closeFilterBtn} onClick={() => setIsMobileFilterOpen(false)}><FaTimes /></button>
         </div>
 
         {hasActiveFilters && (
           <div className={styles.activeFilters}>
-            {selectedModels.map((m) => (
-              <span key={m} className={styles.chip}>
-                {m} <button type="button" onClick={() => toggleItem(setSelectedModels)(m)}><FaTimes /></button>
+            {selectedCategories.map((c) => (
+              <span key={`cat-${c}`} className={styles.chip}>
+                {c} <button type="button" onClick={() => toggleItem(setSelectedCategories)(c)}><FaTimes /></button>
               </span>
             ))}
+            {selectedBrands.map((b) => {
+              const [cat, brand] = b.split('::');
+              return (
+                <span key={`brand-${b}`} className={styles.chip}>
+                  {cat}: {brand} <button type="button" onClick={() => toggleItem(setSelectedBrands)(b)}><FaTimes /></button>
+                </span>
+              );
+            })}
             {selectedConditions.map((c) => (
-              <span key={c} className={styles.chip}>
+              <span key={`cond-${c}`} className={styles.chip}>
                 {c} <button type="button" onClick={() => toggleItem(setSelectedConditions)(c)}><FaTimes /></button>
               </span>
             ))}
-            {(priceRange[0] !== PRICE_MIN_DEFAULT || priceRange[1] !== PRICE_MAX_DEFAULT) && (
+            {(priceRange[0] > priceBounds[0] || priceRange[1] < priceBounds[1]) && (
               <span className={styles.chip}>
                 {priceRange[0]} – {priceRange[1]} грн
-                <button type="button" onClick={() => setPriceRange([PRICE_MIN_DEFAULT, PRICE_MAX_DEFAULT])}><FaTimes /></button>
+                <button type="button" onClick={() => setPriceRange([...priceBounds])}><FaTimes /></button>
               </span>
             )}
             <button type="button" className={styles.clearAll} onClick={clearAllFilters}>Скинути все</button>
@@ -235,13 +305,42 @@ export default function Home() {
         )}
 
         <section className={styles.filterSection}>
-          <h3 className={styles.sectionTitle}>Модель</h3>
-          {MODELS.map((model) => (
-            <label key={model} className={styles.checkboxLabel}>
-              <input type="checkbox" checked={selectedModels.includes(model)} onChange={() => toggleItem(setSelectedModels)(model)} />
-              {model}
-            </label>
-          ))}
+          <h3 className={styles.sectionTitle}>Каталог</h3>
+          <div className={styles.catalogTree}>
+            {Object.keys(catalogTree).map((category) => (
+              <div key={category} className={styles.catalogNode}>
+                <div className={styles.catalogNodeHeader}>
+                  <label className={styles.checkboxLabel} style={{ marginBottom: 0 }}>
+                    <input type="checkbox" checked={selectedCategories.includes(category)} onChange={() => toggleItem(setSelectedCategories)(category)} />
+                    <span className={styles.customCheck}></span>
+                    <span className={styles.categoryName}>{category}</span>
+                  </label>
+                  
+                  {catalogTree[category].length > 0 && (
+                    <button type="button" className={`${styles.expandBtn} ${expandedCategories.includes(category) ? styles.expanded : ''}`} onClick={() => toggleCategoryExpand(category)}>
+                      <FaChevronDown />
+                    </button>
+                  )}
+                </div>
+                
+                {catalogTree[category].length > 0 && (
+                  <div className={`${styles.catalogSubItems} ${expandedCategories.includes(category) ? styles.subItemsOpen : ''}`}>
+                    {catalogTree[category].map(brand => {
+                      const compKey = `${category}::${brand}`;
+                      return (
+                        <label key={compKey} className={styles.checkboxLabel}>
+                          <input type="checkbox" checked={selectedBrands.includes(compKey)} onChange={() => toggleItem(setSelectedBrands)(compKey)} />
+                          <span className={styles.customCheck}></span>
+                          {brand}
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ))}
+            {Object.keys(catalogTree).length === 0 && <p style={{color: '#888', fontSize: '13px'}}>Каталог формується...</p>}
+          </div>
         </section>
 
         <section className={styles.filterSection}>
@@ -249,6 +348,7 @@ export default function Home() {
           {CONDITIONS.map((condition) => (
             <label key={condition} className={styles.checkboxLabel}>
               <input type="checkbox" checked={selectedConditions.includes(condition)} onChange={() => toggleItem(setSelectedConditions)(condition)} />
+              <span className={styles.customCheck}></span>
               {condition}
             </label>
           ))}
@@ -257,12 +357,12 @@ export default function Home() {
         <section className={styles.filterSection}>
           <h3 className={styles.sectionTitle}>Ціна (грн)</h3>
           <div className={styles.priceInputsGroup}>
-            <input type="number" placeholder="Min" className={styles.priceInput} value={priceRange[0]} onChange={(e) => setPriceRange([Math.min(Number(e.target.value), priceRange[1]), priceRange[1]])} />
+            <input type="number" placeholder="Min" className={styles.priceInput} value={priceRange[0]} onChange={(e) => setPriceRange([Math.max(priceBounds[0], Math.min(Number(e.target.value), priceRange[1])), priceRange[1]])} />
             <span className={styles.priceDivider}>–</span>
-            <input type="number" placeholder="Max" className={styles.priceInput} value={priceRange[1]} onChange={(e) => setPriceRange([priceRange[0], Math.max(Number(e.target.value), priceRange[0])])} />
+            <input type="number" placeholder="Max" className={styles.priceInput} value={priceRange[1]} onChange={(e) => setPriceRange([priceRange[0], Math.min(priceBounds[1], Math.max(Number(e.target.value), priceRange[0]))])} />
           </div>
           <div className={styles.sliderWrapper}>
-            <ReactSlider className={styles.dualSlider} thumbClassName={styles.thumb} trackClassName="track" value={priceRange} min={PRICE_MIN_DEFAULT} max={PRICE_MAX_DEFAULT} onChange={setPriceRange} />
+            <ReactSlider className={styles.dualSlider} thumbClassName={styles.thumb} trackClassName="track" value={priceRange} min={priceBounds[0]} max={priceBounds[1]} onChange={setPriceRange} />
           </div>
         </section>
       </aside>
@@ -270,9 +370,14 @@ export default function Home() {
       {/* ── Products area ───────────────────────────────────────────────────── */}
       <section className={styles.productsArea} ref={productsTopRef}>
         
-        <div className={styles.nativeLocationHint}>
-          <FaMapMarkerAlt className={styles.nativeLocIcon} />
-          <span>Працюємо офлайн: м. Дніпро. Завітайте на безкоштовний тест-драйв перед покупкою!</span>
+        <div className={styles.promoBanner}>
+          <div className={styles.promoContent}>
+            <span className={styles.promoBadge}><FaFire /> Гаряча пропозиція</span>
+            <h2>ОНОВИ СВІЙ ГЕЙМІНГ</h2>
+            <p>Принось стару консоль — забирай нову PS5 зі знижкою до 60%</p>
+            <Link to="/trade-in" className={styles.promoBtn}>ОЦІНИТИ В TRADE-IN</Link>
+          </div>
+          <div className={styles.promoGraphic}></div>
         </div>
 
         <div className={styles.actionCardsContainer}>
@@ -287,7 +392,7 @@ export default function Home() {
             <div className={styles.actionIconWrapper}><FaExchangeAlt /></div>
             <div className={styles.actionText}>
               <h3>Трейд-ін</h3>
-              <p>Обміняй стару консоль на нову</p>
+              <p>Обміняй стару консоль</p>
             </div>
           </Link>
           <Link to="/buyout" className={styles.actionCard}>
@@ -301,15 +406,22 @@ export default function Home() {
 
         <div className={styles.productsAreaHeader}>
           <div className={styles.titleGroup}>
-            <h2 className={styles.productsTitle}>Товари та послуги</h2>
-            {!loading && (
-              <span className={styles.productCount}>
-                {visibleProducts.length} товар{visibleProducts.length === 1 ? '' : 'ів'}
-              </span>
-            )}
+            <h2 className={styles.productsTitle}>Каталог</h2>
+            {!loading && <span className={styles.productCount}>{visibleProducts.length} товар{visibleProducts.length === 1 ? '' : 'ів'}</span>}
           </div>
 
           <div className={styles.headerActions}>
+            <div className={styles.quickFilters}>
+              <button onClick={() => applyQuickFilter('all')} className={styles.quickFilterBtn}>Всі</button>
+              <button onClick={() => applyQuickFilter('ps5')} className={`${styles.quickFilterBtn} ${styles.highlightBtn}`}><FaGamepad/> PS5</button>
+              <button onClick={() => applyQuickFilter('budget')} className={styles.quickFilterBtn}>До 10,000₴</button>
+            </div>
+
+            <div className={styles.viewToggles}>
+              <button onClick={() => setViewMode('grid')} className={viewMode === 'grid' ? styles.activeView : ''} aria-label="Вигляд сіткою"><FaThLarge/></button>
+              <button onClick={() => setViewMode('list')} className={viewMode === 'list' ? styles.activeView : ''} aria-label="Вигляд списком"><FaList/></button>
+            </div>
+
             <div className={styles.sortWrapper}>
               <select className={styles.sortSelect} value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
                 <option value="newest">Спочатку нові</option>
@@ -320,10 +432,8 @@ export default function Home() {
 
             <div className={styles.searchWrapper}>
               <FaSearch className={styles.searchIcon} aria-hidden="true" />
-              <input type="search" placeholder="Пошук консолі..." className={styles.searchInput} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-              {searchQuery && (
-                <button type="button" className={styles.searchClear} onClick={() => setSearchQuery('')}><FaTimes /></button>
-              )}
+              <input type="search" placeholder="Пошук..." className={styles.searchInput} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+              {searchQuery && <button type="button" className={styles.searchClear} onClick={() => setSearchQuery('')}><FaTimes /></button>}
             </div>
 
             <button type="button" className={styles.mobileFilterToggle} onClick={() => setIsMobileFilterOpen(true)}>
@@ -332,29 +442,34 @@ export default function Home() {
           </div>
         </div>
 
-        {loading && products.length === 0 && (
-          <div className={styles.statusMessage}>
-            <span className={styles.spinner} aria-hidden="true" />
-            Завантаження товарів...
+        <div className={styles.nativeLocationHint}>
+          <FaMapMarkerAlt className={styles.nativeLocIcon} />
+          <span>Працюємо офлайн у м. Дніпро. Завітайте на безкоштовний тест-драйв перед покупкою!</span>
+        </div>
+
+        {loading && (
+          <div className={viewMode === 'grid' ? styles.productsGrid : styles.productsList}>
+            {[...Array(6)].map((_, i) => <SkeletonCard key={`skel-${i}`} />)}
           </div>
         )}
 
-        {error && <div className={styles.errorMessage}>⚠ {error}</div>}
+        {error && <div className={styles.errorMessage}><FaTimes className={styles.errorIcon}/> Ой, виникла проблема: {error}</div>}
 
         {!loading && !error && visibleProducts.length === 0 && (
           <div className={styles.emptyState}>
-            <p className={styles.emptyStateTitle}>Нічого не знайдено</p>
+            <div className={styles.emptyIconGhost}>👻</div>
+            <p className={styles.emptyStateTitle}>Тут порожньо</p>
             <p className={styles.emptyStateText}>Спробуйте змінити фільтри або пошуковий запит.</p>
             {hasActiveFilters && <button type="button" className={styles.emptyStateClear} onClick={clearAllFilters}>Скинути фільтри</button>}
           </div>
         )}
 
-        {!error && visibleProducts.length > 0 && (
+        {!loading && !error && visibleProducts.length > 0 && (
           <>
-            <div className={`${styles.productsGrid} ${loading ? styles.loadingGrid : ''}`}>
+            <div className={viewMode === 'grid' ? styles.productsGrid : styles.productsList}>
               {paginatedProducts.map((item, index) => (
-                <div key={`${item._id}-${animationKey}`} className={styles.animatedCard} style={{ animationDelay: `${Math.min(index * 0.05, 0.5)}s` }}>
-                  <ProductCard id={item._id} title={item.title} model={item.model} condition={item.condition} price={item.price} imageUrl={item.imageUrl} imageUrls={item.imageUrls} rating={item.rating} />
+                <div key={`${item._id}-${animationKey}`} className={`${styles.animatedCard} ${viewMode === 'list' ? styles.listCardWrapper : ''}`} style={{ animationDelay: `${Math.min(index * 0.03, 0.3)}s` }}>
+                  <ProductCard id={item._id} title={item.title} model={item.model} condition={item.condition} price={item.price} imageUrl={item.imageUrl} imageUrls={item.imageUrls} rating={item.rating} layoutMode={viewMode} />
                 </div>
               ))}
             </div>

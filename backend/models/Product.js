@@ -10,6 +10,9 @@ const reviewSchema = new mongoose.Schema({
 
 const productSchema = new mongoose.Schema({
     title: { type: String, required: true },
+    category: { type: String, required: true, default: 'Консолі' }, 
+    brand: { type: String, default: 'Sony' },
+    
     model: { type: String, required: true },
     price: { type: Number, required: true },
     condition: { type: String, required: true },

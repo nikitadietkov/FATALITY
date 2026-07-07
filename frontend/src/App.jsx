@@ -5,19 +5,19 @@ import { useState, useEffect, useCallback } from 'react';
 import { Toaster } from 'react-hot-toast';
 import './index.css';
 
-import AdminLogin from './pages/AdminLogin';
-import Product from './pages/Product';
-import Success from './pages/Success';
-import About from './pages/About';
-import Admin from './pages/Admin';
 import Home from './pages/Home';
 import Cart from './pages/Cart';
-import Gamepass from './pages/Gamepass';
-import TrackOrder from './pages/TrackOrder';
-import NotFound from './pages/NotFound';
+import About from './pages/About';
+import Admin from './pages/Admin';
+import Buyout from './pages/Buyout';
 import Service from './pages/Service';
 import TradeIn from './pages/TradeIn';
-import Buyout from './pages/Buyout';
+import Product from './pages/Product';
+import Success from './pages/Success';
+import Gamepass from './pages/Gamepass';
+import NotFound from './pages/NotFound';
+import TrackOrder from './pages/TrackOrder';
+import AdminLogin from './pages/AdminLogin';
 import { CartProvider } from './context/CartContext.jsx';
 
 const ProtectedRoute = ({ children }) => {
@@ -118,19 +118,19 @@ function AppContent() {
 
       <main className={`main-content ${location.pathname === '/about' ? 'no-padding' : ''}`}>
         <Routes>
-          <Route path="/product/:id" element={<Product />} /> 
-          <Route path="/about" element={<About />} />
-          <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/" element={<Home />} />
-          <Route path="/track-order" element={<TrackOrder />} />
           <Route path="*" element={<NotFound />} />
-          <Route path="/success" element={<Success />} />
-          <Route path="/gamepass" element={<Gamepass />} />
-          <Route path="/service" element={<Service />} />
-          <Route path="/trade-in" element={<TradeIn />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/about" element={<About />} />
           <Route path="/buyout" element={<Buyout />} />
+          <Route path="/service" element={<Service />} />
+          <Route path="/success" element={<Success />} />
+          <Route path="/trade-in" element={<TradeIn />} />
+          <Route path="/gamepass" element={<Gamepass />} />
+          <Route path="/product/:id" element={<Product />} /> 
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/track-order" element={<TrackOrder />} />
+          <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
         </Routes>
       </main>
 

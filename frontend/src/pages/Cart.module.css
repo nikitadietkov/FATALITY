@@ -1,12 +1,28 @@
 /* =========================================
-   CART PAGE (DARK THEME)
+   CART PAGE (DARK / CYBER THEME)
    ========================================= */
 
 .cartPage {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 15px;
+  padding: 40px 15px;
   color: #ffffff;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- HEADER --- */
+.pageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 35px;
+  border-bottom: 1px solid #222222;
+  padding-bottom: 15px;
 }
 
 .pageTitle {
@@ -14,29 +30,45 @@
   font-size: 32px;
   font-weight: 400;
   color: #ffffff;
-  margin-bottom: 30px;
+  margin: 0;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
+.itemsCountBadge {
+  background: rgba(231, 0, 11, 0.1);
+  color: #E7000B;
+  border: 1px solid rgba(231, 0, 11, 0.3);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* --- LAYOUT GRID --- */
 .cartContent {
   display: grid;
-  grid-template-columns: 1fr 380px;
-  gap: 30px;
+  grid-template-columns: 1fr 400px;
+  gap: 40px;
   align-items: flex-start;
 }
 
-@media (max-width: 992px) {
-  .cartContent {
-    grid-template-columns: 1fr;
-  }
+.itemsSection {
+  display: flex;
+  flex-direction: column;
 }
 
-/* --- Списки товарів --- */
+.summarySection {
+  position: sticky;
+  top: 24px;
+}
+
+/* --- CART ITEMS LIST --- */
 .itemsList {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 16px;
 }
 
 .cartItem {
@@ -45,13 +77,15 @@
   background-color: #111111;
   padding: 20px;
   border-radius: 12px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   border: 1px solid #222222;
-  transition: border-color 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .cartItem:hover {
-  border-color: #333333;
+  border-color: #444444;
+  transform: translateX(4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 
 .imageWrapper {
@@ -61,10 +95,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #0a0a0a;
+  background-color: #050505;
   border-radius: 8px;
-  padding: 5px;
+  padding: 8px;
   box-sizing: border-box;
+  border: 1px solid #1a1a1a;
 }
 
 .imageWrapper img {
@@ -75,7 +110,7 @@
 }
 
 .imageWrapper:hover img {
-  transform: scale(1.05);
+  transform: scale(1.1);
 }
 
 .itemInfo {
@@ -83,23 +118,28 @@
   padding: 0 25px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  min-width: 0; /* Prevents text overflow */
 }
 
 .itemTitleLink {
   text-decoration: none;
   color: #ffffff;
+  outline: none;
 }
 
 .itemTitle {
   font-size: 18px;
   font-weight: 700;
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   transition: color 0.2s;
 }
 
 .itemTitleLink:hover .itemTitle {
-  color: #ff0000;
+  color: #E7000B;
 }
 
 .itemModel {
@@ -109,109 +149,139 @@
 
 .itemCondition {
   font-size: 12px;
-  color: #ff0000;
-  background: rgba(255, 0, 0, 0.1);
-  padding: 2px 8px;
+  color: #ffaa00;
+  background: rgba(255, 170, 0, 0.1);
+  padding: 3px 8px;
   border-radius: 4px;
   align-self: flex-start;
-  margin-top: 4px;
+  margin-top: 2px;
+  font-weight: 600;
 }
 
-/* --- Кнопки кількості --- */
+/* --- QUANTITY CONTROLS --- */
 .quantityControls {
   display: flex;
   align-items: center;
   gap: 12px;
-  background-color: #1a1a1a;
-  padding: 6px 12px;
+  background-color: #161616;
+  padding: 8px 12px;
   border-radius: 8px;
-  margin-right: 30px;
+  margin-right: 20px;
   border: 1px solid #333333;
 }
 
 .quantityBtn {
   background: none;
   border: none;
-  color: #cccccc;
+  color: #aaaaaa;
   font-size: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: color 0.2s, transform 0.1s;
+  transition: all 0.2s;
   padding: 4px;
 }
 
 .quantityBtn:hover:not(:disabled) {
-  color: #ff0000;
-  transform: scale(1.1);
+  color: #ffffff;
+  transform: scale(1.2);
 }
 
 .quantityBtn:disabled {
-  color: #444444;
+  color: #333333;
   cursor: not-allowed;
 }
 
 .quantityValue {
-  font-weight: 700;
+  font-weight: 800;
   font-size: 16px;
-  min-width: 20px;
+  min-width: 24px;
   text-align: center;
   color: #ffffff;
 }
 
-/* --- Ціна і видалення --- */
+/* --- ITEM ACTIONS & PRICE --- */
 .itemSubtotal {
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 800;
   color: #ffffff;
-  min-width: 100px;
+  min-width: 110px;
   text-align: right;
-  margin-right: 25px;
+  margin-right: 20px;
+  letter-spacing: 0.5px;
 }
 
 .deleteBtn {
-  background: none;
-  border: none;
-  color: #666666;
-  font-size: 18px;
+  background: rgba(255, 68, 68, 0.05);
+  border: 1px solid rgba(255, 68, 68, 0.1);
+  color: #ff4444;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
   cursor: pointer;
-  transition: color 0.2s, transform 0.2s;
-  padding: 8px;
+  transition: all 0.2s;
+  flex-shrink: 0;
 }
 
 .deleteBtn:hover {
-  color: #ff0000;
-  transform: scale(1.1);
+  background: #ff4444;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(255, 68, 68, 0.3);
+}
+
+/* --- CART FOOTER ACTIONS --- */
+.cartActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px solid #222222;
+}
+
+.continueShopping {
+  color: #888888;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 15px;
+  transition: color 0.2s;
+}
+
+.continueShopping:hover {
+  color: #ffffff;
 }
 
 .clearCartBtn {
-  align-self: flex-start;
-  background: none;
-  border: none;
-  color: #888888;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #333333;
+  color: #aaaaaa;
   font-size: 14px;
-  text-decoration: underline;
+  font-weight: 600;
   cursor: pointer;
-  margin-top: 10px;
-  transition: color 0.2s;
-  padding: 5px 0;
+  padding: 10px 20px;
+  border-radius: 8px;
+  transition: all 0.2s;
 }
 
 .clearCartBtn:hover {
-  color: #ff0000;
+  background: rgba(255, 68, 68, 0.1);
+  color: #ff4444;
+  border-color: rgba(255, 68, 68, 0.3);
 }
 
-/* --- ПІДСУМОК (SUMMARY CARD) --- */
+/* --- SUMMARY CARD --- */
 .summaryCard {
   background-color: #111111;
   color: #ffffff;
   padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
   border: 1px solid #222222;
-  position: sticky;
-  top: 20px;
 }
 
 .summaryTitle {
@@ -219,15 +289,14 @@
   font-size: 20px;
   font-weight: 400;
   text-transform: uppercase;
-  margin-bottom: 25px;
-  letter-spacing: 0.5px;
+  margin: 0 0 25px 0;
   color: #ffffff;
 }
 
 .summaryDetails {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 16px;
 }
 
 .summaryRow {
@@ -235,17 +304,86 @@
   justify-content: space-between;
   font-size: 15px;
   color: #aaaaaa;
+  font-weight: 500;
 }
 
 .freeShipping {
-  color: #00a859;
-  font-weight: 600;
+  color: #aaaaaa;
 }
 
+.discountRow {
+  color: #00a859;
+}
+.discountRow span {
+  color: #00a859;
+  font-weight: 700;
+}
+
+/* --- PROMO CODE --- */
+.promoCodeWrapper {
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px dashed #333333;
+}
+
+.promoInputGroup {
+  display: flex;
+  align-items: center;
+  background: #161616;
+  border: 1px solid #333333;
+  border-radius: 8px;
+  overflow: hidden;
+  padding-left: 15px;
+  height: 48px;
+  transition: border-color 0.3s;
+}
+
+.promoInputGroup:focus-within {
+  border-color: #E7000B;
+}
+
+.promoIcon {
+  color: #666666;
+  font-size: 14px;
+}
+
+.promoInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  padding: 0 12px;
+  height: 100%;
+  outline: none;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.promoInput::placeholder {
+  color: #555555;
+}
+
+.applyPromoBtn {
+  background: #222222;
+  color: #ffffff;
+  border: none;
+  padding: 0 20px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  height: 100%;
+  transition: all 0.2s;
+}
+
+.applyPromoBtn:hover {
+  background: #E7000B;
+}
+
+/* --- TOTAL & CHECKOUT BUTTON --- */
 .divider {
   border: none;
   border-top: 1px solid #333333;
-  margin: 20px 0;
+  margin: 25px 0;
 }
 
 .totalRow {
@@ -255,52 +393,70 @@
   margin-bottom: 30px;
 }
 
-.totalRow span {
-  font-size: 18px;
+.totalRow span:first-child {
+  font-size: 16px;
   font-weight: 600;
+  color: #cccccc;
 }
 
 .totalPrice {
   font-size: 28px;
   font-weight: 900;
-  color: #ff0000;
+  color: #ffffff;
+  letter-spacing: 0.5px;
 }
 
-/* --- Кнопки та Форма Checkout --- */
 .checkoutBtn {
   width: 100%;
-  background-color: #ff0000;
+  background-color: #E7000B;
   color: #ffffff;
-  padding: 16px;
+  padding: 18px;
   border: none;
   border-radius: 8px;
   font-size: 16px;
-  font-weight: 700;
+  font-family: 'Russo One', sans-serif;
+  font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 1px;
   cursor: pointer;
-  transition: background-color 0.2s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+
+.checkoutArrow {
+  margin-left: 10px;
+  transition: transform 0.3s;
 }
 
 .checkoutBtn:hover {
   background-color: #cc0000;
-  box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+  box-shadow: 0 8px 25px rgba(231, 0, 11, 0.4);
 }
 
-.checkoutBtn:active {
-  transform: scale(0.98);
+.checkoutBtn:hover .checkoutArrow {
+  transform: translateX(5px);
+}
+
+/* --- CHECKOUT FORM --- */
+.checkoutWrapper {
+  animation: fadeIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.checkoutSubtitle {
+  font-size: 16px;
+  color: #ffffff;
+  margin: 0 0 16px 0;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .checkoutForm {
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  gap: 16px;
 }
 
 .formGroup {
@@ -311,7 +467,7 @@
 
 .inputField {
   width: 100%;
-  padding: 12px 15px;
+  padding: 14px 16px;
   border-radius: 8px;
   border: 1px solid #333333;
   background-color: #0a0a0a;
@@ -319,96 +475,184 @@
   font-family: inherit;
   font-size: 14px;
   box-sizing: border-box;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: all 0.3s;
 }
 
 .inputField::placeholder {
-  color: #666666;
+  color: #555555;
 }
 
 .inputField:focus {
   outline: none;
-  border-color: #ff0000;
-  box-shadow: 0 0 8px rgba(255, 0, 0, 0.3);
+  border-color: #E7000B;
+  box-shadow: 0 0 0 3px rgba(231, 0, 11, 0.15);
 }
 
 .formActions {
   display: flex;
-  gap: 10px;
-  margin-top: 5px;
+  gap: 12px;
+  margin-top: 10px;
 }
 
 .submitBtn {
-  flex: 1;
+  flex: 2;
   background-color: #00a859;
   color: #ffffff;
   border: none;
-  padding: 14px;
+  padding: 16px;
   border-radius: 8px;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
   font-size: 14px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.3s;
 }
 
 .submitBtn:hover:not(:disabled) {
-  background-color: #008a49;
-  box-shadow: 0 5px 15px rgba(0, 168, 89, 0.3);
+  background-color: #009950;
+  box-shadow: 0 8px 20px rgba(0, 168, 89, 0.3);
+  transform: translateY(-2px);
 }
 
 .submitBtn:disabled {
-  opacity: 0.6;
+  background-color: #333333;
+  color: #888888;
   cursor: not-allowed;
 }
 
 .cancelBtn {
   flex: 1;
-  background-color: transparent;
-  color: #aaaaaa;
-  padding: 14px;
+  background-color: #222222;
+  color: #ffffff;
+  padding: 16px;
   border-radius: 8px;
-  font-weight: 600;
-  border: 1px solid #333333;
+  font-weight: 700;
+  border: none;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .cancelBtn:hover:not(:disabled) {
-  background-color: #1a1a1a;
-  color: #ffffff;
-  border-color: #666666;
+  background-color: #333333;
 }
 
-/* --- EMPTY / SUCCESS STATES --- */
+/* --- MODALS (CONFIRM CLEAR CART) --- */
+.confirmOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.confirmModal {
+  background: #0d0d0d;
+  border: 1px solid #333333;
+  border-radius: 16px;
+  padding: 30px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
+}
+
+.warningIcon {
+  font-size: 44px;
+  color: #ffaa00;
+  margin-bottom: 16px;
+}
+
+.confirmModal h3 {
+  margin: 0 0 12px 0;
+  font-size: 22px;
+  color: #ffffff;
+  font-family: 'Russo One', sans-serif;
+  font-weight: 400;
+}
+
+.confirmModal p {
+  color: #aaaaaa;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 25px;
+}
+
+.confirmActions {
+  display: flex;
+  gap: 12px;
+}
+
+.confirmActions button {
+  flex: 1;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelConfirmBtn {
+  background: #222222;
+  color: #ffffff;
+}
+
+.cancelConfirmBtn:hover {
+  background: #333333;
+}
+
+.proceedConfirmBtn {
+  background: #E7000B;
+  color: #ffffff;
+}
+
+.proceedConfirmBtn:hover {
+  background: #cc0000;
+}
+
+/* --- EMPTY STATE --- */
 .emptyContainer {
   text-align: center;
-  padding: 100px 20px;
+  padding: 80px 20px;
   background-color: #0a0a0a;
   border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  border: 1px solid #222222;
+  border: 1px dashed #333333;
   max-width: 600px;
-  margin: 50px auto;
-  animation: fadeIn 0.5s ease-out;
+  margin: 60px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.emptyIconPulse {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid #222222;
+  margin-bottom: 30px;
+  animation: pulseGlow 3s infinite;
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.05); }
+  50% { box-shadow: 0 0 0 20px rgba(255, 255, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
 }
 
 .emptyIcon {
-  font-size: 70px;
-  color: #333333;
-  margin-bottom: 25px;
-}
-
-.successIconWrapper {
-  display: inline-flex;
-  border-radius: 50%;
-  box-shadow: 0 0 30px rgba(0, 168, 89, 0.2);
-  margin-bottom: 25px;
-}
-
-.successIcon {
-  font-size: 80px;
-  color: #00a859;
+  font-size: 45px;
+  color: #444444;
 }
 
 .emptyTitle {
@@ -420,44 +664,49 @@
 }
 
 .emptyText {
-  color: #aaaaaa;
-  margin-bottom: 40px;
-  font-size: 16px;
-  line-height: 1.5;
+  color: #888888;
+  margin-bottom: 35px;
+  font-size: 15px;
+  line-height: 1.6;
 }
 
 .backBtn {
-  display: inline-block;
-  background-color: #ff0000;
+  display: inline-flex;
+  align-items: center;
+  background-color: #E7000B;
   color: #ffffff;
-  padding: 15px 35px;
+  padding: 16px 32px;
   border-radius: 8px;
   font-weight: 700;
   text-decoration: none;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  transition: background-color 0.2s, transform 0.1s;
+  font-family: 'Russo One', sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  transition: all 0.3s;
+}
+
+.btnArrow {
+  margin-left: 10px;
+  transition: transform 0.3s;
 }
 
 .backBtn:hover {
   background-color: #cc0000;
-  box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+  box-shadow: 0 6px 20px rgba(231, 0, 11, 0.4);
 }
 
-.backBtn:active {
-  transform: scale(0.98);
+.backBtn:hover .btnArrow {
+  transform: translateX(5px);
 }
 
-/* =========================================
-   ЕКРАН УСПІШНОГО ЗАМОВЛЕННЯ
-   ========================================= */
+/* --- SUCCESS STATE --- */
 .successContainer {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  min-height: 60vh;
+  min-height: 65vh;
   max-width: 600px;
   margin: 0 auto;
   padding: 40px 20px;
@@ -465,7 +714,7 @@
 }
 
 @keyframes zoomIn {
-  0% { opacity: 0; transform: scale(0.9); }
+  0% { opacity: 0; transform: scale(0.95); }
   100% { opacity: 1; transform: scale(1); }
 }
 
@@ -484,37 +733,42 @@
 
 @keyframes pulseGreen {
   0% { box-shadow: 0 0 0 0 rgba(0, 168, 89, 0.4); }
-  70% { box-shadow: 0 0 0 20px rgba(0, 168, 89, 0); }
+  70% { box-shadow: 0 0 0 25px rgba(0, 168, 89, 0); }
   100% { box-shadow: 0 0 0 0 rgba(0, 168, 89, 0); }
 }
 
 .successIcon {
-  font-size: 50px;
+  font-size: 45px;
   color: #00a859;
 }
 
 .successTitle {
+  font-family: 'Russo One', sans-serif;
   font-size: 32px;
-  font-weight: 900;
+  font-weight: 400;
   color: #ffffff;
   margin-top: 0;
-  margin-bottom: 15px;
-  text-transform: uppercase;
+  margin-bottom: 16px;
   letter-spacing: 1px;
 }
 
 .successText {
   color: #aaaaaa;
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1.6;
-  margin-bottom: 30px;
+  margin-bottom: 35px;
+}
+
+.highlightText {
+  color: #E7000B;
+  font-weight: 600;
 }
 
 .orderIdBox {
   background-color: #111111;
-  border: 1px solid #333333;
+  border: 1px solid #222222;
   border-radius: 12px;
-  padding: 20px 30px;
+  padding: 24px 30px;
   margin-bottom: 40px;
   width: 100%;
   display: flex;
@@ -532,29 +786,29 @@
   top: 0;
   height: 100%;
   width: 4px;
-  background-color: #ff0000;
+  background-color: #00a859;
 }
 
 .orderIdLabel {
   color: #888888;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
 }
 
 .orderIdValue {
   color: #ffffff;
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 900;
   font-family: monospace;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
   word-break: break-all;
 }
 
 .successActions {
   display: flex;
-  gap: 20px;
+  gap: 15px;
   width: 100%;
 }
 
@@ -563,19 +817,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 18px 24px;
+  padding: 16px 20px;
   border-radius: 8px;
   font-weight: 800;
-  font-size: 15px;
+  font-size: 13px;
   text-transform: uppercase;
   text-decoration: none;
-  transition: all 0.3s ease;
+  transition: all 0.3s;
 }
 
 .trackBtn {
-  background-color: #ff0000;
+  background-color: #E7000B;
   color: #ffffff;
-  box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);
+  box-shadow: 0 4px 15px rgba(231, 0, 11, 0.3);
 }
 
 .trackBtn:hover {
@@ -590,28 +844,41 @@
 }
 
 .homeBtn:hover {
-  background-color: #333333;
-  border-color: #555555;
+  background-color: #2a2a2a;
+  border-color: #444444;
   transform: translateY(-2px);
 }
 
 /* =========================================
-   АДАПТИВ (MOBILE GRID)
+   АДАПТИВНІСТЬ (MOBILE GRID)
    ========================================= */
+@media (max-width: 992px) {
+  .cartContent {
+    grid-template-columns: 1fr;
+  }
+  .summarySection {
+    position: static;
+  }
+}
+
 @media (max-width: 768px) {
-  .pageTitle {
-    font-size: 26px;
-    margin-bottom: 20px;
-    text-align: center;
+  .cartPage {
+    padding: 20px 10px;
   }
 
-  .cartContent {
-    gap: 20px;
+  .pageHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .pageTitle {
+    font-size: 26px;
   }
 
   .cartItem {
     display: grid;
-    grid-template-columns: 90px 1fr auto;
+    grid-template-columns: 80px 1fr auto;
     grid-template-areas: 
       "img info delete"
       "img controls subtotal";
@@ -631,14 +898,14 @@
   }
 
   .itemTitle {
-    font-size: 16px;
+    font-size: 15px;
   }
 
   .quantityControls {
     grid-area: controls;
     margin: 0;
-    padding: 6px 10px;
-    max-width: 110px;
+    padding: 6px 8px;
+    max-width: 105px;
     justify-content: space-between;
   }
 
@@ -647,7 +914,7 @@
     margin: 0;
     min-width: unset;
     text-align: right;
-    font-size: 18px;
+    font-size: 16px;
     align-self: center;
   }
 
@@ -655,11 +922,30 @@
     grid-area: delete;
     align-self: flex-start;
     padding: 0;
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .cartActions {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+
+  .continueShopping {
+    text-align: center;
+    background: #161616;
+    padding: 12px;
+    border-radius: 8px;
+  }
+
+  .clearCartBtn {
+    width: 100%;
   }
 
   .summaryCard {
     padding: 20px;
-    position: static;
   }
 
   .summaryTitle {
@@ -672,8 +958,8 @@
   }
 
   .emptyContainer {
-    padding: 60px 15px;
-    margin: 20px;
+    padding: 50px 15px;
+    margin: 20px 0;
   }
   
   .emptyTitle {
@@ -682,6 +968,6 @@
 
   .successActions {
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
   }
 }

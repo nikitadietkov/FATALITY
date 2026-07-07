@@ -1,812 +1,500 @@
-/* ─── Layout ───────────────────────────────────────────────────────────────── */
+/* =========================================
+   1. ГЛОБАЛЬНІ ЗМІННІ ТА ЛЕЙАУТ
+   ========================================= */
 .homeLayout {
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    gap: 40px;
-    align-items: start;
+  --primary: #E7000B;
+  --primary-hover: #cc0000;
+  --bg-main: #050505;
+  --bg-card: #111111;
+  --bg-input: #1a1a1a;
+  --border-light: #222222;
+  --border-hover: #333333;
+  --text-main: #ffffff;
+  --text-muted: #888888;
+  --transition-smooth: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 40px;
+  align-items: start;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
-/* ─── Products area ─────────────────────────────────────────────────────────── */
-.productsArea {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
+/* =========================================
+   2. ПРОМО-БАНЕР (HERO)
+   ========================================= */
+.promoBanner {
+  background: linear-gradient(135deg, #111 0%, #0a0a0a 100%);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  padding: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 30px;
 }
 
-/* ─── Trust Banner ──────────────────────────────────────────────────────────── */
-.nativeLocationHint {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: #888888;
-    font-size: 13px;
-    margin-bottom: 25px;
-    padding: 6px 12px;
-    background-color: rgba(255, 255, 255, 0.03);
-    border-radius: 6px;
-    border: 1px solid #222222;
+.promoBanner::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 4px; height: 100%;
+  background: var(--primary);
+  box-shadow: 0 0 15px var(--primary);
 }
 
-.nativeLocIcon {
-    color: #E7000B;
+.promoContent {
+  position: relative;
+  z-index: 2;
+  max-width: 500px;
 }
 
-/* ─── Action Cards ──────────────────────────────────────────────────────────── */
+.promoBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(231, 0, 11, 0.1);
+  color: var(--primary);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-bottom: 15px;
+  border: 1px solid rgba(231, 0, 11, 0.3);
+}
+
+.promoContent h2 {
+  font-family: 'Russo One', sans-serif;
+  font-size: 32px;
+  font-weight: 400;
+  margin: 0 0 10px 0;
+  color: var(--text-main);
+  text-shadow: 2px 2px 0px rgba(0,0,0,0.5);
+}
+
+.promoContent p {
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 1.5;
+  margin-bottom: 25px;
+}
+
+.promoBtn {
+  display: inline-block;
+  background: var(--primary);
+  color: #fff;
+  text-decoration: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 14px;
+  text-transform: uppercase;
+  transition: var(--transition-smooth);
+}
+
+.promoBtn:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(231, 0, 11, 0.3);
+}
+
+/* =========================================
+   3. КАРТКИ ШВИДКОЇ ДІЇ
+   ========================================= */
 .actionCardsContainer {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 20px;
-    margin-bottom: 40px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin-bottom: 40px;
 }
 
 .actionCard {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    background-color: #111111;
-    border: 1px solid #222222;
-    padding: 20px;
-    border-radius: 12px;
-    text-decoration: none;
-    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-light);
+  padding: 20px;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: var(--transition-smooth);
 }
 
 .actionCard:hover {
-    transform: translateY(-4px);
-    border-color: #E7000B;
-    box-shadow: 0 8px 20px rgba(231, 0, 11, 0.15);
+  transform: translateY(-4px);
+  border-color: var(--primary);
+  box-shadow: 0 8px 20px rgba(231, 0, 11, 0.15);
 }
 
 .actionIconWrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: rgba(231, 0, 11, 0.1);
-    color: #E7000B;
-    width: 45px;
-    height: 45px;
-    border-radius: 10px;
-    font-size: 20px;
-    flex-shrink: 0;
-    transition: background-color 0.3s, color 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(231, 0, 11, 0.1);
+  color: var(--primary);
+  width: 45px;
+  height: 45px;
+  border-radius: 10px;
+  font-size: 20px;
+  flex-shrink: 0;
+  transition: var(--transition-smooth);
 }
 
 .actionCard:hover .actionIconWrapper {
-    background-color: #E7000B;
-    color: #ffffff;
+  background-color: var(--primary);
+  color: #ffffff;
 }
 
 .actionText h3 {
-    margin: 0 0 5px 0;
-    color: #ffffff;
-    font-size: 16px;
-    font-weight: 400;
-    text-transform: uppercase;
-    font-family: 'Russo One', sans-serif;
+  margin: 0 0 5px 0;
+  color: var(--text-main);
+  font-size: 16px;
+  font-family: 'Russo One', sans-serif;
+  font-weight: 400;
+  text-transform: uppercase;
 }
 
-.actionText p {
-    margin: 0;
-    color: #888888;
-    font-size: 13px;
-    line-height: 1.3;
-}
+.actionText p { margin: 0; color: var(--text-muted); font-size: 13px; line-height: 1.3; }
 
+.nativeLocationHint {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-bottom: 25px;
+  padding: 10px 16px;
+  background-color: var(--bg-card);
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+}
+.nativeLocIcon { color: var(--primary); }
+
+/* =========================================
+   4. ПАНЕЛЬ ФІЛЬТРІВ (HEADER)
+   ========================================= */
 .productsAreaHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 25px;
 }
 
-.titleGroup {
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-}
-
-.productsTitle {
-    font-size: 2em;
-    margin: 0;
-    color: #ffffff;
-}
-
-.productCount {
-    font-size: 0.95em;
-    color: #888888;
-    font-family: 'Inter', sans-serif;
-}
+.titleGroup { display: flex; align-items: baseline; gap: 12px; }
+.productsTitle { font-size: 28px; margin: 0; color: var(--text-main); font-family: 'Russo One', sans-serif; font-weight: 400; }
+.productCount { font-size: 14px; color: var(--text-muted); font-weight: 600; }
 
 .headerActions {
-    display: flex;
-    align-items: center;
-    gap: 15px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  background: var(--bg-card);
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
 }
 
-/* ─── Search ────────────────────────────────────────────────────────────────── */
-.searchWrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
+/* Quick Filters */
+.quickFilters { display: flex; gap: 8px; }
+.quickFilterBtn {
+  background: var(--bg-input); border: 1px solid var(--border-hover); color: var(--text-muted);
+  padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; transition: var(--transition-smooth);
+  display: flex; align-items: center; gap: 6px;
 }
+.quickFilterBtn:hover { background: var(--border-hover); color: var(--text-main); }
+.highlightBtn { color: var(--primary); border-color: rgba(231,0,11,0.3); background: rgba(231,0,11,0.05); }
+.highlightBtn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
 
-.searchIcon {
-    position: absolute;
-    left: 12px;
-    color: #888888;
-    font-size: 14px;
-    pointer-events: none;
+/* View Toggles */
+.viewToggles { display: flex; gap: 4px; background: var(--bg-input); padding: 4px; border-radius: 8px; border: 1px solid var(--border-light); }
+.viewToggles button {
+  background: transparent; border: none; color: var(--text-muted); width: 32px; height: 32px;
+  border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition-smooth);
 }
+.viewToggles button.activeView { background: var(--border-hover); color: var(--text-main); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
 
-.searchInput {
-    background: #111111;
-    border: 1px solid #333333;
-    color: #ffffff;
-    padding: 10px 36px 10px 35px;
-    border-radius: 8px;
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.25s ease, box-shadow 0.25s ease, width 0.25s ease;
-    width: 200px;
-    font-family: inherit;
-    -webkit-appearance: none;
-}
-
-.searchInput::-webkit-search-cancel-button {
-    display: none;
-}
-
-.searchInput:focus {
-    border-color: #E7000B;
-    box-shadow: 0 0 10px rgba(231, 0, 11, 0.2);
-    width: 250px;
-}
-
-.searchClear {
-    position: absolute;
-    right: 10px;
-    background: none;
-    border: none;
-    color: #888888;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    padding: 2px;
-    font-size: 12px;
-    transition: color 0.2s;
-}
-
-.searchClear:hover {
-    color: #E7000B;
-}
-
-/* ─── Сортування (Sort Dropdown) ────────────────────────────────────────────── */
-.sortWrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
+/* Sort & Search */
+.sortWrapper { flex-shrink: 0; }
 .sortSelect {
-    background-color: #111111;
-    color: #ffffff;
-    border: 1px solid #333333;
-    padding: 10px 35px 10px 15px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    font-family: inherit;
-    outline: none;
-    cursor: pointer;
-    transition: border-color 0.25s ease, box-shadow 0.25s ease;
-    
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    background-size: 16px;
+  background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border-light);
+  padding: 10px 35px 10px 15px; border-radius: 8px; font-size: 13px; font-weight: 600; outline: none; cursor: pointer;
+  -webkit-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat; background-position: right 10px center; background-size: 16px;
 }
+.sortSelect:focus { border-color: var(--primary); }
 
-.sortSelect:focus {
-    border-color: #E7000B;
-    box-shadow: 0 0 10px rgba(231, 0, 11, 0.15);
+.searchWrapper { position: relative; flex: 1; min-width: 200px; }
+.searchIcon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+.searchInput {
+  width: 100%; background: var(--bg-input); border: 1px solid var(--border-light); color: var(--text-main);
+  padding: 10px 35px 10px 40px; border-radius: 8px; font-size: 14px; outline: none; transition: var(--transition-smooth);
 }
+.searchInput:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(231,0,11,0.15); }
+.searchClear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; }
+.searchClear:hover { color: var(--primary); }
 
-.sortSelect option {
-    background-color: #111111;
-    color: #ffffff;
-}
+/* =========================================
+   5. ВІДОБРАЖЕННЯ ТОВАРІВ (GRID & LIST)
+   ========================================= */
+.productsArea { display: flex; flex-direction: column; width: 100%; min-width: 0; }
 
-/* ─── Mobile filter toggle ──────────────────────────────────────────────────── */
-.mobileFilterToggle {
-    display: none;
-    align-items: center;
-    gap: 8px;
-    background-color: #111111;
-    color: #ffffff;
-    border: 1px solid #333333;
-    padding: 10px 16px;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 14px;
-    cursor: pointer;
-    transition: border-color 0.2s, transform 0.1s;
-    position: relative;
-}
-
-.mobileFilterToggle:active {
-    transform: scale(0.95);
-}
-
-.filterBadge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: #E7000B;
-    color: #fff;
-    border-radius: 50%;
-    width: 18px;
-    height: 18px;
-    font-size: 11px;
-    font-weight: 700;
-    line-height: 1;
-}
-
-/* ─── Products grid ─────────────────────────────────────────────────────────── */
 .productsGrid {
-    display: grid;
-    grid-template-columns: repeat(6, minmax(250px, 1fr));
-    gap: 24px;
-    transition: opacity 0.3s ease;
-    width: 100%;
-    box-sizing: border-box;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
 }
 
-.loadingGrid {
-    opacity: 0.4;
-    pointer-events: none;
-}
-
-/* ─── Status / empty / error ────────────────────────────────────────────────── */
-.statusMessage {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    font-family: 'Inter', sans-serif;
-    font-size: 1.1em;
-    color: #aaaaaa;
-    padding: 60px 0;
-    text-align: center;
-}
-
-.spinner {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    border-top-color: #E7000B;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    flex-shrink: 0;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-.errorMessage {
-    font-family: 'Inter', sans-serif;
-    font-size: 1.1em;
-    color: #E7000B;
-    font-weight: bold;
-    padding: 40px 0;
-    text-align: center;
-}
-
-.emptyState {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 80px 24px;
-    text-align: center;
-    gap: 10px;
-}
-
-.emptyStateTitle {
-    font-family: 'Russo One', sans-serif;
-    font-weight: 400;
-    font-size: 1.3em;
-    color: #ffffff;
-    margin: 0;
-}
-
-.emptyStateText {
-    font-family: 'Inter', sans-serif;
-    font-size: 0.95em;
-    color: #888888;
-    margin: 0;
-}
-
-.emptyStateClear {
-    margin-top: 16px;
-    background: none;
-    border: 1px solid #E7000B;
-    color: #E7000B;
-    padding: 8px 20px;
-    border-radius: 6px;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.9em;
-    cursor: pointer;
-    transition: background 0.2s, color 0.2s;
-}
-
-.emptyStateClear:hover {
-    background: #E7000B;
-    color: #fff;
-}
-
-/* ─── Filter sidebar (ТЕМНА ТЕМА ЗАВЖДИ) ────────────────────────────────────── */
-.filterContainer {
-    min-height: 500px;
-    max-width: 300px;
-    padding: 24px;
-    border-radius: 12px;
-    background-color: #0a0a0a;
-    border: 1px solid #222222;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    color: #ffffff;
-}
-
-.filterHeaderMobile {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-}
-
-.filterTitle {
-    display: flex;
-    align-items: center;
-}
-
-.filterContainer .filterIcon {
-    font-size: 2em;
-    color: #E7000B;
-    margin-right: 8px;
-}
-
-.filterContainer .filterName {
-    font-size: 1.3em;
-    font-family: 'Russo One', sans-serif;
-    font-weight: 400;
-    margin: 0;
-    color: #ffffff;
-}
-
-.closeFilterBtn {
-    display: none;
-    background: none;
-    border: none;
-    color: #888888;
-    font-size: 24px;
-    cursor: pointer;
-    padding: 4px;
-    line-height: 1;
-}
-
-/* ─── Active filter chips ────────────────────────────────────────────────────── */
-.activeFilters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 20px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #222222;
-}
-
-.chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(231, 0, 11, 0.1);
-    border: 1px solid rgba(231, 0, 11, 0.3);
-    color: #E7000B;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.8em;
-    font-weight: 500;
-}
-
-.chip button {
-    background: none;
-    border: none;
-    color: #E7000B;
-    cursor: pointer;
-    padding: 0;
-    line-height: 1;
-    display: flex;
-    align-items: center;
-    font-size: 10px;
-    opacity: 0.7;
-    transition: opacity 0.15s;
-}
-
-.chip button:hover {
-    opacity: 1;
-}
-
-.clearAll {
-    background: none;
-    border: none;
-    color: #888888;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.8em;
-    cursor: pointer;
-    text-decoration: underline;
-    padding: 4px 6px;
-    transition: color 0.2s;
-}
-
-.clearAll:hover {
-    color: #E7000B;
-}
-
-/* ─── Filter sections ────────────────────────────────────────────────────────── */
-.filterSection {
-    margin-bottom: 28px;
-}
-
-.sectionTitle {
-    font-size: 1.1em;
-    margin-bottom: 16px;
-    font-family: 'Russo One', sans-serif;
-    color: #eeeeee;
-    font-weight: 400;
-}
-
-.checkboxLabel {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
-    font-size: 0.95em;
-    cursor: pointer;
-    color: #cccccc;
-    font-family: 'Inter', sans-serif;
-    transition: color 0.2s;
-}
-
-.checkboxLabel:hover {
-    color: #ffffff;
-}
-
-.checkboxLabel input[type="checkbox"] {
-    appearance: auto;
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-    accent-color: #E7000B;
-    flex-shrink: 0;
-}
-
-/* ─── Price inputs ───────────────────────────────────────────────────────────── */
-.priceInputsGroup {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.priceInput {
-    width: 100%;
-    padding: 8px 12px;
-    background: #111111;
-    border: 1px solid #333333;
-    color: #ffffff;
-    border-radius: 6px;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.9em;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.priceInput::-webkit-outer-spin-button,
-.priceInput::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-.priceInput[type=number] {
-    -moz-appearance: textfield;
-}
-
-.priceInput:focus {
-    border-color: #E7000B;
-    box-shadow: 0 0 5px rgba(231, 0, 11, 0.2);
-}
-
-.priceDivider {
-    color: #666666;
-    font-weight: bold;
-    flex-shrink: 0;
-}
-
-/* ─── Dual-range slider ──────────────────────────────────────────────────────── */
-.sliderWrapper {
-    padding: 10px 0 25px 0;
-}
-
-.dualSlider {
-    width: 100%;
-    height: 6px;
-    position: relative;
-}
-
-.thumb {
-    height: 20px;
-    width: 20px;
-    background-color: #E7000B;
-    border-radius: 50%;
-    cursor: grab;
-    outline: none;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
-    transition: transform 0.1s;
-}
-
-.thumb:active {
-    cursor: grabbing;
-    transform: scale(1.15);
-}
-
-.thumb:focus-visible {
-    box-shadow: 0 0 0 3px rgba(231, 0, 11, 0.4);
-}
-
-:global(.track) {
-    height: 6px;
-    background: #333333;
-    border-radius: 4px;
-    margin-top: 7px;
-}
-
-:global(.track-1) {
-    background: #E7000B;
-}
-
-/* ─── Card animation ─────────────────────────────────────────────────────────── */
-@keyframes cardEntrance {
-    from {
-        opacity: 0;
-        transform: translateY(30px) scale(0.97);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+.productsList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .animatedCard {
-    opacity: 0;
-    animation: cardEntrance 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    min-width: 0;
-    width: 100%;
+  opacity: 0;
+  animation: cardEntrance 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
-.animatedCard > * {
-    width: 100%;
-    flex: 1;
+.listCardWrapper {
+  flex-direction: row;
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .animatedCard {
-        animation: none;
-        opacity: 1;
-    }
-    .spinner {
-        animation: none;
-        border-top-color: transparent;
-    }
+@keyframes cardEntrance {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* ─── Mobile overlay ─────────────────────────────────────────────────────────── */
-.mobileFilterOverlay {
-    display: none;
+/* =========================================
+   6. SKELETON LOADING
+   ========================================= */
+.skeletonCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 380px;
 }
 
-/* ─── Pagination ────────────────────────────────────────────────────────────── */
+.skeletonImg, .skeletonText, .skeletonBtn {
+  background: linear-gradient(90deg, #1a1a1a 25%, #222 50%, #1a1a1a 75%);
+  background-size: 200% 100%;
+  animation: loadingShimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+.skeletonImg { height: 200px; width: 100%; }
+.skeletonText { height: 16px; }
+.skeletonBtn { height: 40px; width: 100%; margin-top: auto; }
+
+@keyframes loadingShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* =========================================
+   7. СТАНИ (EMPTY & ERROR)
+   ========================================= */
+.errorMessage {
+  background: rgba(231,0,11,0.1); border: 1px solid rgba(231,0,11,0.3); color: var(--primary);
+  padding: 20px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 700;
+}
+.errorIcon { font-size: 20px; }
+
+.emptyState {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 80px 20px; background: var(--bg-card); border-radius: 16px; border: 1px dashed var(--border-hover); text-align: center;
+}
+.emptyIconGhost { font-size: 60px; margin-bottom: 15px; animation: float 3s ease-in-out infinite; }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+.emptyStateTitle { font-family: 'Russo One', sans-serif; font-size: 24px; margin: 0 0 10px 0; }
+.emptyStateText { color: var(--text-muted); margin: 0 0 20px 0; }
+.emptyStateClear { background: transparent; border: 1px solid var(--primary); color: var(--primary); padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: var(--transition-smooth); }
+.emptyStateClear:hover { background: var(--primary); color: #fff; }
+
+/* =========================================
+   8. ПАГІНАЦІЯ
+   ========================================= */
 .paginationContainer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    margin-top: 40px;
-    padding-top: 30px;
-    border-top: 1px solid #222222;
-    animation: fadeIn 0.5s ease-out forwards;
+  display: flex; justify-content: center; align-items: center; gap: 8px;
+  margin-top: 40px; padding-top: 30px; border-top: 1px solid var(--border-light);
 }
-
 .pageBtn {
-    background-color: #111111;
-    color: #ffffff;
-    border: 1px solid #333333;
-    width: 42px;
-    height: 42px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-hover);
+  width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  font-weight: 700; cursor: pointer; transition: var(--transition-smooth);
+}
+.pageBtn:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); background: rgba(231,0,11,0.05); }
+.pageBtn.activePage { background: var(--primary); border-color: var(--primary); color: #fff; pointer-events: none; }
+.pageBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+.dots { color: var(--text-muted); font-weight: 800; letter-spacing: 2px; }
+
+/* =========================================
+   9. САЙДБАР ФІЛЬТРІВ ТА КАТАЛОГ
+   ========================================= */
+.filterContainer {
+  background: var(--bg-card); 
+  border: 1px solid var(--border-light); 
+  border-radius: 16px; 
+  padding: 24px; 
+  position: sticky; 
+  top: 20px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
 }
 
-.pageBtn:hover:not(:disabled) {
-    border-color: #E7000B;
-    color: #E7000B;
-    background-color: rgba(231, 0, 11, 0.1);
-    transform: translateY(-2px);
+/* Scrollbar for Filter Container */
+.filterContainer::-webkit-scrollbar { width: 6px; }
+.filterContainer::-webkit-scrollbar-track { background: transparent; }
+.filterContainer::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
+.filterContainer::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
+
+.filterHeaderMobile { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.filterTitle { display: flex; align-items: center; gap: 8px; }
+.filterIcon { font-size: 24px; color: var(--primary); }
+.filterName { font-family: 'Russo One', sans-serif; font-size: 20px; margin: 0; }
+.closeFilterBtn { display: none; background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; }
+
+.activeFilters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-light); }
+.chip { display: inline-flex; align-items: center; gap: 6px; background: rgba(231,0,11,0.1); border: 1px solid rgba(231,0,11,0.3); color: var(--primary); padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+.chip button { background: none; border: none; color: var(--primary); cursor: pointer; padding: 0; display: flex; align-items: center; font-size: 12px; }
+.clearAll { background: none; border: none; color: var(--text-muted); font-size: 12px; cursor: pointer; text-decoration: underline; margin-left: auto; }
+.clearAll:hover { color: var(--primary); }
+
+.filterSection { margin-bottom: 25px; }
+.sectionTitle { font-family: 'Russo One', sans-serif; font-size: 16px; margin-bottom: 15px; font-weight: 400; color: #eeeeee; }
+
+/* ─── ІЄРАРХІЧНИЙ КАТАЛОГ (АКОРДЕОН) ─── */
+.catalogTree {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.pageBtn:active:not(:disabled) {
-    transform: translateY(0);
+.catalogNode {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: var(--transition-smooth);
 }
 
-.pageBtn.activePage {
-    background-color: #E7000B;
-    border-color: #E7000B;
-    color: #ffffff;
-    pointer-events: none;
-    box-shadow: 0 4px 12px rgba(231, 0, 11, 0.4);
+.catalogNode:hover {
+  border-color: var(--border-hover);
 }
 
-.pageBtn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    background-color: #0a0a0a;
+.catalogNodeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
 }
 
-.dots {
-    color: #666666;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    letter-spacing: 2px;
+.categoryName {
+  font-weight: 700;
+  color: var(--text-main);
+  font-size: 14px;
 }
 
-/* ─── Responsive (Адаптивність) ───────────────────────────────────────────────── */
-@media (max-width: 900px) {
-    .homeLayout {
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
-
-    .actionCardsContainer {
-        grid-template-columns: 1fr;
-        gap: 15px;
-        margin-bottom: 25px;
-    }
-
-    .productsAreaHeader {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .headerActions {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        width: 100%;
-        margin-top: 15px;
-    }
-
-    .searchWrapper {
-        grid-column: 1 / -1;
-        width: 100%;
-    }
-
-    .searchInput {
-        width: 100%;
-    }
-
-    .searchInput:focus {
-        width: 100%;
-    }
-
-    .sortWrapper {
-        width: 100%;
-    }
-
-    .sortSelect {
-        width: 100%;
-    }
-
-    .mobileFilterToggle {
-        display: flex;
-        width: 100%;
-        justify-content: center;
-    }
-
-    .closeFilterBtn {
-        display: block;
-    }
-
-    .filterContainer {
-        position: fixed;
-        top: 0;
-        left: -100%;
-        width: 85vw;
-        max-width: 340px;
-        height: 100vh;
-        min-height: unset;
-        z-index: 1005;
-        border-radius: 0;
-        background-color: #0a0a0a;
-        color: #eeeeee;
-        border-right: 1px solid #222222;
-        overflow-y: auto;
-        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        margin: 0;
-        box-shadow: none;
-    }
-
-    .filterContainer .filterName { color: #ffffff; }
-    .filterContainer .sectionTitle { color: #eeeeee; }
-    .filterContainer .checkboxLabel { color: #cccccc; }
-    .filterContainer .priceInput { background: #1a1a1a; border-color: #333333; color: #ffffff; }
-    .filterContainer .activeFilters { border-bottom-color: #222222; }
-
-    .filterContainer.open {
-        left: 0;
-        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.6);
-    }
-
-    .mobileFilterOverlay {
-        display: block;
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.6);
-        z-index: 1004;
-        backdrop-filter: blur(3px);
-        animation: fadeIn 0.3s ease;
-    }
-
-    .productsGrid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-    }
+.expandBtn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.3s;
 }
 
-@media (max-width: 450px) {
-    .productsGrid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
-    }
-    
-    .paginationContainer {
-        gap: 5px;
-        margin-top: 30px;
-        padding-top: 20px;
-    }
-    .pageBtn {
-        width: 36px;
-        height: 36px;
-        font-size: 14px;
-        border-radius: 6px;
-    }
+.expandBtn:hover {
+  color: var(--primary);
+}
+
+.expandBtn.expanded {
+  transform: rotate(180deg);
+  color: var(--primary);
+}
+
+.catalogSubItems {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), padding 0.4s, opacity 0.3s;
+  padding: 0 12px 0 34px;
+  opacity: 0;
+}
+
+.catalogSubItems.subItemsOpen {
+  max-height: 400px;
+  padding-bottom: 12px;
+  padding-top: 4px;
+  opacity: 1;
+}
+
+/* Custom Checkbox */
+.checkboxLabel { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 14px; color: var(--text-muted); cursor: pointer; transition: var(--transition-smooth); }
+.checkboxLabel:hover { color: var(--text-main); }
+.checkboxLabel input { display: none; }
+.customCheck { width: 18px; height: 18px; border: 2px solid var(--border-hover); border-radius: 4px; position: relative; transition: var(--transition-smooth); flex-shrink: 0; }
+.checkboxLabel input:checked + .customCheck { background: var(--primary); border-color: var(--primary); }
+.checkboxLabel input:checked + .customCheck::after { content: '✔'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 10px; }
+
+/* Price Slider */
+.priceInputsGroup { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+.priceInput { width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border-light); color: var(--text-main); border-radius: 8px; font-size: 13px; outline: none; text-align: center; transition: var(--transition-smooth); }
+.priceInput:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(231,0,11,0.15); }
+.priceDivider { color: var(--text-muted); }
+
+.sliderWrapper { padding: 0 10px 10px 10px; }
+.dualSlider { width: 100%; height: 4px; }
+.thumb { height: 16px; width: 16px; background-color: var(--primary); border-radius: 50%; cursor: grab; top: -6px; outline: none; box-shadow: 0 0 10px rgba(231,0,11,0.5); }
+.thumb:active { cursor: grabbing; transform: scale(1.2); }
+:global(.track) { height: 4px; background: var(--border-hover); border-radius: 4px; }
+:global(.track-1) { background: var(--primary); }
+
+.mobileFilterToggle { display: none; align-items: center; gap: 8px; background: var(--bg-input); border: 1px solid var(--border-hover); padding: 10px 16px; border-radius: 8px; font-weight: 700; color: var(--text-main); cursor: pointer; }
+.filterBadge { background: var(--primary); padding: 2px 6px; border-radius: 10px; font-size: 11px; }
+
+/* =========================================
+   10. АДАПТИВНІСТЬ (MOBILE)
+   ========================================= */
+@media (max-width: 1024px) {
+  .homeLayout { grid-template-columns: 1fr; }
+  
+  .headerActions { flex-direction: column; align-items: stretch; }
+  .quickFilters { overflow-x: auto; padding-bottom: 5px; }
+  .quickFilterBtn { white-space: nowrap; }
+  .viewToggles { display: none; } /* Hide view toggle on mobile */
+  
+  .filterContainer {
+    position: fixed; top: 0; left: -100%; width: 320px; max-width: 85vw; height: 100vh;
+    z-index: 1005; border-radius: 0; border-right: 1px solid var(--border-light);
+    overflow-y: auto; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); margin: 0;
+    max-height: 100vh;
+  }
+  .filterContainer.open { left: 0; box-shadow: 10px 0 30px rgba(0,0,0,0.8); }
+  .closeFilterBtn, .mobileFilterToggle { display: flex; }
+  
+  .mobileFilterOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 1004; }
+  
+  .promoBanner { flex-direction: column; text-align: center; padding: 30px 20px; }
+  .promoContent h2 { font-size: 26px; }
+}
+
+@media (max-width: 600px) {
+  .productsGrid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .productsTitle { font-size: 22px; }
 }

@@ -11,7 +11,9 @@ import path from 'path';
 import fs from 'fs';
 
 import Order from './models/Order.js';
+import Client from './models/Client.js';
 import Product from './models/Product.js';
+import CRMTask from './models/CRMTask.js';
 import BuyoutRequest from './models/BuyoutRequest.js';
 import ServiceRequest from './models/ServiceRequest.js';
 import TradeInRequest from './models/TradeInRequest.js';
@@ -45,6 +47,28 @@ const storage = multer.diskStorage({
     filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname.replace(/\s+/g, '-'))
 });
 const upload = multer({ storage });
+
+const linkClientToRequest = async (name, phone, email, docId, docType) => {
+    try {
+        let client = await Client.findOne({ phone });
+
+        if (!client) {
+            client = new Client({ name, phone, email });
+        } else {
+            if (email && !client.email) client.email = email;
+            if (name) client.name = name;
+        }
+
+        if (docType === 'Order') client.orders.push(docId);
+        if (docType === 'ServiceRequest') client.serviceRequests.push(docId);
+        if (docType === 'TradeInRequest') client.tradeInRequests.push(docId);
+        if (docType === 'BuyoutRequest') client.buyoutRequests.push(docId);
+
+        await client.save();
+    } catch (error) {
+        console.error('❌ Помилка оновлення картки клієнта в CRM:', error);
+    }
+};
 
 const sendTelegramMessage = async (message) => {
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
@@ -94,11 +118,39 @@ app.post('/api/admin/login', (req, res) => {
     }
 });
 
+// НОВИЙ РОУТ: Отримання динамічних меж цін для повзунка
+app.get('/api/products/meta', async (req, res) => {
+    try {
+        const stats = await Product.aggregate([
+            { 
+                $group: { 
+                    _id: null, 
+                    minPrice: { $min: "$price" }, 
+                    maxPrice: { $max: "$price" } 
+                } 
+            }
+        ]);
+        
+        // Якщо товарів немає, повертаємо дефолтні значення
+        if (stats.length === 0) {
+            return res.json({ minPrice: 0, maxPrice: 40000 });
+        }
+        res.json({ minPrice: stats[0].minPrice, maxPrice: stats[0].maxPrice });
+    } catch (error) {
+        res.status(500).json({ message: "Помилка отримання метаданих" });
+    }
+});
+
 app.get('/api/products', async (req, res) => {
     try {
         let query = {}; 
+        
+        // Додано фільтрацію за категоріями та брендами
+        if (req.query.categories) query.category = { $in: req.query.categories.split(',') };
+        if (req.query.brands) query.brand = { $in: req.query.brands.split(',') };
         if (req.query.models) query.model = { $in: req.query.models.split(',') };
         if (req.query.conditions) query.condition = { $in: req.query.conditions.split(',') };
+        
         if (req.query.minPrice || req.query.maxPrice) {
             query.price = {};
             if (req.query.minPrice) query.price.$gte = Number(req.query.minPrice);
@@ -123,9 +175,10 @@ app.get('/api/products/:id', async (req, res) => {
 
 app.post('/api/products', verifyAdmin, upload.array('images', 5), async (req, res) => {
     try {
-        const { title, model, price, condition, description, searchTags } = req.body;
+        // Додано category та brand
+        const { title, category, brand, model, price, condition, description, searchTags } = req.body;
         const imageUrls = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
-        const newProduct = new Product({ title, model, price, condition, description, searchTags, imageUrls });
+        const newProduct = new Product({ title, category, brand, model, price, condition, description, searchTags, imageUrls });
         await newProduct.save();
         res.status(201).json(newProduct);
     } catch (error) {
@@ -135,8 +188,9 @@ app.post('/api/products', verifyAdmin, upload.array('images', 5), async (req, re
 
 app.put('/api/products/:id', verifyAdmin, upload.array('images', 5), async (req, res) => {
     try {
-        const { title, model, price, condition, description, searchTags } = req.body;
-        let updateData = { title, model, price, condition, description, searchTags };
+        // Додано category та brand
+        const { title, category, brand, model, price, condition, description, searchTags } = req.body;
+        let updateData = { title, category, brand, model, price, condition, description, searchTags };
         if (req.files && req.files.length > 0) {
             updateData.imageUrls = req.files.map(file => `/uploads/${file.filename}`);
         }
@@ -147,11 +201,19 @@ app.put('/api/products/:id', verifyAdmin, upload.array('images', 5), async (req,
     }
 });
 
+app.delete('/api/products/:id', verifyAdmin, async (req, res) => {
+    try {
+        const deletedProduct = await Product.findByIdAndDelete(req.params.id);
+        if (!deletedProduct) return res.status(404).json({ message: "Товар не знайдено" });
+        res.json({ message: "Товар успішно видалено" });
+    } catch (error) {
+        res.status(500).json({ message: "Помилка видалення товару" });
+    }
+});
+
 app.post('/api/products/:id/reviews', async (req, res) => {
     try {
         const { name, rating, comment, contact } = req.body;
-        
-        // 1. Перевіряємо, чи є такий клієнт у базі замовлень
         const hasPurchased = await Order.findOne({
             $or: [{ email: contact }, { phone: contact }],
             status: 'Shipped'
@@ -175,98 +237,42 @@ app.post('/api/products/:id/reviews', async (req, res) => {
         
         res.status(201).json(product);
     } catch (error) {
-        console.error("Помилка відгуку:", error);
         res.status(500).json({ message: "Помилка сервера при додаванні відгуку" });
     }
 });
-// =========================================
-// ВИДАЛЕННЯ ВІДГУКУ (АДМІН)
-// =========================================
+
 app.delete('/api/products/:productId/reviews/:reviewId', verifyAdmin, async (req, res) => {
     try {
         const product = await Product.findById(req.params.productId);
         if (!product) return res.status(404).json({ message: "Товар не знайдено" });
 
-        // Фільтруємо відгуки, залишаючи всі, крім того, що видаляємо
         product.reviews = product.reviews.filter(r => r._id.toString() !== req.params.reviewId);
 
-        // Перераховуємо рейтинг
         const totalRating = product.reviews.reduce((sum, rev) => sum + rev.rating, 0);
         product.rating = product.reviews.length > 0 ? (totalRating / product.reviews.length).toFixed(1) : 0;
 
         await product.save();
-        res.json(product); // Повертаємо оновлений товар
+        res.json(product); 
     } catch (error) {
         res.status(500).json({ message: "Помилка видалення відгуку" });
     }
 });
 
-// =========================================
-// ВІДПОВІДЬ НА ВІДГУК ВІД МАГАЗИНУ (АДМІН)
-// =========================================
 app.post('/api/products/:productId/reviews/:reviewId/reply', verifyAdmin, async (req, res) => {
     try {
         const { reply } = req.body;
         const product = await Product.findById(req.params.productId);
         if (!product) return res.status(404).json({ message: "Товар не знайдено" });
 
-        // Знаходимо конкретний відгук за його ID
         const review = product.reviews.id(req.params.reviewId);
         if (!review) return res.status(404).json({ message: "Відгук не знайдено" });
 
-        // Записуємо відповідь
         review.adminReply = reply;
         await product.save();
 
-        res.json(product); // Повертаємо оновлений товар
+        res.json(product);
     } catch (error) {
         res.status(500).json({ message: "Помилка збереження відповіді" });
-    }
-});
-app.delete('/api/products/:productId/reviews/:reviewId', verifyAdmin, async (req, res) => {
-    try {
-        const product = await Product.findById(req.params.productId);
-        if (!product) return res.status(404).json({ message: "Товар не знайдено" });
-
-        product.reviews = product.reviews.filter(r => r._id.toString() !== req.params.reviewId);
-        if (product.reviews.length > 0) {
-            const totalRating = product.reviews.reduce((acc, item) => item.rating + acc, 0);
-            product.rating = (totalRating / product.reviews.length).toFixed(1);
-        } else {
-            product.rating = 0;
-        }
-
-        await product.save();
-        res.json({ message: "Відгук видалено", product });
-    } catch (error) {
-        res.status(500).json({ message: "Помилка видалення відгуку" });
-    }
-});
-
-app.post('/api/products/:productId/reviews/:reviewId/reply', verifyAdmin, async (req, res) => {
-    try {
-        const { reply } = req.body;
-        const product = await Product.findById(req.params.productId);
-        if (!product) return res.status(404).json({ message: "Товар не знайдено" });
-
-        const review = product.reviews.id(req.params.reviewId);
-        if (!review) return res.status(404).json({ message: "Відгук не знайдено" });
-
-        review.adminReply = reply;
-        await product.save();
-        res.json({ message: "Відповідь збережено", product });
-    } catch (error) {
-        res.status(500).json({ message: "Помилка відповіді на відгук" });
-    }
-});
-
-app.delete('/api/products/:id', verifyAdmin, async (req, res) => {
-    try {
-        const deletedProduct = await Product.findByIdAndDelete(req.params.id);
-        if (!deletedProduct) return res.status(404).json({ message: "Товар не знайдено" });
-        res.json({ message: "Товар успішно видалено" });
-    } catch (error) {
-        res.status(500).json({ message: "Помилка видалення товару" });
     }
 });
 
@@ -288,7 +294,6 @@ app.post('/api/generate-tags', verifyAdmin, async (req, res) => {
 Згенеруй 20-25 релевантних пошукових тегів (синоніми, сленг, можливі помилки при написанні, пов'язані бренди). 
 Поверни ЛИШЕ рядок тегів через кому, без додаткового тексту, нумерації чи лапок. Наприклад: плойка, пс5, playstation 5, соні, ігрова приставка`;
 
-        // Викликаємо швидку та безкоштовну модель Flash
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: prompt,
@@ -306,6 +311,8 @@ app.post('/api/service-requests', async (req, res) => {
         const { name, phone, consoleModel, problem } = req.body;
         const newRequest = new ServiceRequest({ name, phone, consoleModel, problem });
         await newRequest.save();
+
+        await linkClientToRequest(name, phone, null, newRequest._id, 'ServiceRequest');
         
         const tgMessage = `
 🚨 <b>НОВА ЗАЯВКА НА СЕРВІС!</b> 🚨
@@ -353,9 +360,6 @@ app.delete('/api/service-requests/:id', verifyAdmin, async (req, res) => {
     }
 });
 
-// =========================================
-// РОУТИ ДЛЯ ТРЕЙД-ІН (ОБМІН КОНСОЛЕЙ)
-// =========================================
 app.post('/api/trade-in', upload.array('images', 10), async (req, res) => {
     try {
         const { name, phone, consoleName, description } = req.body;
@@ -373,6 +377,7 @@ app.post('/api/trade-in', upload.array('images', 10), async (req, res) => {
         const newTradeIn = new TradeInRequest({ name, phone, consoleName, equipment, description, images });
         await newTradeIn.save();
         
+        await linkClientToRequest(name, phone, null, newTradeIn._id, 'TradeInRequest');
         const tgMessage = `
 ♻️ <b>НОВА ЗАЯВКА НА TRADE-IN!</b> ♻️
 
@@ -383,15 +388,11 @@ app.post('/api/trade-in', upload.array('images', 10), async (req, res) => {
 📦 <b>Комплектація:</b> ${equipment.length > 0 ? equipment.join(', ') : 'Не вказано'}
 💬 <b>Опис / Дефекти:</b>
 <i>${description || 'Без опису'}</i>
-📸 <b>Прикріплено фото:</b> ${images.length} шт.
-
-👉 Зайдіть в Адмін-панель, щоб переглянути фото та оцінити консоль!`;
+📸 <b>Прикріплено фото:</b> ${images.length} шт.`;
         
         await sendTelegramMessage(tgMessage);
-        
         res.status(201).json({ message: "Заявку успішно відправлено", request: newTradeIn });
     } catch (error) {
-        console.error("Помилка Trade-In:", error);
         res.status(500).json({ message: "Помилка при відправленні заявки" });
     }
 });
@@ -424,9 +425,6 @@ app.delete('/api/trade-in/:id', verifyAdmin, async (req, res) => {
     }
 });
 
-// =========================================
-// РОУТИ ДЛЯ ВИКУПУ (BUYOUT)
-// =========================================
 app.post('/api/buyout', upload.array('images', 10), async (req, res) => {
     try {
         const { name, phone, consoleName, expectedPrice, description } = req.body;
@@ -444,6 +442,8 @@ app.post('/api/buyout', upload.array('images', 10), async (req, res) => {
 
         const newBuyout = new BuyoutRequest({ name, phone, consoleName, expectedPrice, equipment, description, images });
         await newBuyout.save();
+
+        await linkClientToRequest(name, phone, null, newBuyout._id, 'BuyoutRequest');
         
         const tgMessage = `
 💰 <b>НОВА ЗАЯВКА НА ВИКУП!</b> 💰
@@ -459,10 +459,8 @@ app.post('/api/buyout', upload.array('images', 10), async (req, res) => {
 📸 <b>Прикріплено фото:</b> ${images.length} шт.`;
         
         await sendTelegramMessage(tgMessage);
-        
         res.status(201).json({ message: "Заявку успішно відправлено", request: newBuyout });
     } catch (error) {
-        console.error("Помилка Buyout:", error);
         res.status(500).json({ message: "Помилка при відправленні заявки" });
     }
 });
@@ -500,6 +498,7 @@ app.post('/api/orders', async (req, res) => {
         const { customerName, email, phone, address, items, totalAmount } = req.body;
         const newOrder = new Order({ customerName, email, phone, address, items, totalAmount });
         await newOrder.save();
+        await linkClientToRequest(customerName, phone, email, newOrder._id, 'Order');
 
         const merchantAccount = process.env.WAYFORPAY_ACCOUNT || 'test_merch_n1'; 
         const merchantSecret = process.env.WAYFORPAY_SECRET || 'flk3409refn54t54t*FNJRET'; 
@@ -526,7 +525,6 @@ app.post('/api/orders', async (req, res) => {
             }
         });
     } catch (error) {
-        console.error(error);
         res.status(500).json({ message: "Помилка при оформленні замовлення" });
     }
 });
@@ -571,9 +569,7 @@ app.put('/api/orders/:id/status', verifyAdmin, async (req, res) => {
                         </div>
                     </div>`
             };
-            transporter.sendMail(mailOptions, (error, info) => {
-                if (error) console.error("❌ Помилка відправки email:", error);
-            });
+            transporter.sendMail(mailOptions, (error, info) => {});
         }
         res.json(updatedOrder);
     } catch (error) {
@@ -592,10 +588,7 @@ app.get('/api/orders', verifyAdmin, async (req, res) => {
 
 app.delete('/api/orders/:id', verifyAdmin, async (req, res) => {
     try {
-        const deletedOrder = await Order.findByIdAndDelete(req.params.id);
-        if (!deletedOrder) {
-            return res.status(404).json({ message: "Замовлення не знайдено" });
-        }
+        await Order.findByIdAndDelete(req.params.id);
         res.json({ message: "Замовлення успішно видалено" });
     } catch (error) {
         res.status(500).json({ message: "Помилка видалення замовлення" });
@@ -609,21 +602,14 @@ app.post('/api/payment/webhook', async (req, res) => {
             try { data = JSON.parse(req.body); } catch(e) {}
         }
         
-        if (!data || !data.merchantAccount) {
-            return res.status(400).send("No data received");
-        }
+        if (!data || !data.merchantAccount) return res.status(400).send("No data received");
 
         const { merchantAccount, orderReference, amount, currency, authCode, cardPan, transactionStatus, reasonCode, merchantSignature, time } = data;
         const secret = process.env.WAYFORPAY_SECRET || 'flk3409refn54t54t*FNJRET';
         const signString = `${merchantAccount};${orderReference};${amount};${currency};${authCode};${cardPan};${transactionStatus};${reasonCode}`;
         const expectedSignature = crypto.createHmac('md5', secret).update(signString).digest('hex');
 
-        if (merchantSignature !== expectedSignature) {
-            console.warn(`⚠️ ВТРУЧАННЯ! Невірний підпис вебхука для замовлення ${orderReference}`);
-            return res.status(400).send("Invalid Signature");
-        }
-
-        console.log(`\n📦 ВЕБХУК: Замовлення: ${orderReference} | Статус: ${transactionStatus}`);
+        if (merchantSignature !== expectedSignature) return res.status(400).send("Invalid Signature");
 
         if (transactionStatus === 'Approved') {
             await Order.findByIdAndUpdate(orderReference, { status: 'Paid' }, { new: true });
@@ -632,15 +618,8 @@ app.post('/api/payment/webhook', async (req, res) => {
         const responseSignatureString = `${orderReference};accept;${time}`;
         const responseSignature = crypto.createHmac('md5', secret).update(responseSignatureString).digest('hex');
 
-        res.status(200).json({
-            orderReference: orderReference,
-            status: "accept",
-            time: time,
-            signature: responseSignature
-        });
-
+        res.status(200).json({ orderReference, status: "accept", time, signature: responseSignature });
     } catch (error) {
-        console.error("❌ Помилка вебхука:", error);
         res.status(500).send("Internal Server Error");
     }
 });
@@ -648,23 +627,14 @@ app.post('/api/payment/webhook', async (req, res) => {
 app.post('/api/orders/track', async (req, res) => {
     try {
         const { orderId, phone } = req.body;
-        
-        if (!mongoose.Types.ObjectId.isValid(orderId)) {
-            return res.status(400).json({ message: "Невірний формат ID замовлення" });
-        }
+        if (!mongoose.Types.ObjectId.isValid(orderId)) return res.status(400).json({ message: "Невірний формат ID замовлення" });
 
         const order = await Order.findById(orderId);
-        if (!order) {
-            return res.status(404).json({ message: "Замовлення не знайдено" });
-        }
-
-        if (order.phone !== phone) {
-            return res.status(403).json({ message: "Невірний номер телефону для цього замовлення" });
-        }
+        if (!order) return res.status(404).json({ message: "Замовлення не знайдено" });
+        if (order.phone !== phone) return res.status(403).json({ message: "Невірний номер телефону для цього замовлення" });
 
         res.json(order);
     } catch (error) {
-        console.error("Трекінг помилка:", error);
         res.status(500).json({ message: "Помилка сервера" });
     }
 });
@@ -672,13 +642,62 @@ app.post('/api/orders/track', async (req, res) => {
 app.post('/api/orders/bulk', async (req, res) => {
     try {
         const { ids } = req.body;
-        if (!ids || !Array.isArray(ids) || ids.length === 0) {
-            return res.json([]);
-        }
+        if (!ids || !Array.isArray(ids) || ids.length === 0) return res.json([]);
         const orders = await Order.find({ _id: { $in: ids } }).sort({ createdAt: -1 });
         res.json(orders);
     } catch (error) {
         res.status(500).json({ message: "Помилка завантаження ваших замовлень" });
+    }
+});
+
+app.get('/api/crm/clients', verifyAdmin, async (req, res) => {
+    try {
+        const clients = await Client.find().sort({ updatedAt: -1 });
+        res.json(clients);
+    } catch (error) {
+        res.status(500).json({ message: "Помилка завантаження клієнтів" });
+    }
+});
+
+app.get('/api/crm/clients/:id', verifyAdmin, async (req, res) => {
+    try {
+        const client = await Client.findById(req.params.id)
+            .populate('orders')
+            .populate('serviceRequests')
+            .populate('tradeInRequests')
+            .populate('buyoutRequests');
+        if (!client) return res.status(404).json({ message: "Клієнта не знайдено" });
+        res.json(client);
+    } catch (error) {
+        res.status(500).json({ message: "Помилка завантаження картки клієнта" });
+    }
+});
+
+app.get('/api/crm/tasks', verifyAdmin, async (req, res) => {
+    try {
+        const tasks = await CRMTask.find().populate('client', 'name phone').sort({ scheduledDate: 1 });
+        res.json(tasks);
+    } catch (error) {
+        res.status(500).json({ message: "Помилка завантаження календаря" });
+    }
+});
+
+app.post('/api/crm/tasks', verifyAdmin, async (req, res) => {
+    try {
+        const newTask = new CRMTask(req.body);
+        await newTask.save();
+        res.status(201).json(newTask);
+    } catch (error) {
+        res.status(500).json({ message: "Помилка створення нагадування" });
+    }
+});
+
+app.put('/api/crm/tasks/:id', verifyAdmin, async (req, res) => {
+    try {
+        const updatedTask = await CRMTask.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        res.json(updatedTask);
+    } catch (error) {
+        res.status(500).json({ message: "Помилка оновлення завдання" });
     }
 });
 

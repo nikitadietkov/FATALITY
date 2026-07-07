@@ -1,45 +1,75 @@
 /* =========================================
-   1. ЗМІННІ КОЛЬОРІВ ТА ТЕМАТИКИ
+   1. ЗМІННІ КОЛЬОРІВ ТА КІБЕР-ТЕМАТИКИ
    ========================================= */
 .adminPage {
   --primary-color: #ff0000;
   --primary-hover: #cc0000;
+  --primary-glow: rgba(255, 0, 0, 0.25);
   --success-color: #00a859;
+  --success-glow: rgba(0, 168, 89, 0.2);
   --warning-color: #ff9900;
+  --warning-glow: rgba(255, 153, 0, 0.2);
   --danger-color: #ff4444;
   --info-color: #0066cc;
+  --brand-color: #E7000B;
 
   --bg-main: #0a0a0a;
   --bg-card: #121212;
-  --bg-input: #1a1a1a;
-  --bg-header: #161616;
+  --bg-input: #161616;
+  --bg-header: #1a1a1a;
 
   --border-main: #222222;
   --border-light: #333333;
   --text-main: #ffffff;
   --text-muted: #888888;
   --text-light: #cccccc;
+  
+  --transition-cyber: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 
   max-width: 1200px;
   margin: 0 auto;
   padding: 40px 20px;
   color: var(--text-main);
-  animation: systemBoot 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation: systemBoot 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
   overflow-x: hidden; 
 }
 
+/* СКРОЛЛБАР ПРЕМІУМ (GLOBAL) */
+.adminPage ::-webkit-scrollbar,
+.reviewsListAdmin::-webkit-scrollbar,
+.fullTextBody::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.adminPage ::-webkit-scrollbar-track,
+.reviewsListAdmin::-webkit-scrollbar-track,
+.fullTextBody::-webkit-scrollbar-track {
+  background: var(--bg-main);
+}
+.adminPage ::-webkit-scrollbar-thumb,
+.reviewsListAdmin::-webkit-scrollbar-thumb,
+.fullTextBody::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: 4px;
+}
+.adminPage ::-webkit-scrollbar-thumb:hover,
+.reviewsListAdmin::-webkit-scrollbar-thumb:hover,
+.fullTextBody::-webkit-scrollbar-thumb:hover {
+  background: var(--brand-color);
+}
+
 /* =========================================
-   2. КЛЮЧОВІ АНІМАЦІЇ
+   2. КЛЮЧОВІ АНІМАЦІЇ ТА МІКРО-ЕФЕКТИ
    ========================================= */
 @keyframes systemBoot {
-  0% { opacity: 0; transform: translateY(10px); filter: blur(5px); }
+  0% { opacity: 0; transform: translateY(15px); filter: blur(4px); }
   100% { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
 
 @keyframes titleGlitch {
-  0% { transform: translateX(-20px); opacity: 0; color: var(--text-main); }
-  50% { opacity: 0.8; color: var(--primary-color); text-shadow: 2px 0 #00ffff, -2px 0 #ff00ff; }
-  100% { transform: translateX(0); opacity: 1; color: var(--text-main); text-shadow: none; }
+  0% { transform: translateX(-10px); opacity: 0; }
+  50% { opacity: 0.8; text-shadow: 2px 0 var(--primary-color), -2px 0 #00ffff; }
+  100% { transform: translateX(0); opacity: 1; text-shadow: none; }
 }
 
 @keyframes fadeSlideUp {
@@ -48,31 +78,48 @@
 }
 
 @keyframes dataStream {
-  0% { opacity: 0; transform: translateX(30px); border-left-color: transparent; }
-  100% { opacity: 1; transform: translateX(0); border-left-color: var(--primary-color); } 
+  0% { opacity: 0; transform: translateX(20px); }
+  100% { opacity: 1; transform: translateX(0); } 
 }
 
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.spinIcon { animation: spin 1s linear infinite; }
+
 /* =========================================
-   3. БАЗОВІ ЕЛЕМЕНТИ (ЗАГОЛОВКИ, ТАБИ)
+   3. БАЗОВІ ЕЛЕМЕНТИ ТА НАВІГАЦІЯ
    ========================================= */
+.adminTopHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 35px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
 .pageTitle {
+  font-family: 'Russo One', sans-serif;
+  font-weight: 400 !important;
   font-size: 32px;
-  font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 2px;
   margin-bottom: 0;
-  border-left: 5px solid var(--primary-color);
+  border-left: 5px solid var(--brand-color);
   padding-left: 15px;
-  opacity: 0;
-  animation: titleGlitch 0.6s 0.2s ease-out forwards;
+  animation: titleGlitch 0.6s ease-out forwards;
 }
 
 .sectionTitle {
+  font-family: 'Russo One', sans-serif;
+  font-weight: 400 !important;
   font-size: 22px;
-  font-weight: 700;
   margin-bottom: 25px;
-  margin-top: 0;
   color: #e0e0e0;
+  letter-spacing: 0.5px;
 }
 
 .centerMsg {
@@ -81,36 +128,61 @@
   font-size: 18px;
   color: var(--text-main);
   font-weight: 600;
+  font-family: monospace;
+}
+
+.noOrders {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 16px;
+  padding: 40px;
+  background: var(--bg-card);
+  border-radius: 12px;
+  border: 1px dashed var(--border-light);
+  width: 100%;
 }
 
 .tabsWrapper {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(10, 10, 10, 0.95);
+  backdrop-filter: blur(10px);
   display: flex;
-  gap: 20px;
+  gap: 10px;
   margin-bottom: 40px;
   border-bottom: 2px solid var(--border-main);
-  padding-bottom: 12px;
+  padding: 15px 0 12px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
+
+.tabsWrapper::-webkit-scrollbar { display: none; }
 
 .tabBtn {
   background: transparent;
   color: var(--text-muted);
   border: none;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
   cursor: pointer;
-  padding: 10px 15px;
-  transition: color 0.3s ease;
-  position: relative;
+  padding: 10px 20px;
+  transition: var(--transition-cyber);
+  border-radius: 6px;
+  white-space: nowrap;
 }
 
 .tabBtn:hover {
-  color: #aaaaaa;
+  color: var(--text-main);
+  background-color: rgba(255, 255, 255, 0.03);
 }
 
 .activeTab {
   color: var(--text-main);
+  background-color: rgba(231, 0, 11, 0.08);
+  position: relative;
 }
 
 .activeTab::after {
@@ -120,18 +192,35 @@
   left: 0;
   width: 100%;
   height: 3px;
-  background-color: var(--primary-color);
-  box-shadow: 0 -2px 10px rgba(255, 0, 0, 0.8);
-  border-radius: 3px 3px 0 0;
+  background-color: var(--brand-color);
+  box-shadow: 0 0 12px var(--brand-color);
 }
 
 .tabContent {
-  animation: fadeSlideUp 0.4s ease-out forwards;
+  animation: fadeSlideUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
   width: 100%;
 }
 
+.syncBtn, .logoutBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 13px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: var(--transition-cyber);
+}
+
+.syncBtn { background-color: rgba(255, 255, 255, 0.05); color: var(--text-main); border: 1px solid var(--border-light); }
+.syncBtn:hover:not(:disabled) { background-color: var(--text-main); color: #000; transform: translateY(-2px); }
+.logoutBtn { background-color: rgba(255, 68, 68, 0.08); color: var(--danger-color); border: 1px solid rgba(255, 68, 68, 0.2); }
+.logoutBtn:hover { background-color: var(--danger-color); color: #ffffff; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255, 68, 68, 0.3); }
+
 /* =========================================
-   4. СТАТИСТИКА
+   4. ДИНАМІЧНІ СТАТИСТИЧНІ КАРТКИ
    ========================================= */
 .statsGrid {
   display: grid;
@@ -143,1581 +232,565 @@
 .statCard {
   background-color: var(--bg-card);
   border: 1px solid var(--border-main);
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 14px;
+  padding: 24px;
   display: flex;
   align-items: center;
   gap: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   opacity: 0;
   animation: fadeSlideUp 0.5s ease-out forwards;
-  transition: transform 0.3s ease, border-color 0.3s ease;
+  transition: var(--transition-cyber);
 }
 
 .statCard:hover {
-  transform: translateY(-5px);
+  transform: translateY(-4px);
   border-color: var(--border-light);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
 }
 
-.iconWrapper {
-  width: 55px;
-  height: 55px;
-  border-radius: 12px;
+.iconWrapper { width: 55px; height: 55px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; transition: var(--transition-cyber); }
+.blue { background-color: rgba(0, 102, 204, 0.12); color: var(--info-color); }
+.green { background-color: rgba(0, 168, 89, 0.12); color: var(--success-color); }
+.orange { background-color: rgba(255, 153, 0, 0.12); color: var(--warning-color); }
+
+.statCard:hover .blue { text-shadow: 0 0 10px var(--info-color); }
+.statCard:hover .green { text-shadow: 0 0 10px var(--success-color); }
+.statCard:hover .orange { text-shadow: 0 0 10px var(--warning-color); }
+
+.statLabel { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
+.statValue { font-size: 26px; font-weight: 900; letter-spacing: -0.5px; }
+
+/* =========================================
+   5. ФІЛЬТРИ ТА СТРІЧКА ПОШУКУ
+   ========================================= */
+.ordersList { display: flex; flex-direction: column; gap: 20px; }
+.ordersHeaderRow { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
+.filtersControls { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+
+.adminSearchWrapper { position: relative; display: flex; align-items: center; width: 320px; }
+.adminSearchIcon { position: absolute; left: 14px; color: var(--text-muted); }
+.adminSearchInput {
+  width: 100%; background-color: var(--bg-input); border: 1px solid var(--border-main); color: var(--text-main);
+  padding: 10px 35px 10px 42px; border-radius: 8px; font-size: 14px; outline: none; transition: var(--transition-cyber);
+}
+.adminSearchInput:focus { border-color: var(--brand-color); box-shadow: 0 0 0 3px rgba(231, 0, 11, 0.15); background-color: #1c1c1c; }
+.adminSearchClear { position: absolute; right: 12px; background: none; border: none; color: var(--text-muted); cursor: pointer; }
+.adminSearchClear:hover { color: var(--primary-color); }
+
+.filterWrapper { display: flex; align-items: center; gap: 12px; background-color: var(--bg-card); padding: 6px 16px; border-radius: 8px; border: 1px solid var(--border-main); }
+.filterWrapper label { color: var(--text-muted); font-size: 12px; font-weight: 800; text-transform: uppercase; }
+.filterSelect { background-color: var(--bg-input); color: var(--text-main); border: 1px solid var(--border-main); padding: 6px 12px; border-radius: 6px; outline: none; cursor: pointer; }
+
+/* --- Date Filter Custom Styles --- */
+.dateFilterWrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: var(--bg-card);
+  padding: 6px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border-main);
+}
+
+.dateFilterLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.dateFilterIcon {
+  font-size: 14px;
+}
+
+.dateInputGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dateInput {
+  background-color: var(--bg-input);
+  color: var(--text-main);
+  border: 1px solid var(--border-main);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  transition: var(--transition-cyber);
+  font-family: inherit;
+  color-scheme: dark; 
+}
+
+.dateInput:focus {
+  border-color: var(--brand-color);
+  box-shadow: 0 0 5px rgba(231,0,11,0.2);
+}
+
+.dateDivider {
+  color: var(--text-muted);
+  font-weight: 800;
+}
+
+.clearDateBtn {
+  background: rgba(255,68,68,0.1);
+  border: 1px solid rgba(255,68,68,0.2);
+  border-radius: 4px;
+  color: var(--danger-color);
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  padding: 6px;
+  transition: var(--transition-cyber);
 }
 
-.blue { background-color: rgba(0, 102, 204, 0.15); color: var(--info-color); }
-.green { background-color: rgba(0, 168, 89, 0.15); color: var(--success-color); }
-.orange { background-color: rgba(255, 153, 0, 0.15); color: var(--warning-color); }
-
-  .statLabel {
-    display: block;
-    font-size: 13px;
-  color: var(--text-muted);
-  margin-bottom: 5px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+.clearDateBtn:hover {
+  background: var(--danger-color);
+  color: #fff;
 }
 
-.statValue {
-  font-size: 26px;
-  font-weight: 900;
-}
-
-/* =========================================
-   5. ЗАМОВЛЕННЯ ТА ПОШУК
-   ========================================= */
-.ordersList {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  overflow-x: hidden; 
-  padding-bottom: 10px; 
-}
-
-.noOrders {
-  color: var(--text-muted);
-  font-style: italic;
-}
-
+/* КАРТКА ЗАМОВЛЕННЯ */
 .orderCard {
   background-color: var(--bg-card);
   border: 1px solid var(--border-main);
-  border-left: 2px solid transparent;
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: var(--transition-cyber);
   opacity: 0;
-  animation: dataStream 0.4s ease-out forwards;
+  animation: dataStream 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
-.orderCard:hover {
-  border-color: var(--primary-color);
-  transform: translateX(5px);
-  box-shadow: 0 8px 25px rgba(255, 0, 0, 0.1);
-}
+.orderCard:hover { border-color: #444; transform: translateX(4px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4); }
 
-.orderHeader {
-  background-color: var(--bg-header);
-  padding: 18px 25px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid var(--border-main);
-  flex-wrap: wrap;
-  gap: 15px;
-}
+.orderHeader { background-color: var(--bg-header); padding: 18px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-main); }
+.orderMeta { display: flex; gap: 15px; align-items: center; }
+.orderId { font-weight: 800; color: var(--brand-color); font-family: monospace; font-size: 15px; }
+.orderDate { font-size: 13px; color: var(--text-muted); }
 
-.orderMeta {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 15px;
-}
+.orderStatusActions { display: flex; align-items: center; gap: 15px; }
 
-.orderStatusActions {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
+.statusBadge { font-size: 11px; font-weight: 800; padding: 5px 12px; border-radius: 6px; letter-spacing: 0.5px; }
+.pending { background: rgba(255, 153, 0, 0.08); color: var(--warning-color); border: 1px solid var(--warning-glow); }
+.paid { background: rgba(0, 168, 89, 0.08); color: var(--success-color); border: 1px solid var(--success-glow); }
+.processing { background: rgba(0, 150, 255, 0.08); color: #0096ff; border: 1px solid rgba(0, 150, 255, 0.2); }
+.shipped { background: rgba(0, 102, 204, 0.08); color: var(--info-color); border: 1px solid rgba(0, 102, 204, 0.2); }
+.cancelled { background: rgba(255, 68, 68, 0.08); color: var(--danger-color); border: 1px solid rgba(255, 68, 68, 0.2); }
 
-.orderId {
-  font-weight: 800;
-  color: #ff0000;
-  font-family: monospace;
-  font-size: 15px;
-  word-break: break-all;
-}
+.orderBody { padding: 25px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+.clientBlock p { margin: 0 0 12px 0; color: #bbbbbb; font-size: 14px; }
+.clientBlock strong { color: var(--text-main); }
 
-.orderDate {
-  font-size: 13px;
-  color: #777777;
-}
+.itemsTitle { margin: 0 0 15px 0; font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.itemsListWrapper { display: flex; flex-direction: column; gap: 8px; }
+.itemRow { display: flex; justify-content: space-between; font-size: 14px; background-color: var(--bg-input); padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border-main); }
+.itemNameText { font-weight: 600; color: var(--text-light); }
+.itemPriceText { color: var(--text-muted); }
 
-.ordersHeaderRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 25px;
-  flex-wrap: wrap;
-  gap: 15px;
-}
-
-.ordersHeaderRow .sectionTitle {
-  margin-bottom: 0; 
-}
-
-.filtersControls {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  flex-wrap: wrap;
-}
-
-.adminSearchWrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  width: 320px;
-}
-
-.adminSearchIcon {
-  position: absolute;
-  left: 14px;
-  color: var(--text-muted);
-  font-size: 14px;
-  pointer-events: none;
-}
-
-.adminSearchInput {
-  width: 100%;
-  background-color: var(--bg-input);
-  border: 1px solid var(--border-light);
-  color: var(--text-main);
-  padding: 10px 35px 10px 40px;
-  border-radius: 8px;
-  font-size: 14px;
-  outline: none;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  font-family: inherit;
-}
-
-.adminSearchInput::placeholder {
-  color: #666666;
-}
-
-.adminSearchInput:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 8px rgba(255, 0, 0, 0.2);
-}
-
-.adminSearchClear {
-  position: absolute;
-  right: 10px;
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px;
-  transition: color 0.2s;
-  font-size: 14px;
-}
-
-.adminSearchClear:hover {
-  color: var(--primary-color);
-}
-
-.filterWrapper {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background-color: var(--bg-card);
-  padding: 8px 15px;
-  border-radius: 8px;
-  border: 1px solid var(--border-main);
-}
-
-.filterWrapper label {
-  color: var(--text-muted);
-  font-size: 14px;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.filterSelect {
-  background-color: var(--bg-input);
-  color: var(--text-main);
-  border: 1px solid var(--border-light);
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 14px;
-  outline: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-family: inherit;
-}
-
-.filterSelect:focus, .filterSelect:hover {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 5px rgba(255, 0, 0, 0.2);
-}
-
-.statusBadge {
-  font-size: 12px;
-  font-weight: 800;
-  padding: 6px 14px;
-  border-radius: 6px;
-  text-transform: uppercase;
-}
-.pending { background-color: rgba(255, 153, 0, 0.1); color: var(--warning-color); border: 1px solid rgba(255, 153, 0, 0.3); }
-.paid { background-color: rgba(0, 168, 89, 0.1); color: var(--success-color); border: 1px solid rgba(0, 168, 89, 0.3); }
-.shipped { background-color: rgba(0, 102, 204, 0.1); color: var(--info-color); border: 1px solid rgba(0, 102, 204, 0.3); }
-.cancelled { background-color: rgba(255, 68, 68, 0.1); color: var(--danger-color); border: 1px solid rgba(255, 68, 68, 0.3); }
-
-.orderBody {
-  padding: 25px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 30px;
-}
-
-.clientBlock p {
-  margin: 0 0 12px 0;
-  color: #bbbbbb;
-  font-size: 15px;
-}
-
-.clientBlock p svg {
-  margin-right: 8px;
-  color: #666666;
-}
-
-.itemsTitle {
-  margin: 0 0 15px 0;
-  font-size: 15px;
-  color: #dddddd;
-}
-
-.itemsListWrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.itemRow {
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
-  color: #aaaaaa;
-  background-color: var(--bg-input);
-  padding: 10px 15px;
-  border-radius: 8px;
-  border: 1px solid #2a2a2a;
-}
-
-.orderFooter {
-  border-top: 1px solid var(--border-main);
-  padding: 18px 25px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: var(--bg-header);
-  flex-wrap: wrap;
-  gap: 15px;
-}
-
-.statusControlBlock {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.statusSelect, .ttnInput {
-  background-color: var(--bg-input);
-  border: 1px solid var(--border-light);
-  color: var(--text-main);
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 14px;
-  outline: none;
-  transition: 0.2s;
-}
-
-.statusSelect:focus, .ttnInput:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 5px rgba(255, 0, 0, 0.3);
-}
-
-.ttnInput {
-  width: 180px;
-}
+.orderFooter { border-top: 1px solid var(--border-main); padding: 18px 25px; display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-header); }
+.statusControlBlock { display: flex; gap: 10px; }
+.statusSelect, .ttnInput { background-color: var(--bg-input); border: 1px solid var(--border-main); color: var(--text-main); padding: 10px 14px; border-radius: 8px; font-size: 14px; outline: none; transition: var(--transition-cyber); }
+.ttnInput { width: 180px; }
+.statusSelect:focus, .ttnInput:focus { border-color: var(--brand-color); }
 
 .updateStatusBtn {
-  background-color: var(--primary-color);
-  color: var(--text-main);
-  border: none;
-  padding: 8px 15px;
-  border-radius: 6px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.2s;
+  background: var(--success-color); color: #fff; border: none; padding: 10px 16px; border-radius: 8px; 
+  font-weight: 700; cursor: pointer; transition: var(--transition-cyber); 
 }
-
 .updateStatusBtn:hover {
-  background-color: var(--primary-hover);
-}
-
-.totalBlock {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.totalLabel {
-  color: var(--text-muted);
-  font-size: 14px;
-  text-transform: uppercase;
-  font-weight: 600;
-}
-
-.totalPrice {
-  font-size: 24px;
-  font-weight: 900;
-  color: var(--text-main);
-}
-
-/* =========================================
-   ШАПКА АДМІНКИ ТА КНОПКА ВИХОДУ
-   ========================================= */
-.adminTopHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 35px;
-  flex-wrap: wrap;
-  gap: 15px;
-}
-
-.logoutBtn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: rgba(255, 68, 68, 0.1);
-  color: var(--danger-color);
-  border: 1px solid rgba(255, 68, 68, 0.3);
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: 800;
-  font-size: 14px;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.logoutBtn:hover {
-  background-color: var(--danger-color);
-  color: #ffffff;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(255, 68, 68, 0.3);
-}
-
-.logoutBtn:active {
-  transform: translateY(0);
-}
-
-/* =========================================
-   6. УПРАВЛІННЯ ТОВАРАМИ ТА QUILL EDITOR
-   ========================================= */
-.addProductCard {
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-main);
-  border-radius: 16px;
-  padding: 40px;
-  max-width: 850px;
-  margin: 0 auto;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-}
-
-.addProductCard h3 {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 0;
-  margin-bottom: 30px;
-  color: var(--text-main);
-  font-size: 22px;
-}
-
-.productForm {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.formRow {
-  display: flex;
-  gap: 20px;
-}
-
-.formRow > input, .formRow > select {
-  flex: 1;
-}
-
-.inputField {
-  background-color: var(--bg-input);
-  border: 1px solid var(--border-light);
-  border-radius: 10px;
-  padding: 16px 20px;
-  color: var(--text-main);
-  font-size: 15px;
-  font-family: inherit;
-  transition: all 0.3s ease;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.inputField:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  background-color: #222222;
-  box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.15);
-}
-
-/* РЕДАКТОР QUILL ДЛЯ ТЕМНОЇ ТЕМИ */
-.editorWrapper {
-  margin-bottom: 10px;
-}
-
-.editorWrapper :global(.quill) {
-  background-color: var(--bg-input);
-  border-radius: 10px;
-  overflow: hidden;
-  border: 1px solid var(--border-light);
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.editorWrapper:focus-within :global(.quill) {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.15);
-}
-
-.editorWrapper :global(.ql-toolbar.ql-snow) {
-  background-color: #111111;
-  border: none;
-  border-bottom: 1px solid var(--border-light);
-  padding: 12px;
-}
-
-.editorWrapper :global(.ql-container.ql-snow) {
-  border: none;
-  background-color: var(--bg-input);
-  color: var(--text-main);
-  font-family: inherit;
-  font-size: 15px;
-  min-height: 180px;
-}
-
-.editorWrapper :global(.ql-editor) {
-  min-height: 180px;
-  padding: 20px;
-}
-
-.editorWrapper :global(.ql-editor.ql-blank::before) {
-  color: #666666;
-  font-style: normal;
-  left: 20px;
-}
-
-/* Іконки тулбару Quill */
-.editorWrapper :global(.ql-snow .ql-stroke) { stroke: #cccccc; }
-.editorWrapper :global(.ql-snow .ql-fill) { fill: #cccccc; }
-.editorWrapper :global(.ql-snow .ql-picker) { color: #cccccc; }
-
-.editorWrapper :global(.ql-snow.ql-toolbar button:hover .ql-stroke),
-.editorWrapper :global(.ql-snow .ql-toolbar button:hover .ql-stroke),
-.editorWrapper :global(.ql-snow.ql-toolbar button.ql-active .ql-stroke),
-.editorWrapper :global(.ql-snow .ql-toolbar button.ql-active .ql-stroke) {
-  stroke: var(--primary-color);
-}
-
-.editorWrapper :global(.ql-snow.ql-toolbar button:hover .ql-fill),
-.editorWrapper :global(.ql-snow .ql-toolbar button:hover .ql-fill),
-.editorWrapper :global(.ql-snow.ql-toolbar button.ql-active .ql-fill),
-.editorWrapper :global(.ql-snow .ql-toolbar button.ql-active .ql-fill) {
-  fill: var(--primary-color);
-}
-
-
-.dropZone {
-  border: 2px dashed #444444;
-  border-radius: 12px;
-  background-color: #181818;
-  padding: 40px 20px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.dropZone:hover {
-  border-color: var(--primary-color);
-  background-color: #1e1e1e;
-}
-
-.dropZoneActive {
-  border-color: var(--primary-color);
-  background-color: rgba(255, 0, 0, 0.05);
-  transform: scale(1.01);
-}
-
-.hiddenFileInput {
-  display: none;
-}
-
-.uploadIcon {
-  font-size: 50px;
-  color: #666666;
-  margin-bottom: 15px;
-  transition: color 0.3s ease;
-}
-
-.dropZone:hover .uploadIcon {
-  color: var(--primary-color);
-}
-
-.dropZoneContent p {
-  margin: 0;
-  color: #cccccc;
-  font-size: 16px;
-  font-weight: 500;
-}
-
-.galleryPreview {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
-}
-
-.previewThumbWrapper {
-  position: relative;
-  width: 100px;
-  height: 100px;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 2px solid var(--border-light);
-}
-
-.previewThumb {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.removeThumbBtn {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  background: rgba(255,0,0,0.8);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.submitActionsBlock {
-  display: flex;
-  gap: 15px;
-  margin-top: 15px;
-}
-
-.submitProductBtn {
-  flex: 1;
-  color: var(--text-main);
-  border: none;
-  border-radius: 10px;
-  padding: 18px;
-  font-size: 16px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.submitProductBtn:hover {
-  filter: brightness(1.1);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-}
-
-.submitProductBtn:active {
-  transform: translateY(0);
-}
-
-.cancelProductBtn {
-  flex: 0.3;
-  background-color: #333333;
-  color: var(--text-main);
-  border: none;
-  border-radius: 10px;
-  padding: 18px;
-  font-size: 16px;
-  font-weight: 800;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.cancelProductBtn:hover {
-  background-color: #444444;
-}
-
-.adminProductsSection {
-  margin-top: 50px;
-  animation: fadeSlideUp 0.6s ease-out forwards;
-}
-
-.adminProductsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
-}
-
-.adminProductCard {
-  background-color: var(--bg-header);
-  border: 1px solid #2a2a2a;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  padding: 15px;
-  gap: 15px;
-  transition: transform 0.2s, border-color 0.2s;
-}
-
-.adminProductCard:hover {
-  border-color: #555555;
-  transform: translateY(-3px);
-}
-
-.adminProductLinkWrapper {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  flex: 1;
-  text-decoration: none;
-  min-width: 0;
-}
-
-.adminProductThumb {
-  width: 70px;
-  height: 70px;
-  object-fit: cover;
-  border-radius: 8px;
-  background-color: #ffffff;
-  flex-shrink: 0;
-}
-
-.adminProductInfo {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-width: 0;
-}
-
-.adminProductInfo h4 {
-  margin: 0 0 5px 0;
-  font-size: 15px;
-  color: var(--text-main);
-  line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.adminProductPrice {
-  color: var(--success-color);
-  font-weight: 800;
-  font-size: 16px;
-}
-
-.adminProductActions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: flex-end;
-}
-
-.adminProductActions button {
-  width: 35px;
-  height: 35px;
-  border: none;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: 0.2s;
-  color: var(--text-main);
-  font-size: 14px;
-}
-
-.adminProductActions button.actionBtn {
-  width: auto; 
-  padding: 0 12px;
-  background-color: var(--border-light);
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.adminProductActions button.actionBtn:hover { background-color: var(--info-color); }
-.editBtn { background-color: var(--border-light); }
-.editBtn:hover { background-color: var(--success-color); }
-.deleteBtn { background-color: var(--border-light); }
-.deleteBtn:hover { background-color: var(--primary-color); }
-
-.aiButton {
-  background: linear-gradient(45deg, #7b2cbf, #9d4edd);
-  color: #ffffff;
-  border: none;
-  padding: 14px 22px;
-  border-radius: 8px;
-  font-family: 'Russo One', sans-serif;
-  font-weight: 400;
-  font-size: 14px;
-  letter-spacing: 1px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(157, 78, 221, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.aiButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(157, 78, 221, 0.6);
-  background: linear-gradient(45deg, #9d4edd, #c77dff);
-}
-
-.aiButton:active {
-  transform: translateY(0);
-}
-
-/* =========================================
-   7. МОДАЛЬНЕ ВІКНО ВІДГУКІВ ТА ВИДАЛЕННЯ
-   ========================================= */
-.modalOverlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  backdrop-filter: blur(5px);
-  padding: 20px;
-}
-
-.reviewsModal, .deleteConfirmModal {
-  background: #111;
-  border: 1px solid var(--border-light);
-  border-radius: 12px;
-  width: 100%;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-  display: flex;
-  flex-direction: column;
-}
-
-.reviewsModal {
-  max-width: 600px;
-  max-height: 85dvh;
-}
-
-.deleteConfirmModal {
-  max-width: 400px;
-}
-
-.modalHeader {
-  padding: 20px;
-  border-bottom: 1px solid var(--border-main);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: #fff;
-  flex-shrink: 0;
-}
-
-.modalHeader h3 { margin: 0; font-size: 18px; }
-
-.dangerTitle {
-  color: var(--danger-color);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.closeModalBtn {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 20px;
-  cursor: pointer;
-}
-
-.closeModalBtn:hover { color: var(--primary-color); }
-
-.modalBody {
-  padding: 20px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.modalBodyConfirm {
-  padding: 30px 20px;
-  text-align: center;
-}
-
-.modalBodyConfirm p {
-  color: var(--text-light);
-  font-size: 16px;
-  line-height: 1.5;
-  margin: 0 0 25px 0;
-}
-
-.confirmActions {
-  display: flex;
-  gap: 15px;
-  justify-content: center;
-}
-
-.confirmActions button {
-  flex: 1;
-  padding: 12px;
-  border: none;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.2s;
-  color: #ffffff;
-}
-
-.cancelConfirmBtn { background-color: #333333; }
-.cancelConfirmBtn:hover { background-color: #444444; }
-
-.deleteConfirmBtn { background-color: var(--danger-color); }
-.deleteConfirmBtn:hover { background-color: #cc0000; }
-
-.noReviews {
-  color: #9c9c9c;
-  text-align: center;
-  font-style: italic;
-}
-
-.adminReviewCard {
-  background: var(--bg-input);
-  padding: 15px;
-  border-radius: 8px;
-  border: 1px solid var(--border-light);
-}
-
-.adminReviewHeader {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  color: #fff;
-  margin-bottom: 10px;
-}
-
-.stars { color: var(--primary-color); letter-spacing: 2px; }
-.date { color: #666; font-size: 12px; margin-left: auto; }
-.adminReviewText { color: #ccc; font-size: 14px; margin: 0 0 15px 0; }
-
-.adminReviewActions { display: flex; gap: 10px; }
-
-.replyBtn, .deleteReviewBtn {
-  padding: 6px 12px;
-  border-radius: 4px;
-  border: none;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: bold;
-}
-
-.replyBtn { background: var(--border-light); color: #fff; }
-.replyBtn:hover { background: #555; }
-.deleteReviewBtn { background: rgba(255,0,0,0.1); color: var(--primary-color); }
-.deleteReviewBtn:hover { background: var(--primary-color); color: #fff; }
-
-.replyBox { margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
-
-.replyBox textarea {
-  width: 100%;
-  height: 80px;
-  background: #000;
-  border: 1px solid #444;
-  color: #fff;
-  padding: 10px;
-  border-radius: 6px;
-  font-family: inherit;
-  box-sizing: border-box;
-}
-
-.replyBoxActions { display: flex; gap: 10px; }
-
-.replyBoxActions button {
-  padding: 8px 15px;
-  background: var(--success-color);
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.replyBoxActions .cancelReplyBtn {
-  background: transparent;
-  color: var(--text-muted);
-  border: 1px solid #444;
-}
-
-.existingReply {
-  margin-top: 10px;
-  padding: 10px;
-  background: rgba(0, 168, 89, 0.1);
-  border-left: 3px solid var(--success-color);
-  color: #ddd;
-  font-size: 13px;
-  border-radius: 0 4px 4px 0;
+  background: #008a4a; box-shadow: 0 4px 15px var(--success-glow); transform: translateY(-2px);
 }
 
 .deleteOrderBtn {
-  background: rgba(255, 68, 68, 0.1);
-  color: var(--danger-color);
-  border: 1px solid rgba(255, 68, 68, 0.3);
-  border-radius: 6px;
-  width: 34px;
-  height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  background: rgba(255, 68, 68, 0.08); color: var(--danger-color); border: 1px solid rgba(255, 68, 68, 0.15);
+  border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: var(--transition-cyber);
 }
+.deleteOrderBtn:hover { background: var(--danger-color); color: #fff; }
 
-.deleteOrderBtn:hover {
-  background: var(--danger-color);
-  color: #ffffff;
-  transform: scale(1.05);
-  box-shadow: 0 4px 10px rgba(255, 68, 68, 0.2);
-}
-
-.statusBadge.processing {
-  background-color: rgba(0, 150, 255, 0.15);
-  color: #0096ff;
-  border: 1px solid rgba(0, 150, 255, 0.3);
-}
+.totalBlock { display: flex; align-items: center; gap: 10px; }
+.totalLabel { color: var(--text-muted); font-size: 12px; text-transform: uppercase; font-weight: 700; }
+.totalPrice { font-size: 24px; font-weight: 900; color: var(--text-main); }
 
 /* =========================================
-   СЕРВІСНІ ТІКЕТИ (КІБЕР-ПАНЕЛЬ)
+   6. УПРАВЛІННЯ ТОВАРАМИ
+   ========================================= */
+.addProductCard {
+  background-color: var(--bg-card); border: 1px solid var(--border-main); border-radius: 16px;
+  padding: 40px; max-width: 850px; margin: 0 auto 50px auto;
+}
+
+.formTitle { 
+  font-family: 'Russo One', sans-serif; font-weight: 400; font-size: 20px; 
+  display: flex; align-items: center; gap: 10px; margin-bottom: 25px; color: var(--text-main); 
+}
+
+.productForm { display: flex; flex-direction: column; gap: 20px; }
+.formRow { display: flex; gap: 20px; }
+.formRow > input, .formRow > select, .cascadingField { flex: 1; }
+
+.cascadingField { position: relative; }
+.customInputWrapper { display: flex; position: relative; }
+.customInputWrapper .inputField { padding-right: 35px; border-color: var(--warning-color); }
+.cancelCustomBtn { 
+  position: absolute; right: 5px; top: 50%; transform: translateY(-50%); 
+  background: none; border: none; color: var(--text-muted); font-size: 16px; cursor: pointer; transition: color 0.2s;
+}
+.cancelCustomBtn:hover { color: var(--primary-color); }
+
+.addCustomOption { color: var(--warning-color); font-weight: bold; background-color: #222; }
+
+.inputField {
+  width: 100%; background-color: var(--bg-input); border: 1px solid var(--border-main); border-radius: 8px;
+  padding: 14px 18px; color: var(--text-main); font-size: 15px; transition: var(--transition-cyber); box-sizing: border-box;
+}
+.inputField:focus { outline: none; border-color: var(--brand-color); background-color: #1a1a1a; box-shadow: 0 0 0 3px rgba(231,0,11,0.15); }
+
+.editorWrapper :global(.quill) { background-color: var(--bg-input); border-radius: 8px; overflow: hidden; border: 1px solid var(--border-main); }
+.editorWrapper :global(.ql-toolbar.ql-snow) { background-color: var(--bg-header); border: none; border-bottom: 1px solid var(--border-main); padding: 12px; }
+.editorWrapper :global(.ql-container.ql-snow) { border: none; color: var(--text-main); font-size: 15px; min-height: 160px; }
+.editorWrapper :global(.ql-editor) { padding: 18px; }
+.editorWrapper :global(.ql-stroke) { stroke: var(--text-light) !important; }
+.editorWrapper :global(.ql-fill) { fill: var(--text-light) !important; }
+
+.aiButton {
+  background: linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%); color: #ffffff; border: none;
+  padding: 14px 24px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: var(--transition-cyber);
+}
+.aiButton:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(109, 40, 217, 0.4); }
+
+.dropZone {
+  border: 2px dashed var(--border-light); border-radius: 12px; background-color: var(--bg-input);
+  padding: 40px 20px; text-align: center; cursor: pointer; transition: var(--transition-cyber);
+}
+.dropZone:hover, .dropZoneActive { border-color: var(--brand-color); background-color: rgba(231, 0, 11, 0.02); }
+.uploadIcon { font-size: 44px; color: var(--text-muted); margin-bottom: 12px; }
+.hiddenFileInput { display: none; }
+
+.galleryPreview { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.previewThumbWrapper { position: relative; width: 90px; height: 90px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-main); }
+.previewThumb { width: 100%; height: 100%; object-fit: cover; }
+.removeThumbBtn {
+  position: absolute; top: 4px; right: 4px; background: rgba(255,0,0,0.8); color: #fff;
+  border: none; border-radius: 50%; width: 18px; height: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+
+.submitActionsBlock { display: flex; gap: 15px; }
+.submitProductBtn { flex: 1; border: none; border-radius: 8px; padding: 16px; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: var(--transition-cyber); }
+.submitProductBtn:hover { filter: brightness(1.1); transform: translateY(-2px); }
+.cancelProductBtn { background-color: #222; color: var(--text-main); border: none; border-radius: 8px; padding: 16px; font-weight: 800; cursor: pointer; transition: var(--transition-cyber); }
+.cancelProductBtn:hover { background-color: #333; }
+
+/* FIX: ГРІД ПРОДУКТІВ - Вирішення накладання заголовків на кнопки */
+.adminProductsSection { margin-top: 50px; }
+.adminProductsGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
+
+.adminProductCard {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-main);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  padding: 16px; 
+  gap: 16px;
+  transition: var(--transition-cyber);
+}
+
+.adminProductCard:hover { border-color: var(--border-light); transform: translateY(-2px); }
+
+.adminProductLinkWrapper { 
+  display: flex; align-items: center; gap: 16px; flex: 1; text-decoration: none; min-width: 0; 
+}
+
+.adminProductThumb { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; background-color: #000; flex-shrink: 0; }
+
+.adminProductInfo { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+.adminProductInfo h4 { margin: 0 0 6px 0; font-size: 15px; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+
+/* КРАСИВІ ТЕГИ ДЛЯ КАРТОК В АДМІНЦІ */
+.adminProductTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.tagCategory {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-main);
+  border-radius: 4px;
+  color: var(--text-light);
+  white-space: nowrap;
+}
+
+.tagBrand {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  background: rgba(231,0,11,0.08);
+  border: 1px solid rgba(231,0,11,0.2);
+  border-radius: 4px;
+  color: var(--brand-color);
+  white-space: nowrap;
+}
+
+.adminProductPrice { color: var(--success-color); font-weight: 800; font-size: 14px; }
+
+.adminProductActions { display: flex; gap: 8px; flex-shrink: 0; }
+.adminProductActions button { width: 34px; height: 34px; border: none; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition-cyber); color: var(--text-main); }
+
+.reviewsBtn { background-color: rgba(255, 170, 0, 0.08); color: #ffaa00 !important; border: 1px solid rgba(255, 170, 0, 0.15) !important; }
+.reviewsBtn:hover { background-color: #ffaa00; color: #000 !important; }
+.editBtn { background-color: rgba(0, 168, 89, 0.08); color: var(--success-color) !important; }
+.editBtn:hover { background-color: var(--success-color); color: #fff !important; }
+.deleteBtn { background-color: rgba(255, 68, 68, 0.08); color: var(--danger-color) !important; }
+.deleteBtn:hover { background-color: var(--danger-color); color: #fff !important; }
+
+/* =========================================
+   7. СЕРВІСНІ ТІКЕТИ 
    ========================================= */
 .serviceGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 20px;
-  animation: fadeSlideUp 0.4s ease-out;
 }
 
 .serviceTicket {
-  background-color: var(--bg-card); /* Такий самий фон, як у звичайних замовлень */
+  background-color: var(--bg-card);
   border: 1px solid var(--border-main);
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 14px;
+  padding: 24px;
   position: relative;
   display: flex;
   flex-direction: column;
-  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: var(--transition-cyber);
 }
 
-.serviceTicket:hover {
-  border-color: var(--primary-color);
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(255, 0, 0, 0.1);
-}
-
-/* Кольорові статуси - акуратні смужки зліва (без зайвого неону) */
-.serviceTicket::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 4px; height: 100%;
-  border-radius: 12px 0 0 12px;
-  transition: background-color 0.3s;
-}
+.serviceTicket:hover { border-color: #444; transform: translateY(-4px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.serviceTicket::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; border-radius: 14px 0 0 14px; }
 
 .statusNew::before { background-color: var(--danger-color); }
 .statusInProgress::before { background-color: var(--warning-color); }
 .statusCompleted::before { background-color: var(--success-color); }
-.statusCancelled::before { background-color: #555555; }
+.statusCancelled::before { background-color: #444; }
+.statusReviewed::before { background-color: var(--info-color); }
+.statusAccepted::before { background-color: var(--success-color); }
+.statusRejected::before { background-color: #444; }
 
-.statusReviewed::before { background-color: #ffaa00; }
-.statusAccepted::before { background-color: var(--success-color, #00ff88); }
-.statusRejected::before { background-color: #555555; }
+.ticketHeader { display: flex; justify-content: space-between; margin-bottom: 16px; }
+.ticketDate { color: var(--text-muted); font-size: 12px; }
+.ticketId { color: var(--brand-color); font-family: monospace; font-weight: 800; }
 
-.ticketHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
+.ticketBody { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.clientName { font-size: 18px; margin: 0; font-weight: 700; }
+.clientPhone { color: var(--text-light); text-decoration: none; font-weight: 600; width: fit-content; }
+.clientPhone:hover { color: var(--brand-color); }
 
-.ticketDate { color: var(--text-muted); font-size: 13px; }
-.ticketId { color: var(--primary-color); font-family: monospace; font-size: 14px; font-weight: 800; }
+.deviceTag { background-color: var(--bg-input); border: 1px solid var(--border-main); padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; width: fit-content; }
+.expectedPriceBox { background-color: rgba(0, 255, 136, 0.04); border: 1px dashed #00ff88; color: #00ff88; padding: 10px 14px; border-radius: 8px; margin: 4px 0; }
 
-.ticketBody { 
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
+.equipmentTags { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0; }
+.equipTag { background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 4px; font-size: 11px; color: var(--text-light); }
 
-  .clientName {
-  color: var(--text-main);
-  font-size: 18px;
-  margin: 0 0 8px 0;
-  font-weight: 700;
-}
+.problemBox { background-color: var(--bg-input); border-radius: 8px; padding: 14px; border: 1px solid var(--border-main); }
+.problemBox strong { display: block; font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+.problemBox p { margin: 0; color: #b3b3b3; font-size: 14px; line-height: 1.5; }
 
-.clientPhone {
-  display: inline-block;
-  color: var(--text-light);
-  text-decoration: none;
-  font-size: 15px;
-  font-weight: 600;
-  margin-bottom: 15px;
-  transition: color 0.2s;
-}
-.clientPhone:hover { color: var(--primary-color); }
+.readMoreBtn { background: none; border: none; color: var(--brand-color); padding: 0; margin-left: 5px; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: underline; }
+.readMoreBtn:hover { color: #fff; }
 
-.deviceTag {
-  background-color: var(--bg-input);
-  border: 1px solid var(--border-light);
-  color: var(--text-light);
-  padding: 6px 12px;
-  border-radius: 6px;
-  display: inline-block;
-  font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 15px;
-  width: fit-content;
-}
+.tradeInGallery { display: flex; gap: 8px; margin-top: 10px; overflow-x: auto; padding-bottom: 6px; }
+.tradeInThumb { width: 55px; height: 55px; border-radius: 6px; object-fit: cover; cursor: pointer; border: 1px solid var(--border-main); transition: var(--transition-cyber); }
+.tradeInThumb:hover { border-color: var(--brand-color); transform: scale(1.05); }
 
-.problemBox {
-  background-color: var(--bg-input);
-  border-radius: 8px;
-  padding: 12px 15px;
-  border: 1px solid #2a2a2a;
-}
+.ticketFooter { display: flex; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-main); }
+.serviceStatusSelect { flex: 1; background-color: var(--bg-input); border: 1px solid var(--border-main); color: var(--text-main); padding: 10px; border-radius: 6px; font-weight: 600; outline: none; transition: var(--transition-cyber); }
+.serviceStatusSelect:focus { border-color: var(--brand-color); }
 
-.problemBox strong {
-  display: block;
-  color: var(--text-muted);
-  font-size: 12px;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-
-.problemBox p {
-  margin: 0;
-  color: #aaaaaa;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.ticketFooter {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 20px;
-  padding-top: 15px;
-  border-top: 1px solid var(--border-main);
-  gap: 15px;
-}
-
-.serviceStatusSelect {
-  flex: 1;
-  background-color: var(--bg-input);
-  color: var(--text-main);
-  border: 1px solid var(--border-light);
-  padding: 10px 12px;
-  border-radius: 6px;
-  font-family: inherit;
-  font-weight: 600;
-  outline: none;
-  cursor: pointer;
-  transition: border-color 0.2s;
-}
-
-.serviceStatusSelect:focus { border-color: var(--primary-color); }
-
-.deleteTicketBtn {
-  background-color: rgba(255, 68, 68, 0.1);
-  color: var(--danger-color);
-  border: 1px solid rgba(255, 68, 68, 0.3);
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-  flex-shrink: 0;
-}
-
-.deleteTicketBtn:hover {
-  background-color: var(--danger-color);
-  color: #ffffff;
-  transform: scale(1.05);
-}
+.deleteTicketBtn { background: rgba(255,68,68,0.08); color: var(--danger-color); border: 1px solid rgba(255,68,68,0.15); width: 40px; height: 40px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition-cyber); }
+.deleteTicketBtn:hover { background: var(--danger-color); color: #fff; }
 
 /* =========================================
-   УПРАВЛІННЯ ВІДГУКАМИ (АДМІН)
+   8. CRM КЛІЄНТИ (ПОВНИЙ РЕДИЗАЙН)
    ========================================= */
+.crmGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
 
-.reviewsBtn {
-  background-color: #2a2a2a;
-  color: #ffaa00;
-  border: 1px solid #444;
-  border-radius: 6px;
-  padding: 8px 12px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: bold;
-  transition: all 0.2s;
+.crmClientCard {
+  background-color: var(--bg-card); border: 1px solid var(--border-main); border-radius: 12px;
+  padding: 16px 20px; display: flex; align-items: center; gap: 16px; cursor: pointer; transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.reviewsBtn:hover {
-  background-color: #333;
-  border-color: #ffaa00;
-  transform: scale(1.05);
+.crmClientCard:hover { background-color: var(--bg-header); border-color: var(--border-light); transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.4); }
+
+.crmClientAvatar {
+  width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, rgba(231,0,11,0.2) 0%, rgba(231,0,11,0.05) 100%);
+  border: 1px solid rgba(231,0,11,0.4); color: var(--brand-color); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
 }
 
-.reviewsModalContent {
-  background-color: #0c0c0c;
-  border: 1px solid #333;
-  width: 90%;
-  max-width: 600px;
-  max-height: 85vh;
-  border-radius: 12px;
-  padding: 30px;
-  position: relative;
-  display: flex;
-  flex-direction: column;
+.crmClientInfo { flex: 1; display: flex; flex-direction: column; }
+.crmClientInfo h4 { margin: 0 0 4px 0; font-size: 16px; color: var(--text-main); }
+.crmClientInfo span { font-size: 13px; color: var(--text-muted); }
+
+.crmClientAction { color: var(--border-light); font-size: 14px; transition: color 0.3s; }
+.crmClientCard:hover .crmClientAction { color: var(--brand-color); transform: translateX(3px); }
+
+/* =========================================
+   9. КАЛЕНДАР (DARK/CYBER СТИЛІЗАЦІЯ)
+   ========================================= */
+.crmCalendarWrapper { border-radius: 16px; padding: 20px; min-height: 600px; background-color: var(--bg-card); border: 1px solid var(--border-main); }
+.crmCalendarWrapper :global(.react-calendar), .crmCalendarWrapper :global(.rbc-calendar), .crmCalendarWrapper :global(.fc) { font-family: inherit; background: transparent !important; border: none !important; color: var(--text-main) !important; }
+.crmCalendarWrapper :global(.rbc-month-view), .crmCalendarWrapper :global(.rbc-time-view) { border: 1px solid var(--border-main); border-radius: 8px; overflow: hidden; }
+.crmCalendarWrapper :global(.rbc-header) { padding: 12px 0; font-weight: 800; border-bottom: 1px solid var(--border-main) !important; border-left: 1px solid var(--border-main) !important; background-color: var(--bg-header); color: var(--text-muted); }
+.crmCalendarWrapper :global(.rbc-day-bg) { border-left: 1px solid var(--border-main) !important; }
+.crmCalendarWrapper :global(.rbc-month-row) { border-top: 1px solid var(--border-main) !important; }
+.crmCalendarWrapper :global(.rbc-off-range-bg) { background-color: rgba(255,255,255,0.02) !important; }
+.crmCalendarWrapper :global(.rbc-today) { background-color: rgba(231, 0, 11, 0.08) !important; }
+.crmCalendarWrapper :global(.rbc-event) { background-color: var(--brand-color) !important; border: none !important; border-radius: 4px !important; padding: 4px 8px !important; font-size: 12px !important; box-shadow: 0 2px 5px rgba(231,0,11,0.3) !important; }
+.crmCalendarWrapper :global(.rbc-toolbar button) { color: var(--text-main) !important; border: 1px solid var(--border-main) !important; background: var(--bg-input) !important; border-radius: 6px !important; padding: 6px 14px !important; transition: all 0.2s !important; }
+.crmCalendarWrapper :global(.rbc-toolbar button:hover) { background: var(--border-light) !important; color: #fff !important; }
+.crmCalendarWrapper :global(.rbc-toolbar button.rbc-active) { background: var(--brand-color) !important; border-color: var(--brand-color) !important; box-shadow: none !important; }
+
+/* =========================================
+   10. ПРЕМІУМ ГЛАССМОРФІЗМ МОДАЛОК
+   ========================================= */
+.modalOverlay, .imageModalOverlay {
+  position: fixed; inset: 0; background: rgba(3, 3, 3, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px;
 }
 
-.reviewsListAdmin {
-  overflow-y: auto;
-  margin-top: 20px;
-  padding-right: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+.deleteConfirmModal, .reviewsModalContent, .fullTextModalContent {
+  background: #0d0d0d; border: 1px solid var(--border-light); border-radius: 16px; width: 100%;
+  box-shadow: 0 25px 50px rgba(0,0,0,0.7); animation: systemBoot 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.reviewsListAdmin::-webkit-scrollbar {
-  width: 6px;
-}
+.deleteConfirmModal { max-width: 420px; }
+.reviewsModalContent { max-width: 640px; max-height: 85vh; padding: 30px; display: flex; flex-direction: column; }
+.fullTextModalContent { max-width: 550px; display: flex; flex-direction: column; }
 
-.reviewsListAdmin::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 4px;
-}
+.modalHeader { padding: 20px; border-bottom: 1px solid var(--border-main); display: flex; justify-content: space-between; align-items: center; }
+.modalHeader h3 { font-family: 'Russo One', sans-serif; font-weight: 400 !important; }
+.dangerTitle { color: var(--danger-color); display: flex; align-items: center; gap: 10px; }
+.closeModalBtn { background: none; border: none; color: var(--text-muted); font-size: 22px; cursor: pointer; transition: var(--transition-cyber); }
+.closeModalBtn:hover { color: var(--brand-color); transform: scale(1.1); }
 
-.adminReviewCard {
-  background-color: #111;
-  border: 1px solid #222;
-  border-radius: 8px;
-  padding: 20px;
-}
+.modalBodyConfirm { padding: 30px 20px; text-align: center; }
+.modalBodyConfirm p { color: var(--text-light); line-height: 1.6; margin-bottom: 25px; }
+.warningText { color: var(--danger-color); }
+.confirmActions { display: flex; gap: 12px; }
+.confirmActions button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; color: #fff; transition: var(--transition-cyber); }
+.cancelConfirmBtn { background-color: #222; }
+.cancelConfirmBtn:hover { background-color: #333; }
+.deleteConfirmBtn { background-color: var(--danger-color); }
+.deleteConfirmBtn:hover { background-color: #cc0000; }
 
-.adminReviewHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
-  border-bottom: 1px solid #222;
-  padding-bottom: 12px;
-}
+.fullTextBody { padding: 30px; max-height: 70vh; overflow-y: auto; }
+.fullTextBody p { margin: 0; color: #ccc; line-height: 1.7; font-size: 15px; white-space: pre-wrap; }
+
+/* ВІДНОВЛЕНО: Класи управління відгуками */
+.reviewsListAdmin { overflow-y: auto; margin-top: 20px; display: flex; flex-direction: column; gap: 15px; padding-right: 8px; }
+.adminReviewCard { background-color: var(--bg-input); border: 1px solid var(--border-main); border-radius: 10px; padding: 20px; }
+.adminReviewHeader { display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-main); padding-bottom: 12px; margin-bottom: 12px; }
+.adminReviewText { color: #d1d1d1; font-size: 14.5px; line-height: 1.6; margin: 0 0 15px 0; }
 
 .deleteReviewBtn {
-  background: none;
-  border: none;
-  color: #ff4444;
-  cursor: pointer;
-  font-size: 16px;
-  padding: 5px;
-  transition: 0.2s;
+  background: rgba(255,68,68,0.1); color: var(--danger-color); border: none; width: 32px; height: 32px; 
+  border-radius: 6px; cursor: pointer; transition: var(--transition-cyber); display: flex; align-items: center; justify-content: center; 
 }
+.deleteReviewBtn:hover { background: var(--danger-color); color: #fff; }
 
-.deleteReviewBtn:hover {
-  color: #E7000B;
-  transform: scale(1.1);
-}
-
-.adminReviewText {
-  color: #ccc;
-  font-size: 14.5px;
-  line-height: 1.6;
-  margin-bottom: 15px;
-}
-
-/* Відповідь Адміна */
-.adminReplyBox {
-  background-color: rgba(231, 0, 11, 0.05);
-  border-left: 3px solid #E7000B;
-  padding: 12px 15px;
-  border-radius: 4px;
-  margin-top: 15px;
-}
-
-.adminReplyBox strong {
-  color: #E7000B;
-  font-size: 13px;
-}
-
-.adminReplyBox p {
-  color: #fff;
-  font-size: 14px;
-}
+.adminReplyBox { background: rgba(231,0,11,0.03); border-left: 3px solid var(--brand-color); padding: 14px; border-radius: 4px; }
+.adminReplyBox strong { color: var(--brand-color); font-size: 13px; display: block; margin-bottom: 4px; }
+.adminReplyBox p { margin: 0; color: #fff; font-size: 14px; }
 
 .editReplyBtn, .addReplyBtn {
-  background: none;
-  border: none;
-  color: #888;
-  font-size: 12px;
-  text-decoration: underline;
-  cursor: pointer;
-  padding: 0;
-  margin-top: 8px;
+  background: none; border: 1px solid var(--brand-color); color: var(--brand-color); padding: 6px 12px; 
+  border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; margin-top: 10px; transition: var(--transition-cyber); 
 }
+.editReplyBtn:hover, .addReplyBtn:hover { background: var(--brand-color); color: #fff; }
 
-.editReplyBtn:hover, .addReplyBtn:hover {
-  color: #fff;
-}
+.replyInputBox { margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
+.replyTextarea { width: 100%; background: #080808; border: 1px solid var(--border-main); color: #fff; padding: 12px; border-radius: 8px; resize: vertical; outline: none; box-sizing: border-box; transition: var(--transition-cyber); }
+.replyTextarea:focus { border-color: var(--brand-color); box-shadow: 0 0 0 3px rgba(231,0,11,0.15); }
+.replyActions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
 
-/* Форма відповіді */
-.replyInputBox {
-  margin-top: 15px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
+.saveReplyBtn { background: var(--brand-color); color: #fff; border: none; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-family: 'Russo One', sans-serif; font-weight: 400; font-size: 12px; transition: var(--transition-cyber); }
+.saveReplyBtn:hover { background: #cc0000; }
 
-.replyTextarea {
-  background-color: #050505;
-  border: 1px solid #333;
-  color: #fff;
-  padding: 12px;
-  border-radius: 6px;
-  font-family: inherit;
-  resize: vertical;
-  outline: none;
-}
+.cancelReplyBtn { background: #333; color: #fff; border: none; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-family: 'Russo One', sans-serif; font-weight: 400; font-size: 12px; transition: var(--transition-cyber); }
+.cancelReplyBtn:hover { background: #444; }
 
-.replyTextarea:focus {
-  border-color: #E7000B;
-}
 
-.replyActions {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-}
-
-.saveReplyBtn {
-  background-color: #E7000B;
-  color: #fff;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-family: 'Russo One', sans-serif;
-  font-weight: 400; /* Фікс шрифту */
-  font-size: 12px;
-}
-
-.saveReplyBtn:hover { background-color: #cc0000; }
-
-.cancelReplyBtn {
-  background-color: #333;
-  color: #fff;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.cancelReplyBtn:hover { background-color: #444; }
-
-/* =========================================
-   TRADE-IN ТІКЕТИ ТА ГАЛЕРЕЯ (АДМІНКА)
-   ========================================= */
-
-.equipmentTags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 15px;
-}
-
-.equipTag {
-  background-color: rgba(231, 0, 11, 0.1);
-  color: #ff9999;
-  border: 1px solid rgba(231, 0, 11, 0.3);
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.tradeInGallery {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  padding-bottom: 10px;
-  margin-top: 15px;
-}
-
-.tradeInGallery::-webkit-scrollbar {
-  height: 6px;
-}
-
-.tradeInGallery::-webkit-scrollbar-thumb {
-  background: #333333;
-  border-radius: 4px;
-}
-
-.tradeInThumb {
-  width: 60px;
-  height: 60px;
-  border-radius: 6px;
-  object-fit: cover;
-  cursor: pointer;
-  border: 1px solid #333333;
-  transition: all 0.2s;
-  flex-shrink: 0;
-}
-
-.tradeInThumb:hover {
-  border-color: #E7000B;
-  transform: scale(1.05);
-}
-
-/* МОДАЛКА ДЛЯ ПЕРЕГЛЯДУ ФОТО */
-.imageModalOverlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.95);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  animation: fadeIn 0.3s ease-out;
-}
-
-.imageModalContent {
-  position: relative;
-  max-width: 90%;
-  max-height: 90vh;
-}
-
-.imageModalContent img {
-  max-width: 100%;
-  max-height: 90vh;
-  border-radius: 8px;
-  box-shadow: 0 10px 40px rgba(231, 0, 11, 0.2);
-  user-select: none;
-}
-
-.closeImageBtn {
-  position: absolute;
-  top: -40px;
-  right: 0;
-  background: none;
-  border: none;
-  color: #ffffff;
-  font-size: 30px;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.closeImageBtn:hover {
-  color: #E7000B;
-}
+/* ПОЛНОЕКРАННИЙ ПЕРЕГЛЯД ЗОБРАЖЕНЬ */
+.imageModalContent { position: relative; max-width: 85%; max-height: 85vh; }
+.imageModalContent img { max-width: 100%; max-height: 85vh; border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,0.8); }
+.closeImageBtn { position: absolute; top: -45px; right: 0; background: none; border: none; color: #fff; font-size: 32px; cursor: pointer; }
+.imgCounter { position: absolute; bottom: -35px; left: 50%; transform: translateX(-50%); color: var(--text-muted); font-family: 'Russo One', sans-serif; font-weight: 400; letter-spacing: 1px; }
 
 .navImgBtn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(0,0,0,0.7);
-  color: #ffffff;
-  border: 1px solid #333333;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  font-size: 20px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s;
+  position: absolute; top: 50%; transform: translateY(-50%);
+  background: rgba(15,15,15,0.8); border: 1px solid var(--border-main);
+  color: #fff; width: 48px; height: 48px; border-radius: 50%;
+  font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;
 }
-
-.navImgBtn:hover {
-  background: #E7000B;
-  border-color: #E7000B;
-}
-
-.navPrev { left: -70px; }
-.navNext { right: -70px; }
-
-.imgCounter {
-  position: absolute;
-  bottom: -35px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: #888888;
-  font-family: 'Russo One', sans-serif;
-  font-weight: 400;
-  font-size: 16px;
-  letter-spacing: 2px;
-}
+.navImgBtn:hover { background: var(--brand-color); border-color: var(--brand-color); }
+.navPrev { left: -65px; }
+.navNext { right: -65px; }
 
 /* =========================================
-   ФІКС ШРИФТУ ТА СТИЛІ ДЛЯ ВИКУПУ
+   11. АДАПТИВНІСТЬ (MOBILE)
    ========================================= */
-
-/* Примусово прибираємо жирність для Russo One, щоб не милило */
-.pageTitle, .sectionTitle, .dangerTitle, .imgCounter {
-  font-family: 'Russo One', sans-serif;
-  font-weight: 400 !important;
+@media (max-width: 1024px) {
+  .navPrev { left: 15px; }
+  .navNext { right: 15px; }
 }
 
-/* Блок очікуваної ціни у тікеті Викупу */
-.expectedPriceBox {
-  background-color: rgba(0, 255, 136, 0.05);
-  border: 1px dashed #00ff88;
-  color: #00ff88;
-  padding: 10px 15px;
-  border-radius: 6px;
-  margin: 10px 0;
-  font-size: 15px;
-  display: inline-block;
-}
-
-.expectedPriceBox strong {
-  color: #ffffff;
-  margin-right: 8px;
-}
-
-/* =========================================
-   8. АДАПТИВНІСТЬ ДЛЯ МОБІЛЬНИХ ПРИСТРОЇВ
-   ========================================= */
 @media (max-width: 768px) {
-  .adminPage { padding: 20px 10px; }
-  .pageTitle { font-size: 24px; margin-bottom: 20px; border-width: 4px; }
-  .adminTopHeader { flex-direction: column; align-items: flex-start; }
-  .logoutBtn { width: 100%; justify-content: center; }
-
-  /* Вкладки */
-  .tabsWrapper { flex-direction: column; gap: 10px; border-bottom: none; padding-bottom: 0; }
-  .tabBtn { width: 100%; background-color: var(--bg-input); border-radius: 8px; padding: 14px; font-size: 14px; }
-  .activeTab { background-color: var(--primary-color); color: #ffffff; }
+  .adminTopHeader { flex-direction: column; align-items: stretch; gap: 15px; }
+  .adminTopHeader > div { flex-direction: column; }
+  .syncBtn, .logoutBtn { width: 100%; justify-content: center; }
+  
+  .tabsWrapper { border-bottom: none; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .tabBtn { width: calc(50% - 4px); background: var(--bg-card); border: 1px solid var(--border-main); text-align: center; padding: 12px; }
   .activeTab::after { display: none; }
+  .activeTab { background-color: var(--brand-color); color: #fff; border-color: var(--brand-color); }
 
-  /* ФІЛЬТРИ ТА ПОШУК НА МОБІЛЬНИХ */
-  .filtersControls { flex-direction: column; width: 100%; align-items: stretch; gap: 10px; }
+  .filtersControls { flex-direction: column; align-items: stretch; width: 100%; }
   .adminSearchWrapper { width: 100%; }
-  .filterWrapper { width: 100%; justify-content: space-between; box-sizing: border-box; }
-  .filterSelect { flex: 1; margin-left: 10px; }
+  
+  /* Адаптивність для блоку дат */
+  .dateFilterWrapper { flex-direction: column; align-items: stretch; padding: 12px; }
+  .dateFilterLabel { justify-content: space-between; margin-bottom: 8px; }
+  .dateInputGroup { justify-content: space-between; width: 100%; }
+  .dateInput { width: 45%; }
+  .clearDateBtn { position: absolute; right: 10px; top: 10px; }
 
-  /* Замовлення */
-  .orderHeader { flex-direction: column; align-items: flex-start; gap: 15px; }
+  .filterWrapper { justify-content: space-between; }
+
+  .orderHeader { flex-direction: column; align-items: flex-start; gap: 12px; padding: 15px; }
   .orderStatusActions { width: 100%; justify-content: space-between; }
   .orderBody { grid-template-columns: 1fr; padding: 15px; gap: 20px; }
-  .orderFooter { flex-direction: column; align-items: stretch; padding: 15px; }
-  .statusControlBlock { width: 100%; flex-direction: column; align-items: stretch; }
+  .orderFooter { flex-direction: column; align-items: stretch; padding: 15px; gap: 15px; }
+  .statusControlBlock { flex-direction: column; }
   .ttnInput { width: 100%; }
-  .updateStatusBtn { width: 100%; padding: 12px; }
-  .totalBlock { width: 100%; justify-content: space-between; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-light); }
+  .totalBlock { justify-content: space-between; border-top: 1px solid var(--border-main); padding-top: 15px; }
 
-  /* Форма товару */
   .formRow { flex-direction: column; gap: 15px; }
   .addProductCard { padding: 20px; }
   .submitActionsBlock { flex-direction: column; }
-  .galleryPreview { gap: 5px; }
-  .previewThumbWrapper { width: 70px; height: 70px; }
 
-  /* Список товарів */
-  .adminProductsGrid { grid-template-columns: 1fr; }
+  .adminProductsGrid, .serviceGrid, .crmGrid { grid-template-columns: 1fr; }
   .adminProductCard { flex-direction: column; text-align: center; padding: 20px; }
-  .adminProductThumb { width: 120px; height: 120px; margin-bottom: 10px; }
-  .adminProductActions { width: 100%; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 15px; }
-  .adminProductActions button { flex: 1; height: 44px; }
-  .adminProductActions button.actionBtn { width: 100%; flex: none; height: 44px; }
-
-  /* Модалки */
-  .modalOverlay { padding: 10px; }
-  .reviewsModal { height: 100dvh; max-height: 100dvh; border-radius: 8px; }
-  .serviceGrid { grid-template-columns: 1fr; gap: 15px; }
-
-  .serviceTicket {
-    padding: 15px;
-  }
-
-  .ticketHeader {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .ticketFooter {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
-
-  .serviceStatusSelect { width: 100%; padding: 12px; }
-  .deleteTicketBtn { width: 100%; height: 44px; font-weight: bold; }
-  .deleteTicketBtn::after { content: ' ВИДАЛИТИ ЗАЯВКУ'; margin-left: 8px; }
-}
-@media (max-width: 360px) {
-  .clientName {
-    font-size: 18px;
-  }
-  .clientPhone {
-    font-size: 14px;
-  }
+  .adminProductLinkWrapper { flex-direction: column; }
+  .adminProductThumb { width: 100px; height: 100px; }
+  
+  .ticketHeader { flex-direction: column; gap: 6px; }
+  .ticketFooter { flex-direction: column; align-items: stretch; }
+  .deleteTicketBtn { height: 44px; width: 100%; }
+  .deleteTicketBtn::after { content: ' ВИДАЛИТИ ЗАЯВКУ'; font-size: 12px; font-weight: 800; margin-left: 6px; }
 }
