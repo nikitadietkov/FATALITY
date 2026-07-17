@@ -1,0 +1,135 @@
+.ofertaPage {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  padding: 40px 15px;
+  min-height: 100vh;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.ofertaContainer {
+  max-width: 800px; /* Оптимальна ширина для читання довгих текстів */
+  margin: 0 auto;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.ofertaHeader {
+  border-bottom: 1px solid var(--color-border-strong);
+  padding-bottom: 25px;
+  margin-bottom: 30px;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 20px;
+  transition: color 0.2s;
+}
+
+.backBtn:hover {
+  color: var(--color-accent);
+}
+
+.backIcon {
+  margin-right: 8px;
+}
+
+.ofertaTitle {
+  font-family: var(--font-display, 'Russo One', sans-serif);
+  font-size: 32px;
+  font-weight: 400;
+  text-transform: uppercase;
+  margin: 0 0 10px 0;
+  color: #ffffff;
+}
+
+.ofertaSubtitle {
+  color: var(--color-text-dim);
+  font-size: 14px;
+  margin: 0;
+}
+
+.ofertaContent {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  line-height: 1.6;
+}
+
+.ofertaContent section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ofertaContent h2 {
+  font-family: var(--font-display, 'Russo One', sans-serif);
+  font-size: 20px;
+  color: var(--color-accent);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ofertaContent p {
+  color: #cccccc;
+  margin: 0;
+  font-size: 15px;
+  text-align: justify;
+}
+
+.ofertaContent ul {
+  color: #cccccc;
+  margin: 0;
+  padding-left: 20px;
+  font-size: 15px;
+}
+
+.ofertaContent li {
+  margin-bottom: 8px;
+}
+
+.ofertaContent strong {
+  color: #ffffff;
+}
+
+.requisitesBox {
+  background-color: var(--color-surface-dark);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.requisitesBox p {
+  text-align: left;
+}
+
+/* Адаптивність для телефонів */
+@media (max-width: 768px) {
+  .ofertaContainer {
+    padding: 20px;
+  }
+  
+  .ofertaTitle {
+    font-size: 24px;
+  }
+  
+  .ofertaContent h2 {
+    font-size: 18px;
+  }
+  
+  .ofertaContent p, .ofertaContent ul {
+    font-size: 14px;
+  }
+}

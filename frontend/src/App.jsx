@@ -10,6 +10,7 @@ import Cart from './pages/Cart';
 import About from './pages/About';
 import Admin from './pages/Admin';
 import Buyout from './pages/Buyout';
+import Oferta from './pages/Oferta';
 import Service from './pages/Service';
 import TradeIn from './pages/TradeIn';
 import Product from './pages/Product';
@@ -123,6 +124,7 @@ function AppContent() {
           <Route path="/cart" element={<Cart />} />
           <Route path="/about" element={<About />} />
           <Route path="/buyout" element={<Buyout />} />
+          <Route path="/oferta" element={<Oferta />} />
           <Route path="/service" element={<Service />} />
           <Route path="/success" element={<Success />} />
           <Route path="/trade-in" element={<TradeIn />} />
