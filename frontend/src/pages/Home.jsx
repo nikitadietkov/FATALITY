@@ -462,7 +462,6 @@ export default function Home() {
           <div className={styles.headerActions}>
             <div className={styles.quickFilters}>
               <button onClick={() => applyQuickFilter('all')} className={styles.quickFilterBtn}>Всі</button>
-              <button onClick={() => applyQuickFilter('ps5')} className={`${styles.quickFilterBtn} ${selectedBrands.includes('Консолі::Sony') && !showFavoritesOnly ? styles.highlightBtn : ''}`}><FaGamepad/> PS5</button>
               <button onClick={() => applyQuickFilter('favorites')} className={`${styles.quickFilterBtn} ${showFavoritesOnly ? styles.highlightBtn : ''}`}>
                 <FaHeart /> Улюблені {favorites.length > 0 && `(${favorites.length})`}
               </button>
@@ -520,7 +519,6 @@ export default function Home() {
             <div className={viewMode === 'grid' ? styles.productsGrid : styles.productsList}>
               {paginatedProducts.map((item, index) => (
                 <div key={`${item._id}-${animationKey}`} className={`${styles.animatedCard} ${viewMode === 'list' ? styles.listCardWrapper : ''}`} style={{ animationDelay: `${Math.min(index * 0.03, 0.3)}s` }}>
-                  {/* 🔴 Передаємо стан та функцію у ProductCard */}
                   <ProductCard 
                     id={item._id} 
                     title={item.title} 

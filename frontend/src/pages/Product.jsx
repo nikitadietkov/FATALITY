@@ -296,7 +296,23 @@ export default function Product() {
   
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(() => {
+    try {
+      const saved = localStorage.getItem('fatality_favorites');
+      const favs = saved ? JSON.parse(saved) : [];
+      return favs.includes(id);
+    } catch (e) {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('fatality_favorites');
+      const favs = saved ? JSON.parse(saved) : [];
+      setIsWishlisted(favs.includes(id));
+    } catch (e) {}
+  }, [id]);
   const imageRef = useRef(null);
 
   useEffect(() => {
@@ -374,6 +390,26 @@ export default function Product() {
     }
   };
 
+  const toggleFavorite = useCallback(() => {
+    try {
+      const saved = localStorage.getItem('fatality_favorites');
+      let favs = saved ? JSON.parse(saved) : [];
+      
+      if (isWishlisted) {
+        favs = favs.filter(favId => favId !== id);
+        toast('Видалено з улюблених', { icon: '💔' });
+      } else {
+        favs.push(id);
+        toast('Додано в улюблені', { icon: '❤️' });
+      }
+      
+      localStorage.setItem('fatality_favorites', JSON.stringify(favs));
+      setIsWishlisted(!isWishlisted);
+    } catch (e) {
+      console.error("Помилка оновлення улюблених", e);
+    }
+  }, [id, isWishlisted]);
+
   const handleAddToCart = useCallback(() => {
     addToCart({
       id: product._id,
@@ -446,8 +482,6 @@ export default function Product() {
       <nav className={styles.breadcrumb}>
         <Link to="/"><FaArrowLeft /> Головна</Link>
         <span className={styles.separator}>/</span>
-        <Link to="/catalog">Каталог</Link>
-        <span className={styles.separator}>/</span>
         <span className={styles.currentCrumb}>{product.model}</span>
       </nav>
 
@@ -503,7 +537,7 @@ export default function Product() {
             <button 
               type="button" 
               className={`${styles.wishlistBtn} ${isWishlisted ? styles.wishlisted : ''}`}
-              onClick={() => setIsWishlisted(!isWishlisted)}
+              onClick={toggleFavorite}
               aria-label="Додати в улюблене"
             >
               {isWishlisted ? <FaHeart /> : <FaRegHeart />}
