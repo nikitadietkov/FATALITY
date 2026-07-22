@@ -176,9 +176,20 @@ app.get('/api/products/:id', async (req, res) => {
 app.post('/api/products', verifyAdmin, upload.array('images', 5), async (req, res) => {
     try {
         // Додано category та brand
-        const { title, category, brand, model, price, condition, description, searchTags } = req.body;
+        const { title, category, brand, model, price, condition, description, searchTags, specs } = req.body;
         const imageUrls = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
-        const newProduct = new Product({ title, category, brand, model, price, condition, description, searchTags, imageUrls });
+
+        let parsedSpecs = [];
+        if (specs) {
+            try {
+                parsedSpecs = JSON.parse(specs);
+                if (!Array.isArray(parsedSpecs)) parsedSpecs = [];
+            } catch (e) {
+                parsedSpecs = [];
+            }
+        }
+
+        const newProduct = new Product({ title, category, brand, model, price, condition, description, searchTags, imageUrls, specs: parsedSpecs });
         await newProduct.save();
         res.status(201).json(newProduct);
     } catch (error) {
@@ -188,15 +199,38 @@ app.post('/api/products', verifyAdmin, upload.array('images', 5), async (req, re
 
 app.put('/api/products/:id', verifyAdmin, upload.array('images', 5), async (req, res) => {
     try {
-        // Додано category та brand
-        const { title, category, brand, model, price, condition, description, searchTags } = req.body;
+        const { title, category, brand, model, price, condition, description, searchTags, specs } = req.body;
         let updateData = { title, category, brand, model, price, condition, description, searchTags };
+
+        if (specs !== undefined) {
+            try {
+                const parsedSpecs = JSON.parse(specs);
+                updateData.specs = Array.isArray(parsedSpecs) ? parsedSpecs : [];
+            } catch (e) {
+                updateData.specs = [];
+            }
+        }
+
         if (req.files && req.files.length > 0) {
             updateData.imageUrls = req.files.map(file => `/uploads/${file.filename}`);
         }
-        const updatedProduct = await Product.findByIdAndUpdate(req.params.id, updateData, { returnDocument: 'after' });
+
+        const updatedProduct = await Product.findByIdAndUpdate(
+            req.params.id,
+            { $set: updateData },
+            { 
+                new: true, 
+                runValidators: true 
+            } 
+        );
+
+        if (!updatedProduct) {
+            return res.status(404).json({ message: "Товар не знайдено" });
+        }
+
         res.json(updatedProduct);
     } catch (error) {
+        console.error("Помилка оновлення товару:", error); 
         res.status(500).json({ message: "Помилка оновлення товару" });
     }
 });

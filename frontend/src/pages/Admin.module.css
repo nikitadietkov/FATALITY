@@ -852,6 +852,91 @@
   line-height: 1;
 }
 
+/* Characteristics (specs) editor */
+.specsBlock {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-input);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.specsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.specsLabel {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.addSpecBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: 1px solid var(--brand);
+  color: var(--brand);
+  padding: 9px 16px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color var(--dur-fast) var(--ease-out),
+              color            var(--dur-fast) var(--ease-out);
+}
+
+.addSpecBtn:hover {
+  background-color: var(--brand);
+  color: #fff;
+}
+
+.noSpecsText {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin: 0;
+}
+
+.specsList { display: flex; flex-direction: column; gap: 10px; }
+
+.specRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.specRow > .inputField { flex: 1; min-width: 0; }
+
+.removeSpecBtn {
+  flex-shrink: 0;
+  background-color: var(--danger-dim);
+  color: var(--danger);
+  border: 1px solid rgba(255,68,68,0.3);
+  border-radius: var(--radius-md);
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+.removeSpecBtn:hover { background-color: rgba(255,68,68,0.25); }
+
+@media (max-width: 640px) {
+  .specRow { flex-direction: column; align-items: stretch; }
+  .removeSpecBtn { width: 100%; height: 38px; }
+}
+
 .submitActionsBlock { display: flex; gap: 12px; }
 
 .submitProductBtn {

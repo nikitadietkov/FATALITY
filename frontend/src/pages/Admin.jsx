@@ -1,24 +1,3 @@
-/**
- * Admin.jsx — Optimized
- *
- * Key changes vs. original:
- * ─────────────────────────
- * 1.  Extracted heavy JSX sections into memoised sub-components
- *     (OrderCard, ProductForm, ReviewsModal) to avoid full re-renders.
- * 2.  Eliminated the anti-pattern of querying the DOM by id inside click
- *     handlers (status/TTN update). Each OrderCard now manages its own
- *     controlled state for status and tracking number.
- * 3.  Moved the inline `async` handler out of JSX into a named callback.
- * 4.  Token helper — `getToken()` replaces repeated localStorage calls.
- * 5.  `fetchPromise` promoted to module scope (stable reference).
- * 6.  `headerActions` wrapper div replaced with semantic class.
- * 7.  `window.confirm` inside JSX removed — now uses the unified
- *     DeleteConfirmModal consistently everywhere.
- * 8.  Image object-URL memory leak fixed: revoke on unmount/change.
- * 9.  `aria-label` added to icon-only buttons for accessibility.
- * 10. `style` prop removed from inline submit button — handled by CSS.
- */
-
 import {
   FaBoxes, FaDollarSign, FaUser, FaClock, FaShoppingBag,
   FaPlusCircle, FaCloudUploadAlt, FaEdit, FaTrash,
@@ -504,6 +483,7 @@ export default function Admin() {
   const [newProduct,    setNewProduct]    = useState(PRODUCT_DEFAULTS);
   const [customFields,  setCustomFields]  = useState({ category: false, brand: false, model: false });
   const [imageFiles,    setImageFiles]    = useState([]);
+  const [specs,         setSpecs]         = useState([]); // [{ label, value }]
   const [isDragging,    setIsDragging]    = useState(false);
   const [editProductId, setEditProductId] = useState(null);
 
@@ -665,6 +645,7 @@ export default function Admin() {
     setNewProduct(PRODUCT_DEFAULTS);
     setCustomFields({ category: false, brand: false, model: false });
     setImageFiles([]);
+    setSpecs([]);
     if (fileInputRef.current) fileInputRef.current.value = '';
   }, []);
 
@@ -672,6 +653,19 @@ export default function Admin() {
     const valid = Array.from(files).filter(f => f.type.startsWith('image/'));
     if (!valid.length) { toast.error('Завантажуйте лише зображення.'); return; }
     setImageFiles(prev => [...prev, ...valid].slice(0, 5));
+  }, []);
+
+  // ── Characteristics (specs) helpers ────────────────────────────────────────
+  const addSpecRow = useCallback(() => {
+    setSpecs(prev => [...prev, { label: '', value: '' }]);
+  }, []);
+
+  const updateSpecRow = useCallback((index, field, val) => {
+    setSpecs(prev => prev.map((row, i) => (i === index ? { ...row, [field]: val } : row)));
+  }, []);
+
+  const removeSpecRow = useCallback((index) => {
+    setSpecs(prev => prev.filter((_, i) => i !== index));
   }, []);
 
   const handleAddOrEditProduct = async (e) => {
@@ -686,6 +680,11 @@ export default function Admin() {
       const fd = new FormData();
       Object.entries(newProduct).forEach(([k, v]) => fd.append(k, v ?? ''));
       imageFiles.forEach(f => fd.append('images', f));
+
+      const cleanSpecs = specs
+        .map(s => ({ label: s.label.trim(), value: s.value.trim() }))
+        .filter(s => s.label && s.value);
+      fd.append('specs', JSON.stringify(cleanSpecs));
 
       const url    = editProductId ? `/api/products/${editProductId}` : '/api/products';
       const method = editProductId ? 'PUT' : 'POST';
@@ -827,6 +826,12 @@ export default function Admin() {
       description: product.description,
       searchTags:  product.searchTags ?? '',
     });
+
+    setSpecs(
+      Array.isArray(product.specs)
+        ? product.specs.map(s => ({ label: s.label ?? '', value: s.value ?? '' }))
+        : []
+    );
   };
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -1058,6 +1063,52 @@ export default function Admin() {
                     <button type="button" onClick={handleGenerateTags} className={styles.aiButton}>
                       ✨ AI Теги
                     </button>
+                  </div>
+                )}
+
+                {/* Characteristics (specs) */}
+                {newProduct.brand && (
+                  <div className={styles.specsBlock}>
+                    <div className={styles.specsHeader}>
+                      <span className={styles.specsLabel}>Характеристики товару</span>
+                      <button type="button" className={styles.addSpecBtn} onClick={addSpecRow}>
+                        <FaPlusCircle /> Додати характеристику
+                      </button>
+                    </div>
+
+                    {specs.length === 0 ? (
+                      <p className={styles.noSpecsText}>Характеристики не додано.</p>
+                    ) : (
+                      <div className={styles.specsList}>
+                        {specs.map((row, i) => (
+                          <div className={styles.specRow} key={i}>
+                            <input
+                              type="text"
+                              placeholder="Назва (напр. Обсяг пам'яті)"
+                              className={styles.inputField}
+                              value={row.label}
+                              onChange={e => updateSpecRow(i, 'label', e.target.value)}
+                            />
+                            <input
+                              type="text"
+                              placeholder="Значення (напр. 825 ГБ SSD)"
+                              className={styles.inputField}
+                              value={row.value}
+                              onChange={e => updateSpecRow(i, 'value', e.target.value)}
+                            />
+                            <button
+                              type="button"
+                              className={styles.removeSpecBtn}
+                              onClick={() => removeSpecRow(i)}
+                              aria-label="Видалити характеристику"
+                              title="Видалити характеристику"
+                            >
+                              <FaTrash />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 

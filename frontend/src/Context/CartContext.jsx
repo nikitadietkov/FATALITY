@@ -19,24 +19,26 @@ export const CartProvider = ({ children }) => {
   }, [cartItems]);
 
   const addToCart = useCallback((product) => {
+    const qty = product.quantity && product.quantity > 0 ? product.quantity : 1;
+
     setCartItems(prevItems => {
       const existingItem = prevItems.find(item => item.id === product.id);
-      
+
       if (existingItem) {
-        toast.success(`Ще один ${product.model || product.title} у кошику!`, { 
-          icon: '🎮', 
-          id: `add-${product.id}` // Запобігає дублюванню тостів
+        toast.success(`${product.model || product.title} у кошику: ${existingItem.quantity + qty} шт.`, {
+          icon: '🎮',
+          id: `add-${product.id}`
         });
         return prevItems.map(item =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === product.id ? { ...item, quantity: item.quantity + qty } : item
         );
       }
-      
-      toast.success(`${product.title} додано в кошик!`, { 
-        icon: '🕹️', 
-        id: `add-${product.id}` 
+
+      toast.success(`${product.title} додано в кошик (${qty} шт.)!`, {
+        icon: '🕹️',
+        id: `add-${product.id}`
       });
-      return [...prevItems, { ...product, quantity: 1 }];
+      return [...prevItems, { ...product, quantity: qty }];
     });
   }, []);
 
@@ -50,7 +52,7 @@ export const CartProvider = ({ children }) => {
       prevItems.map(item => {
         if (item.id === id) {
           const newQuantity = item.quantity + amount;
-          return { ...item, quantity: Math.max(newQuantity, 1) }; // Не дозволяє опустити менше 1
+          return { ...item, quantity: Math.max(newQuantity, 1) };
         }
         return item;
       })
@@ -61,7 +63,6 @@ export const CartProvider = ({ children }) => {
     setCartItems([]);
   }, []);
 
-  // Мемоїзація підсумкових значень для продуктивності
   const cartTotal = useMemo(() => 
     cartItems.reduce((total, item) => total + item.price * item.quantity, 0)
   , [cartItems]);
@@ -70,7 +71,6 @@ export const CartProvider = ({ children }) => {
     cartItems.reduce((count, item) => count + item.quantity, 0)
   , [cartItems]);
 
-  // Мемоїзація значення контексту
   const contextValue = useMemo(() => ({
     cartItems,
     addToCart,

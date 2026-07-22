@@ -8,6 +8,11 @@ const reviewSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
+const specSchema = new mongoose.Schema({
+    label: { type: String, required: true },
+    value: { type: String, required: true }
+}, { _id: false });
+
 const productSchema = new mongoose.Schema({
     title: { type: String, required: true },
     category: { type: String, required: true, default: 'Консолі' }, 
@@ -22,6 +27,7 @@ const productSchema = new mongoose.Schema({
     imageUrls: [{ type: String, required: true }],
     status: { type: String, default: 'available' },
     searchTags: { type: String, default: '' },
+    specs: { type: [specSchema], default: [] },
 }, { timestamps: true });
 
 export default mongoose.model('Product', productSchema);

@@ -3,10 +3,11 @@ import { useParams, Link } from 'react-router-dom';
 import {
   FaShoppingCart, FaArrowLeft, FaStar,
   FaChevronLeft, FaChevronRight, FaTimes, FaUserCircle,
-  FaRegHeart, FaHeart, FaShareAlt, FaTruck, FaShieldAlt
+  FaRegHeart, FaHeart, FaShareAlt, FaTruck, FaShieldAlt,
+  FaUndo, FaCheckCircle
 } from 'react-icons/fa';
 import { useCart } from '../context/CartContext';
-import ProductCard from '../components/ProductCard'; 
+import ProductCard from '../components/ProductCard';
 import toast from 'react-hot-toast';
 import styles from './Product.module.css';
 
@@ -14,11 +15,23 @@ import styles from './Product.module.css';
 // Helpers
 // ---------------------------------------------------------------------------
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const FALLBACK_IMAGE = 'https://placehold.co/600x400/0a0a0a/333?text=No+Image';
 
 function resolveImageUrl(raw) {
-  if (!raw) return 'https://via.placeholder.com/600x400?text=No+Image';
+  if (!raw) return FALLBACK_IMAGE;
   const clean = raw.replace(/\\/g, '/');
   return clean.startsWith('/uploads') ? `${BASE_URL}${clean}` : clean;
+}
+
+function formatPrice(price) {
+  if (typeof price !== 'number') return price;
+  return price.toLocaleString('uk-UA');
+}
+
+// Handles broken image links gracefully
+function handleImgError(e) {
+  e.currentTarget.onerror = null;
+  e.currentTarget.src = FALLBACK_IMAGE;
 }
 
 // ---------------------------------------------------------------------------
@@ -51,11 +64,35 @@ function ImageSlider({ images, currentIndex, onPrev, onNext, onDotClick, onOpenM
   const url = resolveImageUrl(images[currentIndex]);
   const hasMany = images.length > 1;
 
+  const touchStartX = useRef(null);
+
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e) => {
+    if (touchStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(dx) > 40) {
+      dx < 0 ? onNext() : onPrev();
+    }
+    touchStartX.current = null;
+  };
+
   return (
     <div className={styles.imageSection}>
-      <div className={styles.sliderWrapper}>
+      <div
+        className={styles.sliderWrapper}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         {hasMany && (
-          <button type="button" className={`${styles.sliderArrow} ${styles.arrowLeft}`} onClick={onPrev} aria-label="Попереднє фото">
+          <button
+            type="button"
+            className={`${styles.sliderArrow} ${styles.arrowLeft}`}
+            onClick={onPrev}
+            aria-label="Попереднє фото"
+          >
             <FaChevronLeft />
           </button>
         )}
@@ -64,12 +101,18 @@ function ImageSlider({ images, currentIndex, onPrev, onNext, onDotClick, onOpenM
             ref={imageRef}
             key={url}
             src={url}
+            onError={handleImgError}
             alt="Фото товару"
             className={`${styles.mainImage} ${styles.animatedImage}`}
           />
         </div>
         {hasMany && (
-          <button type="button" className={`${styles.sliderArrow} ${styles.arrowRight}`} onClick={onNext} aria-label="Наступне фото">
+          <button
+            type="button"
+            className={`${styles.sliderArrow} ${styles.arrowRight}`}
+            onClick={onNext}
+            aria-label="Наступне фото"
+          >
             <FaChevronRight />
           </button>
         )}
@@ -85,6 +128,22 @@ function ImageSlider({ images, currentIndex, onPrev, onNext, onDotClick, onOpenM
               onClick={() => onDotClick(idx)}
               aria-label={`Фото ${idx + 1}`}
             />
+          ))}
+        </div>
+      )}
+
+      {hasMany && (
+        <div className={styles.thumbnailStrip}>
+          {images.map((img, idx) => (
+            <button
+              key={idx}
+              type="button"
+              className={`${styles.thumb} ${currentIndex === idx ? styles.activeThumb : ''}`}
+              onClick={() => onDotClick(idx)}
+              aria-label={`Перейти до фото ${idx + 1}`}
+            >
+              <img src={resolveImageUrl(img)} onError={handleImgError} alt={`Мініатюра ${idx + 1}`} />
+            </button>
           ))}
         </div>
       )}
@@ -106,17 +165,32 @@ function ImageModal({ url, hasMany, onClose, onPrev, onNext }) {
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-        <button type="button" className={styles.modalCloseBtn} onClick={onClose} aria-label="Закрити">
+        <button
+          type="button"
+          className={styles.modalCloseBtn}
+          onClick={onClose}
+          aria-label="Закрити"
+        >
           <FaTimes />
         </button>
         {hasMany && (
-          <button type="button" className={`${styles.sliderArrow} ${styles.modalArrowLeft}`} onClick={onPrev}>
+          <button
+            type="button"
+            className={`${styles.sliderArrow} ${styles.modalArrowLeft}`}
+            onClick={onPrev}
+            aria-label="Попереднє фото"
+          >
             <FaChevronLeft />
           </button>
         )}
-        <img key={url} src={url} alt="Повний розмір" className={styles.modalImage} />
+        <img key={url} src={url} onError={handleImgError} alt="Повний розмір" className={styles.modalImage} />
         {hasMany && (
-          <button type="button" className={`${styles.sliderArrow} ${styles.modalArrowRight}`} onClick={onNext}>
+          <button
+            type="button"
+            className={`${styles.sliderArrow} ${styles.modalArrowRight}`}
+            onClick={onNext}
+            aria-label="Наступне фото"
+          >
             <FaChevronRight />
           </button>
         )}
@@ -143,7 +217,7 @@ export function RatingStars({ rating, reviewCount }) {
           {Array.from({ length: 5 }, (_, i) => <FaStar key={`filled-${i}`} />)}
         </div>
       </div>
-      <span className={styles.ratingText}>{rating.toFixed(1)} ({reviewCount} відгуків)</span>
+      <span className={styles.ratingText}>{rating.toFixed(1)} ({reviewCount} {reviewCount === 1 ? 'відгук' : 'відгуків'})</span>
     </div>
   );
 }
@@ -152,17 +226,19 @@ function ReviewCard({ review }) {
   return (
     <div className={styles.reviewCard}>
       <div className={styles.reviewHeader}>
-        <FaUserCircle className={styles.userAvatar} />
-        <div>
-          <h4 className={styles.reviewerName}>{review.name}</h4>
-          <div className={styles.reviewStars}>
-            {Array.from({ length: 5 }, (_, i) => (
-              <FaStar key={i} color={i < review.rating ? '#ff0000' : '#333333'} size={14} />
-            ))}
+        <div className={styles.reviewerInfo}>
+          <FaUserCircle className={styles.userAvatar} />
+          <div>
+            <h4 className={styles.reviewerName}>{review.name}</h4>
+            <div className={styles.reviewStars}>
+              {Array.from({ length: 5 }, (_, i) => (
+                <FaStar key={i} color={i < review.rating ? '#ff0000' : '#333333'} size={13} />
+              ))}
+            </div>
           </div>
         </div>
         <span className={styles.reviewDate}>
-          {new Date(review.createdAt).toLocaleDateString('uk-UA')}
+          {new Date(review.createdAt || Date.now()).toLocaleDateString('uk-UA')}
         </span>
       </div>
       <p className={styles.reviewText}>{review.comment}</p>
@@ -184,20 +260,26 @@ function ReviewForm({ productId, onReviewAdded }) {
   const [hover, setHover] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const MAX_COMMENT_LENGTH = 1000;
+
+  const handleSubmit = async () => {
     if (!name.trim() || !contact.trim() || !comment.trim()) {
       return toast.error("Заповніть всі обов'язкові поля!");
     }
-    
+
     setSubmitting(true);
     const loadingToast = toast.loading("Перевірка статусу покупки...");
-    
+
     try {
       const response = await fetch(`${BASE_URL}/api/products/${productId}/reviews`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, contact, rating, comment })
+        body: JSON.stringify({
+          name: name.trim(),
+          contact: contact.trim(),
+          rating,
+          comment: comment.trim()
+        })
       });
 
       const data = await response.json();
@@ -221,31 +303,31 @@ function ReviewForm({ productId, onReviewAdded }) {
 
   return (
     <div className={styles.reviewFormContainer}>
-      <h3>Написати відгук</h3>
-      <form className={styles.reviewForm} onSubmit={handleSubmit}>
+      <h3>Залишити відгук</h3>
+      <div className={styles.reviewForm}>
         <input
           type="text"
           placeholder="Ваше ім'я *"
+          maxLength={60}
           className={styles.reviewInput}
           value={name}
           onChange={(e) => setName(e.target.value)}
-          required
         />
 
         <input
           type="text"
           placeholder="Email або телефон із замовлення *"
+          maxLength={80}
           className={styles.reviewInput}
           value={contact}
           onChange={(e) => setContact(e.target.value)}
-          required
         />
         <span className={styles.privacyNote}>
           * Потрібно для підтвердження покупки. Дані конфіденційні.
         </span>
 
         <div className={styles.interactiveRating}>
-          <span>Оцінка:</span>
+          <span>Ваша оцінка:</span>
           <div className={styles.interactiveStars}>
             {Array.from({ length: 5 }, (_, i) => {
               const val = i + 1;
@@ -253,7 +335,7 @@ function ReviewForm({ productId, onReviewAdded }) {
                 <FaStar
                   key={i}
                   className={styles.starCursor}
-                  size={24}
+                  size={22}
                   color={val <= (hover ?? rating) ? '#ff0000' : '#444444'}
                   onClick={() => setRating(val)}
                   onMouseEnter={() => setHover(val)}
@@ -265,19 +347,125 @@ function ReviewForm({ productId, onReviewAdded }) {
           </div>
         </div>
 
-        <textarea
-          placeholder="Поділіться враженнями про консоль..."
-          rows="4"
-          className={styles.reviewInput}
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-          required
-        />
+        <div className={styles.textareaWrapper}>
+          <textarea
+            placeholder="Поділіться враженнями про товар..."
+            rows="4"
+            maxLength={MAX_COMMENT_LENGTH}
+            className={styles.reviewInput}
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+          />
+          <span className={styles.charCounter}>
+            {comment.length} / {MAX_COMMENT_LENGTH}
+          </span>
+        </div>
 
-        <button type="submit" className={styles.submitReviewBtn} disabled={submitting}>
+        <button
+          type="button"
+          className={styles.submitReviewBtn}
+          onClick={handleSubmit}
+          disabled={submitting}
+        >
           {submitting ? 'Обробка запиту…' : 'Опублікувати відгук'}
         </button>
-      </form>
+      </div>
+    </div>
+  );
+}
+
+function InfoTabs({ product }) {
+  const [activeTab, setActiveTab] = useState('description');
+
+  return (
+    <div className={styles.infoTabsBlock}>
+      <div className={styles.infoTabsNav} role="tablist">
+        {[
+          { key: 'description', label: 'Опис' },
+          { key: 'specs', label: 'Характеристики' },
+          { key: 'delivery', label: 'Доставка та гарантія' },
+        ].map(({ key, label }) => (
+          <button
+            key={key}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === key}
+            className={`${styles.infoTab} ${activeTab === key ? styles.activeInfoTab : ''}`}
+            onClick={() => setActiveTab(key)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === 'description' && (
+        <div className={styles.tabContent}>
+          {product.description ? (
+            <div
+              className={styles.richDescription}
+              dangerouslySetInnerHTML={{ __html: product.description }}
+            />
+          ) : (
+            <p className={styles.richDescription}>Опис товару тимчасово відсутній.</p>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'specs' && (
+        <div className={styles.tabContent}>
+          {product.specs?.length ? (
+            <table className={styles.specsTable}>
+              <tbody>
+                {product.specs.map((row, i) => (
+                  <tr key={i}>
+                    <td className={styles.specLabel}>{row.label}</td>
+                    <td className={styles.specValue}>{row.value}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className={styles.richDescription}>Детальні характеристики не вказані.</p>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'delivery' && (
+        <div className={styles.tabContent}>
+          <div className={styles.richDescription}>
+            <p>📦 <strong>Нова Пошта:</strong> Відправка в день замовлення при оформленні до 16:00 (1-2 дні).</p>
+            <p>🏪 <strong>Самовивіз:</strong> Точка видачі у м. Дніпро.</p>
+            <p>🛡️ <strong>Гарантія:</strong> 14 днів на обмін/повернення та фірмова гарантія від FATALITY.</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function QuantitySelector({ value, onChange }) {
+  return (
+    <div className={styles.quantityBlock}>
+      <span className={styles.quantityLabel}>Кількість:</span>
+      <div className={styles.quantityControl}>
+        <button
+          type="button"
+          className={styles.qtyBtn}
+          onClick={() => onChange(Math.max(1, value - 1))}
+          aria-label="Зменшити"
+        >
+          −
+        </button>
+        <span className={styles.qtyValue}>{value}</span>
+        <button
+          type="button"
+          className={styles.qtyBtn}
+          onClick={() => onChange(Math.min(10, value + 1))}
+          aria-label="Збільшити"
+        >
+          +
+        </button>
+      </div>
     </div>
   );
 }
@@ -290,12 +478,14 @@ export default function Product() {
   const { addToCart } = useCart();
 
   const [product, setProduct] = useState(null);
-  const [similarProducts, setSimilarProducts] = useState([]); 
+  const [similarProducts, setSimilarProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [quantity, setQuantity] = useState(1);
+
   const [isWishlisted, setIsWishlisted] = useState(() => {
     try {
       const saved = localStorage.getItem('fatality_favorites');
@@ -313,6 +503,7 @@ export default function Product() {
       setIsWishlisted(favs.includes(id));
     } catch (e) {}
   }, [id]);
+
   const imageRef = useRef(null);
 
   useEffect(() => {
@@ -321,6 +512,10 @@ export default function Product() {
 
     const load = async () => {
       setLoading(true);
+      setError(null);
+      setCurrentIndex(0);
+      setQuantity(1);
+
       try {
         const res = await fetch(`${BASE_URL}/api/products/${id}`);
         if (!res.ok) throw new Error('Не вдалося завантажити товар');
@@ -339,6 +534,7 @@ export default function Product() {
         if (!cancelled) setLoading(false);
       }
     };
+
     load();
     return () => { cancelled = true; };
   }, [id]);
@@ -346,7 +542,7 @@ export default function Product() {
   useEffect(() => {
     if (loading) document.title = 'Завантаження... | FATALITY';
     else if (error) document.title = 'Помилка | FATALITY';
-    else if (product) document.title = `Купити ${product.title} (${product.condition}) | FATALITY`;
+    else if (product) document.title = `${product.title} (${product.condition || 'New'}) | FATALITY`;
     return () => { document.title = 'FATALITY'; };
   }, [loading, error, product]);
 
@@ -357,7 +553,8 @@ export default function Product() {
 
   const images = useMemo(() => {
     if (!product) return [];
-    return product.imageUrls?.length ? product.imageUrls : [product.imageUrl].filter(Boolean);
+    if (product.imageUrls?.length) return product.imageUrls;
+    return [product.imageUrl].filter(Boolean);
   }, [product]);
 
   const displayImageUrl = resolveImageUrl(images[currentIndex]);
@@ -375,7 +572,7 @@ export default function Product() {
   const handleShare = async () => {
     const shareData = {
       title: product.title,
-      text: `Подивись на цей товар: ${product.title} у FATALITY!`,
+      text: `Подивись на товар: ${product.title} у FATALITY!`,
       url: window.location.href,
     };
     try {
@@ -385,16 +582,14 @@ export default function Product() {
         await navigator.clipboard.writeText(window.location.href);
         toast.success("Посилання скопійовано в буфер обміну!");
       }
-    } catch (err) {
-      console.log('Помилка при поширенні:', err);
-    }
+    } catch (err) {}
   };
 
   const toggleFavorite = useCallback(() => {
     try {
       const saved = localStorage.getItem('fatality_favorites');
       let favs = saved ? JSON.parse(saved) : [];
-      
+
       if (isWishlisted) {
         favs = favs.filter(favId => favId !== id);
         toast('Видалено з улюблених', { icon: '💔' });
@@ -402,7 +597,7 @@ export default function Product() {
         favs.push(id);
         toast('Додано в улюблені', { icon: '❤️' });
       }
-      
+
       localStorage.setItem('fatality_favorites', JSON.stringify(favs));
       setIsWishlisted(!isWishlisted);
     } catch (e) {
@@ -417,12 +612,13 @@ export default function Product() {
       model: product.model,
       price: product.price,
       imageUrl: displayImageUrl,
+      quantity,
     });
 
     const img = imageRef.current;
     const cartBtn = document.querySelector('.cart-button');
     if (!img || !cartBtn) {
-      toast.success("Товар додано до кошика!");
+      toast.success(`Товар додано до кошика (${quantity} шт.)`);
       return;
     }
 
@@ -449,7 +645,7 @@ export default function Product() {
     requestAnimationFrame(() => {
       Object.assign(flyer.style, {
         left: `${cL + cW / 2 - 20}px`,
-        top:  `${cT + cH / 2 - 20}px`,
+        top: `${cT + cH / 2 - 20}px`,
         width: '40px', height: '40px',
         borderRadius: '50%',
         opacity: '0.5',
@@ -459,12 +655,17 @@ export default function Product() {
     setTimeout(() => {
       flyer.remove();
       window.dispatchEvent(new CustomEvent('animate-cart'));
+      toast.success(`Товар додано до кошика (${quantity} шт.)`);
     }, 600);
-  }, [addToCart, product, displayImageUrl]);
+  }, [addToCart, product, displayImageUrl, quantity]);
 
   if (loading) return <SkeletonLoader />;
   if (error) return <div className={styles.statusMessage}>Помилка: {error}</div>;
   if (!product) return <div className={styles.statusMessage}>Товар не знайдено</div>;
+
+  const discountPercent = product.oldPrice && product.oldPrice > product.price
+    ? Math.round((1 - product.price / product.oldPrice) * 100)
+    : null;
 
   return (
     <div className={styles.productPage}>
@@ -478,11 +679,11 @@ export default function Product() {
         />
       )}
 
-      {/* Modern Breadcrumbs */}
-      <nav className={styles.breadcrumb}>
+      {/* Breadcrumbs */}
+      <nav className={styles.breadcrumb} aria-label="Навігація">
         <Link to="/"><FaArrowLeft /> Головна</Link>
         <span className={styles.separator}>/</span>
-        <span className={styles.currentCrumb}>{product.model}</span>
+        <span className={styles.currentCrumb}>{product.model || product.title}</span>
       </nav>
 
       <div className={styles.productContainer}>
@@ -498,8 +699,15 @@ export default function Product() {
 
         <div className={styles.infoSection}>
           <div className={styles.headerInfo}>
-            <span className={styles.conditionBadge}>{product.condition}</span>
-            <span className={styles.modelTag}>{product.model} Console</span>
+            {product.condition && (
+              <span className={styles.conditionBadge}>{product.condition}</span>
+            )}
+            {product.model && (
+              <span className={styles.modelTag}>{product.model}</span>
+            )}
+            {discountPercent && (
+              <span className={styles.saleBadge}>-{discountPercent}%</span>
+            )}
           </div>
 
           <h1 className={styles.title}>{product.title}</h1>
@@ -511,22 +719,36 @@ export default function Product() {
             </button>
           </div>
 
+          {/* Price block */}
           <div className={styles.priceBlock}>
             <div className={styles.priceWrapper}>
-              <span className={styles.price}>{product.price} грн</span>
-              <span className={styles.status}>В наявності</span>
+              <div>
+                {product.oldPrice && product.oldPrice > product.price && (
+                  <span className={styles.oldPrice}>{formatPrice(product.oldPrice)} грн</span>
+                )}
+                <span className={styles.price}>{formatPrice(product.price)} грн</span>
+              </div>
+              <span className={styles.status}>
+                <FaCheckCircle size={13} style={{ marginRight: '4px' }} /> В наявності
+              </span>
             </div>
           </div>
-          
+
+          <QuantitySelector value={quantity} onChange={setQuantity} />
+
           {/* Trust Badges */}
           <div className={styles.trustBadges}>
             <div className={styles.badge}>
               <FaTruck className={styles.badgeIcon} />
-              <span>Швидка доставка по Україні</span>
+              <span>Швидка доставка Новою Поштою по Україні</span>
             </div>
             <div className={styles.badge}>
               <FaShieldAlt className={styles.badgeIcon} />
-              <span>Гарантія якості FATALITY</span>
+              <span>Офіційна гарантія та перевірка якості FATALITY</span>
+            </div>
+            <div className={styles.badge}>
+              <FaUndo className={styles.badgeIcon} />
+              <span>Легке повернення або обмін протягом 14 днів</span>
             </div>
           </div>
 
@@ -534,23 +756,17 @@ export default function Product() {
             <button type="button" className={styles.addToCartBtn} onClick={handleAddToCart}>
               <FaShoppingCart /> Додати в кошик
             </button>
-            <button 
-              type="button" 
+            <button
+              type="button"
               className={`${styles.wishlistBtn} ${isWishlisted ? styles.wishlisted : ''}`}
               onClick={toggleFavorite}
-              aria-label="Додати в улюблене"
+              aria-label={isWishlisted ? 'Видалити з улюблених' : 'Додати в улюблене'}
             >
               {isWishlisted ? <FaHeart /> : <FaRegHeart />}
             </button>
           </div>
 
-          <div className={styles.descriptionBlock}>
-            <h3>Опис товару</h3>
-            <div 
-              className={styles.richDescription} 
-              dangerouslySetInnerHTML={{ __html: product.description }} 
-            />
-          </div>
+          <InfoTabs product={product} />
         </div>
       </div>
 
@@ -562,7 +778,7 @@ export default function Product() {
             {!product.reviews?.length ? (
               <div className={styles.emptyReviews}>
                 <FaStar className={styles.emptyReviewsIcon} />
-                <p>Станьте першим, хто залишить відгук!</p>
+                <p>Поки немає відгуків. Станьте першим, хто залишить враження!</p>
               </div>
             ) : (
               product.reviews.map((review, i) => (
@@ -581,7 +797,7 @@ export default function Product() {
                   setProduct(freshData);
                 }
               } catch (err) {
-                console.error("Не вдалося оновити товар після відгуку", err);
+                console.error("Помилка оновлення відгуків", err);
               }
             }}
           />
@@ -591,9 +807,35 @@ export default function Product() {
       {similarProducts.length > 0 && (
         <section className={styles.similarSection}>
           <h2 className={styles.similarTitle}>Вам також може сподобатися</h2>
+
           <div className={styles.similarGrid}>
             {similarProducts.map((item, index) => (
-              <div key={item._id} className={styles.animatedCard} style={{ animationDelay: `${index * 0.1}s` }}>
+              <div
+                key={item._id}
+                className={styles.animatedCard}
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <ProductCard
+                  id={item._id}
+                  title={item.title}
+                  model={item.model}
+                  condition={item.condition}
+                  price={item.price}
+                  imageUrl={item.imageUrl}
+                  imageUrls={item.imageUrls}
+                  rating={item.rating}
+                />
+              </div>
+            ))}
+          </div>
+
+          <div className={styles.similarSlider}>
+            {similarProducts.map((item, index) => (
+              <div
+                key={item._id}
+                className={styles.animatedCard}
+                style={{ animationDelay: `${index * 0.08}s` }}
+              >
                 <ProductCard
                   id={item._id}
                   title={item.title}
