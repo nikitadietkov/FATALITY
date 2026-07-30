@@ -744,7 +744,7 @@ export default function Product() {
             </div>
             <div className={styles.badge}>
               <FaShieldAlt className={styles.badgeIcon} />
-              <span>Офіційна гарантія та перевірка якості FATALITY</span>
+              <span>Гарантія від FATALITY - {product.warranty || '14 днів'}</span>
             </div>
             <div className={styles.badge}>
               <FaUndo className={styles.badgeIcon} />

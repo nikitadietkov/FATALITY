@@ -413,3 +413,21 @@ button {
     justify-content: center;
   }
 }
+
+.footer-credit {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.footer-credit a {
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-decoration-color: var(--border-light);
+  transition: color 0.3s;
+}
+
+.footer-credit a:hover {
+  color: var(--primary-color);
+  text-decoration-color: var(--primary-color);
+}

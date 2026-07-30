@@ -145,6 +145,7 @@ function AppContent() {
           <div className="footer-links">
             <Link to="/">Каталог</Link>
             <Link to="/about">Про нас</Link>
+            <Link to="/oferta">Публічна оферта</Link>
             <Link to="/track-order">Мої замовлення</Link>
             <Link to="/cart">Кошик</Link>
           </div>
@@ -152,6 +153,12 @@ function AppContent() {
         <div className="footer-bottom">
           <p>&copy; {new Date().getFullYear()} FATALITY. Всі права захищені.</p>
           <p className="footer-subtext">Перший в Україні преміальний магазин відновлених консолей.</p>
+          <p className="footer-credit">
+            Розробка сайту завдяки {' '}
+            <a href="https://google.com" target="_blank" rel="noopener noreferrer">
+              Dietkov
+            </a>
+          </p>
         </div>
       </footer>
     </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { IMaskInput } from 'react-imask';
 import { FaSearch, FaBoxOpen, FaTruck, FaCheck, FaTimesCircle, FaClock } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import styles from './TrackOrder.module.css';
@@ -104,12 +105,15 @@ export default function TrackOrder() {
             onChange={e => setFormData({ ...formData, orderId: e.target.value })}
             className={styles.inputField}
           />
-          <input
+          <IMaskInput
             type="tel"
-            placeholder="Ваш номер телефону"
-            value={formData.phone}
-            onChange={e => setFormData({ ...formData, phone: e.target.value })}
+            mask="+38 (000) 000-00-00"
+            placeholder="+38 (0XX) XXX-XX-XX"
+            required
             className={styles.inputField}
+            value={formData.phone}
+            unmask={false} 
+            onChange={e => setFormData({ ...formData, phone: e.target.value })}
           />
           <button type="submit" className={styles.submitBtn} disabled={loading}>
             {loading ? 'ПОШУК...' : <><FaSearch /> ЗНАЙТИ</>}

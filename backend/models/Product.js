@@ -18,6 +18,8 @@ const productSchema = new mongoose.Schema({
     category: { type: String, required: true, default: 'Консолі' }, 
     brand: { type: String, default: 'Sony' },
     
+    warranty: { type: String, default: '14 днів' },
+    
     model: { type: String, required: true },
     price: { type: Number, required: true },
     condition: { type: String, required: true },

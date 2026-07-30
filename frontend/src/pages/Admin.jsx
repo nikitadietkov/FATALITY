@@ -31,7 +31,7 @@ const MAX_DESC_LENGTH = 150;
 const PRODUCT_DEFAULTS = {
   title: '', category: '', brand: '', model: '',
   price: '', condition: 'Вживана - Ідеальний стан',
-  description: '', searchTags: '',
+  warranty: '14 днів',  description: '', searchTags: '',
 };
 
 // ─── MODULE-LEVEL HELPERS ─────────────────────────────────────────────────────
@@ -825,6 +825,7 @@ export default function Admin() {
       condition:   product.condition,
       description: product.description,
       searchTags:  product.searchTags ?? '',
+      warranty:    product.warranty || '14 днів',
     });
 
     setSpecs(
@@ -1049,10 +1050,16 @@ export default function Admin() {
                     </select>
                   </div>
                 )}
-
                 {/* Search tags + AI */}
                 {newProduct.brand && (
                   <div className={styles.formRow} style={{ alignItems: 'center' }}>
+                    <input
+                      type="text"
+                      placeholder="Гарантія (напр. 2 місяці)"
+                      className={styles.inputField}
+                      value={newProduct.warranty}
+                      onChange={e => setNewProduct(p => ({ ...p, warranty: e.target.value }))}
+                    />
                     <input
                       type="text"
                       placeholder="Приховані пошукові теги (через кому)"
