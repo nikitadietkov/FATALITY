@@ -73,11 +73,6 @@ const CartItemRow = memo(function CartItemRow({ item, onIncrement, onDecrement, 
   );
 });
 
-/* -------------------------------------------------------------------------
-   ConfirmClearModal
-   Accessible modal: closes on Escape, locks body scroll while open,
-   exposes proper dialog semantics for screen readers.
-   ------------------------------------------------------------------------- */
 function ConfirmClearModal({ onCancel, onConfirm }) {
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -123,13 +118,20 @@ export default function Cart() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  
+  const [isCashOnDelivery, setIsCashOnDelivery] = useState(false);
+
+  // Стейт вартості доставки
+  const [shippingCost, setShippingCost] = useState(0);
+  const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
 
   const [formData, setFormData] = useState(() => {
     try {
       const savedData = localStorage.getItem(FORM_STORAGE_KEY);
-      return savedData ? JSON.parse(savedData) : { name: '', phone: '', email: '', address: '' };
+      // Додано cityRef у початковий стейт
+      return savedData ? JSON.parse(savedData) : { name: '', phone: '', email: '', address: '', cityRef: '' };
     } catch {
-      return { name: '', phone: '', email: '', address: '' };
+      return { name: '', phone: '', email: '', address: '', cityRef: '' };
     }
   });
 
@@ -152,11 +154,8 @@ export default function Cart() {
         setIsSubmitting(false);
       }
     };
-
     window.addEventListener('pageshow', handlePageShow);
-    return () => {
-      window.removeEventListener('pageshow', handlePageShow);
-    };
+    return () => window.removeEventListener('pageshow', handlePageShow);
   }, []);
 
   useEffect(() => {
@@ -167,25 +166,59 @@ export default function Cart() {
     const handle = setTimeout(() => {
       try {
         localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(formData));
-      } catch {
-        // ignore quota/availability errors — persistence is a nice-to-have
-      }
+      } catch {}
     }, 400);
     return () => clearTimeout(handle);
   }, [formData]);
 
   useEffect(() => {
-    return () => {
-      if (messageListenerRef.current) {
-        window.removeEventListener('message', messageListenerRef.current);
-      }
-    };
-  }, []);
+    if (cartItems.length > 0 && formData.cityRef && formData.address) {
+      const fetchShipping = async () => {
+        setIsCalculatingShipping(true);
+        try {
+          const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/shipping/calculate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              cityRecipientRef: formData.cityRef,
+              items: cartItems,
+              totalCost: cartTotal - discount
+            })
+          });
+          
+          const data = await res.json();
+          if (data.shippingCost) {
+            setShippingCost(data.shippingCost);
+          }
+        } catch (error) {
+          console.error('Помилка розрахунку доставки:', error);
+        } finally {
+          setIsCalculatingShipping(false);
+        }
+      };
+
+      const timer = setTimeout(() => {
+        fetchShipping();
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    } else {
+      setShippingCost(0);
+    }
+  }, [cartItems, formData.cityRef, formData.address, cartTotal, discount]);
+
+  const codFee = useMemo(() => {
+    if (!isCashOnDelivery) return 0;
+    const subtotal = cartTotal - discount;
+    return subtotal > 0 ? Math.ceil(subtotal * 0.02 + 20) : 0;
+  }, [isCashOnDelivery, cartTotal, discount]);
 
   const finalTotal = useMemo(() => {
     const total = cartTotal - discount;
-    return total > 0 ? total : 0;
-  }, [cartTotal, discount]);
+    const baseTotal = total > 0 ? total : 0;
+    // Додаємо вартість доставки до фінальної суми
+    return baseTotal + codFee + shippingCost;
+  }, [cartTotal, discount, codFee, shippingCost]);
 
   const itemCount = useMemo(
     () => cartItems.reduce((acc, item) => acc + item.quantity, 0),
@@ -207,9 +240,6 @@ export default function Cart() {
       return;
     }
     setIsApplyingPromo(true);
-    // Mock promo logic — replace with a real API call. NOTE: this is a
-    // client-side check only; the discount must still be re-validated
-    // server-side before charging, since finalTotal below is client-derived.
     window.setTimeout(() => {
       if (promoCode.toUpperCase() === 'FATALITY10') {
         setDiscount(Math.floor(cartTotal * 0.1));
@@ -236,13 +266,14 @@ export default function Cart() {
       return;
     }
     setIsSubmitting(true);
-    const toastId = toast.loading('Ініціалізація безпечного з\'єднання...');
+    const toastId = toast.loading('Обробка замовлення...');
 
     const orderData = {
       customerName: formData.name,
       email: formData.email,
       phone: formData.phone,
       address: formData.address,
+      paymentMethod: isCashOnDelivery ? 'cod' : 'card',
       items: cartItems.map((item) => ({
         productId: getItemId(item),
         title: item.title,
@@ -250,7 +281,9 @@ export default function Cart() {
         quantity: item.quantity
       })),
       totalAmount: finalTotal,
-      appliedPromo: discount > 0 ? promoCode : null
+      appliedPromo: discount > 0 ? promoCode : null,
+      codFee: codFee,
+      shippingCost: shippingCost 
     };
 
     try {
@@ -263,9 +296,18 @@ export default function Cart() {
       if (!response.ok) throw new Error('Помилка при створенні замовлення.');
 
       const data = await response.json();
-      const pd = data.paymentData;
-
       toast.dismiss(toastId);
+
+      if (isCashOnDelivery) {
+        setOrderSuccess(data.orderId || (data.paymentData && data.paymentData.orderReference) || `COD-${Date.now()}`);
+        clearCart();
+        setDiscount(0);
+        localStorage.removeItem(FORM_STORAGE_KEY);
+        setIsSubmitting(false);
+        return; 
+      }
+
+      const pd = data.paymentData;
 
       if (typeof window.Wayforpay === 'undefined') {
         toast.error('Модуль оплати недоступний. Перевірте підключення або блокувальник реклами.');
@@ -332,7 +374,7 @@ export default function Cart() {
       toast.error(error.message || 'Втрачено зв\'язок із сервером.', { id: toastId });
       setIsSubmitting(false);
     }
-  }, [cartItems, clearCart, discount, finalTotal, formData, promoCode]);
+  }, [cartItems, clearCart, discount, finalTotal, formData, promoCode, isCashOnDelivery, codFee, shippingCost]);
 
   if (orderSuccess) {
     return (
@@ -343,7 +385,7 @@ export default function Cart() {
         </div>
         <h2 className={styles.successTitle}>ЗАМОВЛЕННЯ ПРИЙНЯТО!</h2>
         <p className={styles.successText}>
-          Дякуємо за покупку у FATALITY. Ваш платіж успішно оброблено. <br />
+          Дякуємо за покупку у FATALITY. {isCashOnDelivery ? 'Ваше замовлення успішно створено.' : 'Ваш платіж успішно оброблено.'} <br />
           Кібер-менеджер вже готує вашу консоль до відправки. <br />
           <b className={styles.highlightText}>Збережіть ID замовлення для відстеження статусу.</b>
         </p>
@@ -424,10 +466,24 @@ export default function Cart() {
                   <span>-{discount.toLocaleString('uk-UA')} ₴</span>
                 </div>
               )}
+              
+              {isCashOnDelivery && (
+                <div className={styles.summaryRow} style={{color: 'var(--color-warning)'}}>
+                  <span>Комісія НП (Післяплата)</span>
+                  <span>+{codFee.toLocaleString('uk-UA')} ₴</span>
+                </div>
+              )}
 
+              {/* Відображення вартості доставки */}
               <div className={styles.summaryRow}>
                 <span>Доставка НП</span>
-                <span className={styles.freeShipping}>За тарифами перевізника</span>
+                {isCalculatingShipping ? (
+                  <span className={styles.freeShipping}>Рахуємо... <span className={styles.spinner} aria-hidden="true" /></span>
+                ) : shippingCost > 0 ? (
+                  <span style={{color: '#ffffff', fontWeight: 600}}>+{shippingCost.toLocaleString('uk-UA')} ₴</span>
+                ) : (
+                  <span className={styles.freeShipping}>За тарифами перевізника</span>
+                )}
               </div>
             </div>
 
@@ -496,9 +552,36 @@ export default function Cart() {
                     <NovaPoshta
                       value={formData.address}
                       onChange={(val) => setFormData(prev => ({ ...prev, address: val }))}
+                      onCitySelect={(ref) => setFormData(prev => ({ ...prev, cityRef: ref }))}
                       disabled={isSubmitting}
                       styles={styles}
                     />
+                  </div>
+
+                  <div className={styles.paymentMethods}>
+                    <span className={styles.paymentTitle}>Спосіб оплати:</span>
+                    <label className={styles.radioLabel}>
+                      <input 
+                        type="radio" 
+                        name="paymentMethod"
+                        className={styles.radioInput}
+                        checked={!isCashOnDelivery} 
+                        onChange={() => setIsCashOnDelivery(false)} 
+                        disabled={isSubmitting}
+                      />
+                      <span>Оплата карткою онлайн</span>
+                    </label>
+                    <label className={styles.radioLabel}>
+                      <input 
+                        type="radio" 
+                        name="paymentMethod"
+                        className={styles.radioInput}
+                        checked={isCashOnDelivery} 
+                        onChange={() => setIsCashOnDelivery(true)} 
+                        disabled={isSubmitting}
+                      />
+                      <span>Післяплата (Комісія 2% + 20 грн)</span>
+                    </label>
                   </div>
 
                   <div className={styles.termsGroup}>
@@ -520,11 +603,13 @@ export default function Cart() {
                     <button type="button" className={styles.cancelBtn} onClick={() => setIsCheckingOut(false)} disabled={isSubmitting}>
                       Назад
                     </button>
-                    {/* Кнопка тепер перевіряє agreedToTerms */}
                     <button type="submit" className={styles.submitBtn} disabled={isSubmitting || !agreedToTerms}>
                       {isSubmitting
                         ? <><span className={styles.spinner} aria-hidden="true" /> Обробка...</>
-                        : `Оплатити ${finalTotal.toLocaleString('uk-UA')} ₴`}
+                        : isCashOnDelivery 
+                          ? 'Підтвердити замовлення' 
+                          : `Оплатити ${finalTotal.toLocaleString('uk-UA')} ₴`
+                      }
                     </button>
                   </div>
                 </form>

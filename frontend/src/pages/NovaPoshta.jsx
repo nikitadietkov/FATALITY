@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export default function NovaPoshta({ value, onChange, disabled, styles }) {
+export default function NovaPoshta({ value, onChange, onCitySelect, disabled, styles }) {
   const [citySearch, setCitySearch] = useState('');
   const [cities, setCities] = useState([]);
   const [cityRef, setCityRef] = useState('');
@@ -12,14 +12,12 @@ export default function NovaPoshta({ value, onChange, disabled, styles }) {
 
   const API_KEY = import.meta.env.VITE_NP_API_KEY || '';
 
-  // Якщо адреса була збережена в localStorage, показуємо її
   useEffect(() => {
     if (value && !citySearch && !depSearch) {
       setDepSearch(value);
     }
   }, [value, citySearch, depSearch]);
 
-  // Шукаємо місто з затримкою (Debounce), щоб не спамити API
   useEffect(() => {
     if (citySearch.length < 2 || cityRef) {
       if (citySearch.length < 2) setCities([]);
@@ -50,7 +48,6 @@ export default function NovaPoshta({ value, onChange, disabled, styles }) {
     return () => clearTimeout(timer);
   }, [citySearch, cityRef, API_KEY]);
 
-  // Завантажуємо всі відділення обраного міста
   useEffect(() => {
     if (!cityRef) {
       setDepartments([]);
@@ -83,18 +80,18 @@ export default function NovaPoshta({ value, onChange, disabled, styles }) {
     setCityRef(city.DeliveryCity); // Зберігаємо унікальний ID міста
     setShowCities(false);
     setDepSearch('');
-    onChange(''); // Очищаємо фінальну адресу, поки не вибрано відділення
+    onChange(''); 
+    if (onCitySelect) onCitySelect(city.DeliveryCity); // Передаємо Ref міста наверх
   };
 
   const handleDepSelect = (dep) => {
     setDepSearch(dep.Description);
-    setShowDeps(false);
-    onChange(`${citySearch}, ${dep.Description}`); // Передаємо готову адресу в корзину
+    setShowDeps(false); 
+    onChange(`${citySearch}, ${dep.Description}`);
   };
-
+  
   return (
     <div className={styles.npWrapper}>
-      {/* Інпут для міста */}
       <div className={styles.npDropdownContainer}>
         <input
           type="text"
@@ -105,6 +102,7 @@ export default function NovaPoshta({ value, onChange, disabled, styles }) {
             setCitySearch(e.target.value);
             setCityRef('');
             onChange('');
+            if (onCitySelect) onCitySelect('');
           }}
           onFocus={() => { if (cities.length) setShowCities(true) }}
           onBlur={() => setTimeout(() => setShowCities(false), 200)}
@@ -121,7 +119,6 @@ export default function NovaPoshta({ value, onChange, disabled, styles }) {
         )}
       </div>
 
-      {/* Інпут для відділення */}
       <div className={styles.npDropdownContainer}>
         <input
           type="text"

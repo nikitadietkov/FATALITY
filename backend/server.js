@@ -175,8 +175,7 @@ app.get('/api/products/:id', async (req, res) => {
 
 app.post('/api/products', verifyAdmin, upload.array('images', 5), async (req, res) => {
     try {
-        // Додано category та brand
-        const { title, category, brand, model, price, condition, description, searchTags, specs } = req.body;
+        const { title, category, brand, model, price, condition, description, searchTags, specs, weight, width, length, height } = req.body;
         const imageUrls = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
 
         let parsedSpecs = [];
@@ -199,8 +198,8 @@ app.post('/api/products', verifyAdmin, upload.array('images', 5), async (req, re
 
 app.put('/api/products/:id', verifyAdmin, upload.array('images', 5), async (req, res) => {
     try {
-        const { title, category, brand, model, price, condition, description, searchTags, specs } = req.body;
-        let updateData = { title, category, brand, model, price, condition, description, searchTags };
+        const { title, category, brand, model, price, condition, description, searchTags, specs, weight, width, length, height } = req.body;
+        let updateData = { title, category, brand, model, price, condition, description, searchTags};
 
         if (specs !== undefined) {
             try {
@@ -732,6 +731,58 @@ app.put('/api/crm/tasks/:id', verifyAdmin, async (req, res) => {
         res.json(updatedTask);
     } catch (error) {
         res.status(500).json({ message: "Помилка оновлення завдання" });
+    }
+});
+
+app.post('/api/shipping/calculate', async (req, res) => {
+    try {
+        const { cityRecipientRef, items, totalCost } = req.body;
+        
+        let totalWeight = 0;
+        let totalVolume = 0;
+
+        items.forEach(item => {
+            const w = item.weight || 2;
+            const l = item.length || 30;
+            const wd = item.width || 20;
+            const h = item.height || 15;
+            
+            totalWeight += (w * item.quantity);
+            totalVolume += (((l * wd * h) / 1000000) * item.quantity); 
+        });
+        const senderCityRef = process.env.NP_SENDER_CITY || "db5c88f0-391c-11dd-90d9-001a92567626";
+
+        const npResponse = await fetch('https://api.novaposhta.ua/v2.0/json/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                apiKey: process.env.NOVA_POSHTA_API_KEY,
+                modelName: "InternetDocument",
+                calledMethod: "getDocumentPrice",
+                methodProperties: {
+                    CitySender: senderCityRef,
+                    CityRecipient: cityRecipientRef,
+                    Weight: totalWeight.toString(),
+                    VolumeGeneral: totalVolume.toString(),
+                    ServiceType: "WarehouseWarehouse",
+                    Cost: totalCost.toString(),
+                    CargoType: "Cargo",
+                    SeatsAmount: "1"
+                }
+            })
+        });
+
+        const data = await npResponse.json();
+        
+        if (data.success && data.data.length > 0) {
+            res.json({ shippingCost: data.data[0].Cost });
+        } else {
+            console.error("Помилка НП:", data.errors);
+            res.status(400).json({ error: 'Помилка прорахунку НП', details: data.errors });
+        }
+    } catch (error) {
+        console.error("Помилка сервера при прорахунку:", error);
+        res.status(500).json({ message: "Server error" });
     }
 });
 
