@@ -51,7 +51,7 @@ const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
         folder: 'fatality-store',
-        allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+        allowedFormats: ['jpg', 'jpeg', 'png', 'webp'],
         transformation: [{ width: 1000, crop: 'limit' }]
     },
 });
