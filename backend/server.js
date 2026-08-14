@@ -9,6 +9,8 @@ import cors from 'cors';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { v2 as cloudinary } from 'cloudinary';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
 
 import Order from './models/Order.js';
 import Client from './models/Client.js';
@@ -37,15 +39,23 @@ mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('✅ Database CONNECTED'))
     .catch((err) => console.log('❌ Error connecting to database', err));
 
-if (!fs.existsSync('uploads')) {
-    fs.mkdirSync('uploads');
-}
-app.use('/uploads', express.static('uploads'));
-
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, 'uploads/'),
-    filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname.replace(/\s+/g, '-'))
+// Настройка Cloudinary
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
 });
+
+// Настройка хранилища для multer в облаке
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'fatality-store',
+        allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+        transformation: [{ width: 1000, crop: 'limit' }]
+    },
+});
+
 const upload = multer({ storage });
 
 const linkClientToRequest = async (name, phone, email, docId, docType) => {
@@ -118,7 +128,6 @@ app.post('/api/admin/login', (req, res) => {
     }
 });
 
-// НОВИЙ РОУТ: Отримання динамічних меж цін для повзунка
 app.get('/api/products/meta', async (req, res) => {
     try {
         const stats = await Product.aggregate([
@@ -131,7 +140,6 @@ app.get('/api/products/meta', async (req, res) => {
             }
         ]);
         
-        // Якщо товарів немає, повертаємо дефолтні значення
         if (stats.length === 0) {
             return res.json({ minPrice: 0, maxPrice: 40000 });
         }
@@ -145,7 +153,6 @@ app.get('/api/products', async (req, res) => {
     try {
         let query = {}; 
         
-        // Додано фільтрацію за категоріями та брендами
         if (req.query.categories) query.category = { $in: req.query.categories.split(',') };
         if (req.query.brands) query.brand = { $in: req.query.brands.split(',') };
         if (req.query.models) query.model = { $in: req.query.models.split(',') };
@@ -176,7 +183,9 @@ app.get('/api/products/:id', async (req, res) => {
 app.post('/api/products', verifyAdmin, upload.array('images', 5), async (req, res) => {
     try {
         const { title, category, brand, model, price, condition, description, searchTags, specs, weight, width, length, height } = req.body;
-        const imageUrls = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
+        
+        // Зберігаємо готові посилання з Cloudinary
+        const imageUrls = req.files ? req.files.map(file => file.path) : [];
 
         let parsedSpecs = [];
         if (specs) {
@@ -210,8 +219,9 @@ app.put('/api/products/:id', verifyAdmin, upload.array('images', 5), async (req,
             }
         }
 
+        // Оновлюємо готові посилання з Cloudinary
         if (req.files && req.files.length > 0) {
-            updateData.imageUrls = req.files.map(file => `/uploads/${file.filename}`);
+            updateData.imageUrls = req.files.map(file => file.path);
         }
 
         const updatedProduct = await Product.findByIdAndUpdate(
@@ -401,7 +411,8 @@ app.post('/api/trade-in', upload.array('images', 10), async (req, res) => {
             equipment = Array.isArray(req.body.equipment) ? req.body.equipment : req.body.equipment.split(',');
         }
         
-        const images = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
+        // Зберігаємо готові посилання з Cloudinary
+        const images = req.files ? req.files.map(file => file.path) : [];
 
         if (images.length === 0) {
             return res.status(400).json({ message: "Потрібно завантажити хоча б одне фото" });
@@ -467,7 +478,8 @@ app.post('/api/buyout', upload.array('images', 10), async (req, res) => {
             equipment = Array.isArray(req.body.equipment) ? req.body.equipment : req.body.equipment.split(',');
         }
         
-        const images = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
+        // Зберігаємо готові посилання з Cloudinary
+        const images = req.files ? req.files.map(file => file.path) : [];
 
         if (images.length === 0) {
             return res.status(400).json({ message: "Потрібно завантажити хоча б одне фото" });
