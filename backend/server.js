@@ -115,6 +115,7 @@ const verifyAdmin = (req, res, next) => {
         next();
     } catch (err) {
         res.status(401).json({ message: 'Токен недійсний' });
+        console.error('❌ Помилка верифікації токена:', err);
     }
 };
 
@@ -146,6 +147,7 @@ app.get('/api/products/meta', async (req, res) => {
         res.json({ minPrice: stats[0].minPrice, maxPrice: stats[0].maxPrice });
     } catch (error) {
         res.status(500).json({ message: "Помилка отримання метаданих" });
+        console.error("❌ Помилка отримання метаданих:", error);
     }
 });
 
@@ -167,6 +169,7 @@ app.get('/api/products', async (req, res) => {
         res.json(products);
     } catch (error) {
         res.status(500).json({ message: "Помилка завантаження каталогу" });
+        console.error("❌ Помилка завантаження каталогу:", error);
     }
 });
 
@@ -177,6 +180,7 @@ app.get('/api/products/:id', async (req, res) => {
         res.json(product);
     } catch (error) {
         res.status(500).json({ message: "Помилка отримання данних про товар" });
+        console.error("❌ Помилка отримання данних про товар:", error);
     }
 });
 
@@ -194,6 +198,7 @@ app.post('/api/products', verifyAdmin, upload.array('images', 5), async (req, re
                 if (!Array.isArray(parsedSpecs)) parsedSpecs = [];
             } catch (e) {
                 parsedSpecs = [];
+                console.error("❌ Помилка парсингу specs:", e);
             }
         }
 
@@ -202,6 +207,7 @@ app.post('/api/products', verifyAdmin, upload.array('images', 5), async (req, re
         res.status(201).json(newProduct);
     } catch (error) {
         res.status(500).json({ message: "Помилка додавання товару" });
+        console.error("❌ Помилка додавання товару:", error);
     }
 });
 
@@ -216,6 +222,7 @@ app.put('/api/products/:id', verifyAdmin, upload.array('images', 5), async (req,
                 updateData.specs = Array.isArray(parsedSpecs) ? parsedSpecs : [];
             } catch (e) {
                 updateData.specs = [];
+                console.error("❌ Помилка парсингу specs при оновленні:", e);
             }
         }
 
@@ -796,6 +803,15 @@ app.post('/api/shipping/calculate', async (req, res) => {
         console.error("Помилка сервера при прорахунку:", error);
         res.status(500).json({ message: "Server error" });
     }
+});
+
+app.use((err, req, res, next) => {
+    console.error("🚨 Глобальна помилка сервера:", err);
+    res.status(500).json({ 
+        message: "Помилка при обробці запиту", 
+        error: err.message,
+        stack: err.stack
+    });
 });
 
 const PORT = process.env.PORT || 5000; 
